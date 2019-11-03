@@ -5,46 +5,52 @@
  *
  */
 
-#include <sstream> 
+#include <sstream>
 #include <vector>
 #include <string>
-#include "CryptoHelperWindows.h"
-// The RSA public-key key exchange algorithm
-#define ENCRYPT_ALGORITHM         CALG_RSA_SIGN
-// The high order WORD 0x0200 (decimal 512)
-// determines the key length in bits.
-#define KEYLENGTH                 0x02000000
+
+#include <bcrypt.h>
+#include <ncrypt.h>
+#include <wincrypt.h>
+#pragma comment(lib, "bcrypt.lib")
 #pragma comment(lib, "crypt32.lib")
 
+#include "CryptoHelperWindows.h"
+#include <iostream>
+
 namespace license {
+using namespace std;
+#define NT_SUCCESS(Status)          (((NTSTATUS)(Status)) >= 0)
 
-CryptoHelperWindows::CryptoHelperWindows() {
-	m_hCryptProv = NULL;
-	m_hCryptKey = NULL;
-	if (!CryptAcquireContext(&m_hCryptProv, "license_sign", NULL , PROV_RSA_FULL, 0)) {
-		// If the key container cannot be opened, try creating a new
-		// container by specifying a container name and setting the
-		// CRYPT_NEWKEYSET flag.
-		DWORD lastError = GetLastError();
-		printf("Error in CryptAcquireContext (1) 0x%08x \n", lastError);
-		if (NTE_BAD_KEYSET == lastError) {
-			if (!CryptAcquireContext(&m_hCryptProv, "license_sign", NULL , PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
-				printf("Warn in CryptAcquireContext: acquiring new user keyset failed 0x%08x, trying less secure mackine keyset \n", GetLastError());
-				//maybe access to protected storage disabled. Try with machine keys (less secure)
-				if (!CryptAcquireContext(&m_hCryptProv, "license_sign", NULL, PROV_RSA_FULL, CRYPT_MACHINE_KEYSET)) {
-					printf("Error in CryptAcquireContext (2) 0x%08x \n", GetLastError());
-					if (!CryptAcquireContext(&m_hCryptProv, "license_sign", NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET|CRYPT_MACHINE_KEYSET)) {
-						printf("Error in CryptAcquireContext (3): acquiring new keyset(machine) failed 0x%08x \n", GetLastError());
-						throw logic_error("");
-					}
-				}
-			}
-		} else {
-			printf(" Error in CryptAcquireContext (4) 0x%08x \n", lastError);
-			throw logic_error("");
-		}
+static string formatError(DWORD status) {
+	vector<char> msgBuffer(256);
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
+	NULL, status, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), &msgBuffer[0],
+			sizeof(msgBuffer) - 1, nullptr);
+	return string(&msgBuffer[0]);
+}
+
+static BCRYPT_ALG_HANDLE openSignatureProvider() {
+	DWORD status;
+	BCRYPT_ALG_HANDLE hSignAlg = nullptr;
+	if (!NT_SUCCESS(
+			status = BCryptOpenAlgorithmProvider( &hSignAlg, BCRYPT_RSA_ALGORITHM, NULL, 0))) {
+		wprintf(L"**** Error 0x%x returned by BCryptOpenAlgorithmProvider\n",
+				status);
+		throw logic_error("Error opening signature provider");
 	}
+	return hSignAlg;
+}
 
+CryptoHelperWindows::CryptoHelperWindows() :
+		m_hSignAlg(openSignatureProvider()) {
+	DWORD status;
+	if (!NT_SUCCESS(
+			status = BCryptOpenAlgorithmProvider( &m_hHashAlg, BCRYPT_SHA256_ALGORITHM, NULL, 0))) {
+		wprintf(L"**** Error 0x%x returned by BCryptOpenAlgorithmProvider\n",
+				status);
+		throw logic_error(string("Error finding hash algorigthm. "));
+	}
 }
 
 /**
@@ -60,24 +66,25 @@ void CryptoHelperWindows::generateKeyPair() {
 	if (m_hCryptProv == NULL)
 		throw logic_error("Cryptocontext not correctly initialized");
 	// Release a previously acquired handle to key-pair.
-	if (m_hCryptKey)
+	if (m_hCryptKey) {
 		m_hCryptKey = NULL;
+	}
 	// Call the CryptGenKey method to get a handle
 	// to a new exportable key-pair.
-	if (!CryptGenKey(m_hCryptProv, ENCRYPT_ALGORITHM,
-	KEYLENGTH | CRYPT_EXPORTABLE, &m_hCryptKey)) {
+	if (!CryptGenKey(m_hCryptProv, CALG_RSA_SIGN,
+			RSA1024BIT_KEY | CRYPT_EXPORTABLE, &m_hCryptKey)) {
 		dwErrCode = GetLastError();
 		throw logic_error(
 				string("Error generating keys ")
 						+ to_string(static_cast<long long>(dwErrCode)));
 	}
 	//double check the key is really generated
-	if(m_hCryptKey == NULL) {
+	if (m_hCryptKey == NULL) {
 		dwErrCode = GetLastError();
 		throw logic_error(
 				string("Error generating keys (2)")
 						+ to_string(static_cast<long long>(dwErrCode)));
-    }
+	}
 }
 
 /* This method calls the CryptExportKey function to get the Public key
@@ -130,19 +137,10 @@ const string CryptoHelperWindows::exportPublicKey() const {
 }
 
 CryptoHelperWindows::~CryptoHelperWindows() {
-	if (m_hCryptProv) {
-		CryptReleaseContext(m_hCryptProv, 0);
-		m_hCryptProv = NULL;
-	}
-	if (m_hCryptKey)
-		m_hCryptKey = NULL;
+	BCryptCloseAlgorithmProvider(m_hHashAlg, 0);
+	BCryptCloseAlgorithmProvider(m_hSignAlg, 0);
 }
 
-//--------------------------------------------------------------------
-// This method calls the CryptExportKey function to get the Private key
-// in a byte array. The byte array is allocated on the heap and the size
-// of this is returned to the caller. The caller is responsible for releasing // this memory using a delete call.
-//--------------------------------------------------------------------
 const string CryptoHelperWindows::exportPrivateKey() const {
 	HRESULT hr = S_OK;
 	DWORD dwErrCode;
@@ -212,183 +210,175 @@ void CryptoHelperWindows::printHash(HCRYPTHASH *hHash) const {
 	}
 }
 
-const string CryptoHelperWindows::signString(const void *privateKey,
-		size_t pklen, const string &license) const {
-	BYTE *pbBuffer = (BYTE*) license.c_str();
-	const DWORD dwBufferLen = (DWORD) strlen((char*) pbBuffer);
-	HCRYPTHASH hHash;
+void CryptoHelperWindows::loadPrivateKey(const std::string &privateKey) {
+	DWORD dwBufferLen = 0, cbKeyBlob = 0, cbSignature = 0, status;
+	BOOL success;
+	LPBYTE pbBuffer = nullptr, pbKeyBlob = NULL;
+	string error;
 
-	HCRYPTKEY hKey;
+	m_hSignAlg = openSignatureProvider();
+
+	if (CryptStringToBinaryA(privateKey.c_str(), 0, CRYPT_STRING_BASE64HEADER,
+	NULL, &dwBufferLen, NULL, NULL)) {
+		pbBuffer = (LPBYTE) LocalAlloc(0, dwBufferLen);
+		if (CryptStringToBinaryA(privateKey.c_str(), 0,
+				CRYPT_STRING_BASE64HEADER, pbBuffer, &dwBufferLen, NULL,
+				NULL)) {
+			if (CryptDecodeObjectEx(X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
+					PKCS_RSA_PRIVATE_KEY, pbBuffer, dwBufferLen, 0, NULL, NULL,
+					&cbKeyBlob)) {
+				pbKeyBlob = (LPBYTE) LocalAlloc(0, cbKeyBlob);
+				success = CryptDecodeObjectEx(
+						X509_ASN_ENCODING | PKCS_7_ASN_ENCODING,
+						PKCS_RSA_PRIVATE_KEY, pbBuffer, dwBufferLen, 0, NULL,
+						pbKeyBlob, &cbKeyBlob);
+				LocalFree(pbBuffer);
+				pbBuffer = nullptr;
+				if (success) {
+					status = BCryptImportKeyPair(m_hSignAlg, NULL,
+							LEGACY_RSAPRIVATE_BLOB, &m_hTmpKey, pbKeyBlob,
+							cbKeyBlob, 0);
+					LocalFree(pbKeyBlob);
+					if (!NT_SUCCESS(status)) {
+						error = formatError(status);
+						cerr << "Failed to load BASE64 private key." << error
+								<< endl;
+						throw logic_error(
+								string("Error failed to load private key. ")
+										+ error);
+					}
+				} else {
+					error = formatError(status);
+					LocalFree(pbKeyBlob);
+					cerr << "Failed to convert BASE64 private key." << error
+							<< endl;
+					throw logic_error(
+							string("Error during loadPrivateKey. ") + error);
+				}
+			}
+		}
+	}
+	error = formatError(GetLastError());
+	if (pbBuffer) {
+		LocalFree(pbBuffer);
+	}
+	cerr << "Failed to load BASE64 private key." << error << endl;
+	throw logic_error(string("Error during loadPrivateKey. ") + error);
+}
+
+static bool hashData(BCRYPT_HASH_HANDLE &hHash, const string &data,
+		string &error, PBYTE pbHash, DWORD hashDataLenght) {
+	DWORD status;
+	boolean success = false;
+	if (NT_SUCCESS(
+			status = BCryptHashData(hHash, (BYTE* )data.c_str(), data.length(),
+					0))) {
+		if (NT_SUCCESS(
+				status = BCryptFinishHash(hHash, pbHash, hashDataLenght, 0))) {
+			success = true;
+		}
+	}
+	if (!success) {
+		error = "Error hashing data. " + formatError(status);
+	}
+	return success;
+}
+
+static bool signData(BCRYPT_KEY_HANDLE m_hTmpKey, PBYTE pbHash,
+		DWORD hashDataLenght, string &error, string &signatureBuffer) {
+	DWORD status, cbSignature;
+	bool success = false;
+	PBYTE pbSignature = nullptr, pbB64signature = nullptr;
+
+	BCRYPT_PKCS1_PADDING_INFO paddingInfo;
+	ZeroMemory(&paddingInfo, sizeof(paddingInfo));
+	paddingInfo.pszAlgId = BCRYPT_SHA256_ALGORITHM;
+
+	if (NT_SUCCESS(
+			status = BCryptSignHash( m_hTmpKey, &paddingInfo, pbHash, hashDataLenght, NULL, 0, &cbSignature, BCRYPT_PAD_PKCS1))) {
+		pbSignature = (PBYTE) HeapAlloc(GetProcessHeap(), 0, cbSignature);
+		if (NULL != pbSignature) {
+			if (NT_SUCCESS(
+					status = BCryptSignHash(m_hTmpKey, &paddingInfo, pbHash,
+							hashDataLenght, pbSignature, cbSignature,
+							&cbSignature, BCRYPT_PAD_PKCS1))) {
+				DWORD final;
+				CryptBinaryToString(pbSignature, cbSignature,
+						CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, nullptr,
+						&final);
+				pbB64signature = (PBYTE) HeapAlloc(GetProcessHeap(), 0,
+						cbSignature);
+				CryptBinaryToString(pbSignature, cbSignature,
+						CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF,
+						pbB64signature, &final);
+				signatureBuffer.append((char*) pbB64signature, final);
+				success = true;
+			} else {
+				error = "**** signature failed";
+			}
+		} else {
+			error = "**** memory allocation failed";
+		}
+	}
+
+	//allocate the signature buffer
+	return success;
+
+}
+
+const string CryptoHelperWindows::signString(const string &license) const {
+
+	string error;
+	DWORD status;
+	BCRYPT_HASH_HANDLE hHash;
 	BYTE *pbSignature;
-	DWORD dwSigLen;
-	DWORD strLen;
-
-	//-------------------------------------------------------------------
-	// Acquire a cryptographic provider context handle.
-
-	if (!CryptImportKey(m_hCryptProv, (const BYTE*) privateKey, (DWORD) pklen,
-			0, 0, &hKey)) {
-		throw logic_error(
-				string("Error in importing the PrivateKey ")
-						+ to_string(static_cast<long long>(GetLastError())));
-	}
-
-	//-------------------------------------------------------------------
-	// Create the hash object.
-
-	if (CryptCreateHash(m_hCryptProv, CALG_SHA1, 0, 0, &hHash)) {
-		printf("Hash object created. \n");
+	string signatureBuffer;
+	PBYTE pbHashObject = nullptr, pbHashData = nullptr;
+	bool success = false;
+	//calculate the size of the buffer to hold the hash object
+	DWORD cbData = 0, cbHashObject = 0;
+	//and the size to keep the hashed data
+	DWORD cbHashDataLenght = 0;
+	if (NT_SUCCESS(
+			status =
+					BCryptGetProperty(m_hHashAlg, BCRYPT_OBJECT_LENGTH,
+							(PBYTE) & cbHashObject, sizeof(DWORD), &cbData,
+							0)) && NT_SUCCESS(status = BCryptGetProperty(m_hHashAlg, BCRYPT_HASH_LENGTH, (PBYTE)&cbHashDataLenght, sizeof(DWORD), &cbData, 0))) {
+		//allocate the hash object on the heap
+		pbHashObject = (PBYTE) HeapAlloc(GetProcessHeap(), 0, cbHashObject);
+		pbHashData = (PBYTE) HeapAlloc(GetProcessHeap(), 0, cbHashDataLenght);
+		if (NULL != pbHashObject && nullptr != pbHashData) {
+			//create a hash
+			if (NT_SUCCESS(
+					status = BCryptCreateHash(m_hHashAlg, &hHash, pbHashObject, cbHashObject, NULL, 0, 0))) {
+				success
+						== hashData(hHash, license, error, pbHashData,
+								cbHashDataLenght)
+						&& signData(m_hTmpKey, pbHashData, cbHashDataLenght,
+								error, signatureBuffer);
+			} else {
+				error = "error creating hash";
+			}
+		} else {
+			error = "**** memory allocation failed";
+		}
 	} else {
-		CryptDestroyKey(hKey);
-		throw logic_error(string("Error during CryptCreateHash."));
+		error = "**** Error returned by BCryptGetProperty"
+				+ formatError(status);
 	}
-	//-------------------------------------------------------------------
-	// Compute the cryptographic hash of the buffer.
 
-	if (CryptHashData(hHash, pbBuffer, dwBufferLen, 0)) {
-#ifdef _DEBUG
-		printf("Length of data to be hashed: %d \n", dwBufferLen);
-		printHash(&hHash);
-#endif 
-	} else {
-		throw logic_error(string("Error during CryptHashData."));
+	if (hHash) {
+		BCryptDestroyHash(hHash);
 	}
-	//-------------------------------------------------------------------
-	// Determine the size of the signature and allocate memory.
-
-	dwSigLen = 0;
-	if (CryptSignHash(hHash, AT_SIGNATURE, nullptr, 0, nullptr, &dwSigLen)) {
-		printf("Signature length %d found.\n", dwSigLen);
-	} else {
-		throw logic_error(string("Error during CryptSignHash."));
+	if (pbHashObject) {
+		HeapFree(GetProcessHeap(), 0, pbHashObject);
 	}
-	//-------------------------------------------------------------------
-	// Allocate memory for the signature buffer.
-
-	if (pbSignature = (BYTE*) malloc(dwSigLen)) {
-		printf("Memory allocated for the signature.\n");
-	} else {
-		throw logic_error(string("Out of memory."));
+	if (pbHashData) {
+		HeapFree(GetProcessHeap(), 0, pbHashData);
 	}
-	//-------------------------------------------------------------------
-	// Sign the hash object.
+	if (!success) {
 
-	if (CryptSignHash(hHash, AT_SIGNATURE, nullptr, 0, pbSignature,
-			&dwSigLen)) {
-		printf("pbSignature is the signature length. %d\n", dwSigLen);
-	} else {
-		throw logic_error(string("Error during CryptSignHash."));
 	}
-	//-------------------------------------------------------------------
-	// Destroy the hash object.
-
-	CryptDestroyHash(hHash);
-	CryptDestroyKey(hKey);
-
-	CryptBinaryToString(pbSignature, dwSigLen,
-			CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, nullptr, &strLen);
-	vector<char> buffer(strLen);
-	CryptBinaryToString(pbSignature, dwSigLen,
-			CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, &buffer[0], &strLen);
-
-	//-------------------------------------------------------------------
-	// In the second phase, the hash signature is verified.
-	// This would most often be done by a different user in a
-	// separate program. The hash, signature, and the PUBLICKEYBLOB
-	// would be read from a file, an email message,
-	// or some other source.
-
-	// Here, the original pbBuffer, pbSignature, szDescription.
-	// pbKeyBlob, and their lengths are used.
-
-	// The contents of the pbBuffer must be the same data
-	// that was originally signed.
-
-	//-------------------------------------------------------------------
-	// Get the public key of the user who created the digital signature
-	// and import it into the CSP by using CryptImportKey. This returns
-	// a handle to the public key in hPubKey.
-
-	/*if (CryptImportKey(
-	 hProv,
-	 pbKeyBlob,
-	 dwBlobLen,
-	 0,
-	 0,
-	 &hPubKey))
-	 {
-	 printf("The key has been imported.\n");
-	 }
-	 else
-	 {
-	 MyHandleError("Public key import failed.");
-	 }
-	 //-------------------------------------------------------------------
-	 // Create a new hash object.
-
-	 if (CryptCreateHash(
-	 hProv,
-	 CALG_MD5,
-	 0,
-	 0,
-	 &hHash))
-	 {
-	 printf("The hash object has been recreated. \n");
-	 }
-	 else
-	 {
-	 MyHandleError("Error during CryptCreateHash.");
-	 }
-	 //-------------------------------------------------------------------
-	 // Compute the cryptographic hash of the buffer.
-
-	 if (CryptHashData(
-	 hHash,
-	 pbBuffer,
-	 dwBufferLen,
-	 0))
-	 {
-	 printf("The new hash has been created.\n");
-	 }
-	 else
-	 {
-	 MyHandleError("Error during CryptHashData.");
-	 }
-	 //-------------------------------------------------------------------
-	 // Validate the digital signature.
-
-	 if (CryptVerifySignature(
-	 hHash,
-	 pbSignature,
-	 dwSigLen,
-	 hPubKey,
-	 NULL,
-	 0))
-	 {
-	 printf("The signature has been verified.\n");
-	 }
-	 else
-	 {
-	 printf("Signature not validated!\n");
-	 }
-	 //-------------------------------------------------------------------
-	 // Free memory to be used to store signature.
-
-
-
-	 //-------------------------------------------------------------------
-	 // Destroy the hash object.
-
-
-
-	 //-------------------------------------------------------------------
-	 // Release the provider handle.
-
-	 /*if (hProv)
-	 CryptReleaseContext(hProv, 0);*/
-	if (pbSignature) {
-		free(pbSignature);
-	}
-	return string(&buffer[0]);
+	return signatureBuffer;
 }
 } /* namespace license */

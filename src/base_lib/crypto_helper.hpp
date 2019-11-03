@@ -6,7 +6,7 @@
 #include <string>
 
 namespace license {
-using namespace std;
+
 /**
  * Helper class definition to generate and export Public/Private keys
  * for Asymmetric encryption.
@@ -15,23 +15,34 @@ using namespace std;
  * provides a common facade to the cryptographic functions. The two implementing
  * subclasses are chosen in the factory method #getInstance(). This is to avoid
  * to clutter the code with many "ifdef". (extreme performance is not an issue here)</p>
- *<p> *it is shared by bootstrap and license-generator projects.</p>
+ *
+ * <p>Private keys are 1024 bits openssl format. Public keys are in binary format (for security reasons).
+ * Signatures are in base64</p>
  */
 
 class CryptoHelper {
 
 protected:
-	inline CryptoHelper(){};
+	inline CryptoHelper() {
+	}
 
 public:
 	virtual void generateKeyPair() = 0;
-	virtual const string exportPrivateKey() const = 0;
-	virtual const string exportPublicKey() const = 0;
+	const virtual std::string exportPrivateKey() const = 0;
+	const virtual std::string exportPublicKey() const = 0;
 
-	virtual const string signString(const void* privateKey,
-			size_t pklen, const string& license) const = 0;
-	static unique_ptr<CryptoHelper> getInstance();
-	inline virtual ~CryptoHelper(){};
+	virtual void loadPrivateKey(const std::string &privateKey) = 0;
+	/**
+	 * signature algorithm SHA256withRSA
+	 * @param license
+	 * @return
+	 */
+	const virtual std::string signString(const std::string &license) const = 0;
+	static std::unique_ptr<CryptoHelper> getInstance(
+			const std::string &product_name);
+	inline virtual ~CryptoHelper() {
+	}
+	;
 };
 }
 #endif

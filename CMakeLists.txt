@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
 
 SET(CMAKE_DISABLE_SOURCE_CHANGES ON)
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+SET(OLM_VERSION_STRING "1.0.0")
 SET(LICENSECC_SHORT_LICENSE "BSD Software License")
 
 project (olm-license-generator CXX)
@@ -10,6 +11,7 @@ project (olm-license-generator CXX)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 include(utilities) #import module utilities.cmake
+
 if(CMAKE_BUILD_TYPE)
 	string(TOLOWER ${CMAKE_BUILD_TYPE} _CMAKE_BUILD_TYPE)
 	EVAL_CONDITION(RELEASE_BUILD ${_CMAKE_BUILD_TYPE} STREQUAL "release")
@@ -78,6 +80,7 @@ endif()
 
 SET( Boost_USE_STATIC_LIBS ON )
 find_package(Boost REQUIRED COMPONENTS date_time unit_test_framework program_options system filesystem)
+
 #set below in case of dynamic linking in debug.
 #set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:BOOST_TEST_DYN_LINK>)
 add_definitions(-DBOOST_ALL_NO_LIB) #Disable Boost Microsoft magic, all dependencies are handled by cmake

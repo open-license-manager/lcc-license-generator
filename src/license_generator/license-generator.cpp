@@ -22,7 +22,7 @@
 
 #include <build_properties.h>
 #include "../base_lib/base64.h"
-#include "../base_lib/CryptoHelper.h"
+#include "../base_lib/crypto_helper.hpp"
 
 //namespace fs = boost::filesystem;
 //namespace bt = boost::posix_time;
@@ -158,7 +158,7 @@ void LicenseGenerator::generateB64Licenses(const po::variables_map &vm,
 
 	std::string str = tempStream.str();
 	const char *chr = str.c_str();
-	int finalLenght;
+	size_t finalLenght;
 	char *encoded = base64(chr, str.length(), &finalLenght);
 	outputFile.write(encoded, finalLenght);
 	free(encoded);

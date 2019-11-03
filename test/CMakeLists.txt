@@ -15,3 +15,29 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux") AND CMAKE_CROSSCOMPILING)
 ELSE()
 	ADD_TEST(NAME license_generator_test COMMAND license_generator_test WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 ENDIF()
+
+add_executable(
+ test_product
+ product_test.cpp
+)
+
+target_link_libraries(
+ test_product
+ license_generator_lib
+ ${Boost_LIBRARIES}
+)
+
+ADD_TEST(NAME test_product COMMAND test_product WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(
+ test_cryptohelper
+ cryptohelper_test.cpp
+)
+
+target_link_libraries(
+ test_cryptohelper
+ license_generator_lib
+ ${Boost_LIBRARIES}
+)
+
+ADD_TEST(NAME test_cryptohelper COMMAND test_cryptohelper WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

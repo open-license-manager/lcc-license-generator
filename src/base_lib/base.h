@@ -9,7 +9,7 @@ extern "C" {
 #include <limits.h>
 #define DllExport
 #ifndef MAX_PATH
-	#define MAX_PATH PATH_MAX
+#define MAX_PATH PATH_MAX
 #endif
 
 #else //windows
@@ -29,7 +29,10 @@ typedef int bool;
 #endif
 /* #define _DEBUG */
 
-typedef enum  {
+#define PRIVATE_KEY_FNAME "private_key.rsa"
+#define PUBLIC_KEY_INC_FNAME "public_key.h"
+
+typedef enum {
 	FUNC_RET_OK, FUNC_RET_NOT_AVAIL, FUNC_RET_ERROR, FUNC_RET_BUFFER_TOO_SMALL
 } FUNCTION_RETURN;
 

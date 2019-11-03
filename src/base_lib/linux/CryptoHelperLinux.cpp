@@ -2,7 +2,7 @@
  * CryptpHelperLinux.cpp
  *
  *  Created on: Sep 14, 2014
- *      
+ *
  */
 
 #include "CryptoHelperLinux.h"
@@ -19,8 +19,8 @@
 namespace license {
 using namespace std;
 
-static std::string replaceAll(std::string subject, const std::string& search,
-		const std::string& replace) {
+static std::string replaceAll(std::string subject, const std::string &search,
+		const std::string &replace) {
 	size_t pos = 0;
 	while ((pos = subject.find(search, pos)) != std::string::npos) {
 		subject.replace(pos, search.length(), replace);
@@ -29,9 +29,9 @@ static std::string replaceAll(std::string subject, const std::string& search,
 	return subject;
 }
 
-CryptoHelperLinux::CryptoHelperLinux() {
+CryptoHelperLinux::CryptoHelperLinux() :
+		m_pktmp(nullptr) {
 	static int initialized = 0;
-	rsa = NULL;
 	if (initialized == 0) {
 		initialized = 1;
 		ERR_load_ERR_strings();
@@ -41,68 +41,84 @@ CryptoHelperLinux::CryptoHelperLinux() {
 
 }
 void CryptoHelperLinux::generateKeyPair() {
-	rsa = RSA_generate_key(kBits, kExp, 0, 0);
+	EVP_PKEY_CTX *ctx;
+
+	ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL);
+	if (!ctx) {
+
+	}
+
+	if (EVP_PKEY_keygen_init(ctx) <= 0) {
+
+	}
+
+	if (EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, 1024) <= 0) {
+
+	}
+
+	if (EVP_PKEY_keygen(ctx, &m_pktmp) <= 0) {
+
+	}
+
 }
 
 const string CryptoHelperLinux::exportPrivateKey() const {
-	if (rsa == NULL) {
+	if (m_pktmp == NULL) {
 		throw logic_error(
 				string("Export not initialized.Call generateKeyPair first."));
 	}
-	BIO* bio_private = BIO_new(BIO_s_mem());
-	PEM_write_bio_RSAPrivateKey(bio_private, rsa, NULL, NULL, 0, NULL, NULL);
+	BIO *bio_private = BIO_new(BIO_s_mem());
+	PEM_write_bio_PKCS8PrivateKey(bio_private, m_pktmp, nullptr, nullptr, 0,
+			nullptr, nullptr);
 	int keylen = BIO_pending(bio_private);
-	char* pem_key = (char*) (calloc(keylen + 1, 1)); /* Null-terminate */
+	char *pem_key = (char*) (calloc(keylen + 1, 1)); /* Null-terminate */
 	BIO_read(bio_private, pem_key, keylen);
-	string dest = string("\"")
-			+ replaceAll(string(pem_key), string("\n"), string("\\n\" \\\n\""))
-			+ string("\"");
-	BIO_free_all(bio_private);
+	BIO_free(bio_private);
+	string dest(pem_key);
 	free(pem_key);
 	return dest;
 }
 
 const string CryptoHelperLinux::exportPublicKey() const {
-	if (rsa == NULL) {
-		throw logic_error(
-				string("Export not initialized.Call generateKeyPair first."));
-	}
-	BIO* bio_public = BIO_new(BIO_s_mem());
-	PEM_write_bio_RSAPublicKey(bio_public, rsa);
-	int keylen = BIO_pending(bio_public);
-	char* pem_key = (char*) (calloc(keylen + 1, 1)); /* Null-terminate */
-	BIO_read(bio_public, pem_key, keylen);
-	std::string dest = string("\"")
-			+ replaceAll(string(pem_key), string("\n"), string("\\n\" \\\n\""))
-			+ string("\"");
-	BIO_free_all(bio_public);
-	free(pem_key);
-	return dest;
+	/*if (rsa == NULL) {
+	 throw logic_error(
+	 string("Export not initialized.Call generateKeyPair first."));
+	 }
+	 BIO *bio_public = BIO_new(BIO_s_mem());
+	 PEM_write_bio_RSAPublicKey(bio_public, rsa);
+	 int keylen = BIO_pending(bio_public);
+	 char *pem_key = (char*) (calloc(keylen + 1, 1));
+	 BIO_read(bio_public, pem_key, keylen);
+	 std::string dest = string("\"")
+	 + replaceAll(string(pem_key), string("\n"), string("\\n\" \\\n\""))
+	 + string("\"");
+	 BIO_free_all(bio_public);
+	 free(pem_key);*/
+	return string();
 }
 
-string CryptoHelperLinux::signString(const void* privateKey,
-		size_t pklen, const string& license) const {
+const string CryptoHelperLinux::signString(const string &license) const {
+	if (!m_pktmp) {
+		throw logic_error(
+				"private key not initialized. Call generate or load first.");
+	}
+
 	size_t slen;
-	unsigned char* signature;
-	signature = NULL;
+	unsigned char *signature = nullptr;
 	/* Create the Message Digest Context */
-	EVP_MD_CTX* mdctx = EVP_MD_CTX_create();
+	EVP_MD_CTX *mdctx = EVP_MD_CTX_create();
 	if (!mdctx) {
 		throw logic_error("Message digest creation context");
 	}
 
-	BIO* bio = BIO_new_mem_buf((void*) (privateKey), pklen);
-	EVP_PKEY *pktmp = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL);
-	BIO_free(bio);
 	/*Initialise the DigestSign operation - SHA-256 has been selected
-	 * as the message digest function in this example */
-	if (1 != EVP_DigestSignInit(mdctx, NULL, EVP_sha256(), NULL, pktmp)) {
+	 * as the message digest function */
+	if (1 != EVP_DigestSignInit(mdctx, NULL, EVP_sha256(), NULL, m_pktmp)) {
 		EVP_MD_CTX_destroy(mdctx);
 	}
 	/* Call update with the message */
 	if (EVP_DigestSignUpdate(mdctx, (const void* ) license.c_str(),
-			(size_t ) license.length())
-			!= 1) {
+			(size_t ) license.length()) != 1) {
 		EVP_MD_CTX_destroy(mdctx);
 		throw logic_error("Message signing exception");
 	}
@@ -114,7 +130,7 @@ string CryptoHelperLinux::signString(const void* privateKey,
 		throw logic_error("Message signature finalization exception");
 	}
 	/* Allocate memory for the signature based on size in slen */
-	if (!(signature = (unsigned char *) OPENSSL_malloc(
+	if (!(signature = (unsigned char*) OPENSSL_malloc(
 			sizeof(unsigned char) * slen))) {
 		EVP_MD_CTX_destroy(mdctx);
 		throw logic_error("Message signature memory allocation exception");
@@ -157,8 +173,6 @@ string CryptoHelperLinux::signString(const void* privateKey,
 	 */
 	/* Clean up */
 	//free(buffer);
-	if (pktmp)
-		EVP_PKEY_free(pktmp);
 	if (signature)
 		OPENSSL_free(signature);
 
@@ -166,9 +180,21 @@ string CryptoHelperLinux::signString(const void* privateKey,
 		EVP_MD_CTX_destroy(mdctx);
 	return signatureStr;
 }
+void CryptoHelperLinux::loadPrivateKey(const std::string &privateKey) {
+	if (m_pktmp) {
+		EVP_PKEY_free(m_pktmp);
+		m_pktmp = nullptr;
+	}
+	BIO *bio = BIO_new_mem_buf((void*) (privateKey.c_str()), privateKey.size());
+	m_pktmp = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL);
+	if (!m_pktmp) {
+		throw logic_error("Private key can't be loaded");
+	}
+	BIO_free(bio);
+}
 
 const string CryptoHelperLinux::Opensslb64Encode(size_t slen,
-		unsigned char* signature) const {
+		unsigned char *signature) const {
 	/*
 	 FILE*  stream = fmemopen(*buffer, encodedSize+1, "w");
 	 */
@@ -176,13 +202,13 @@ const string CryptoHelperLinux::Opensslb64Encode(size_t slen,
 	/*int encodedSize = 4 * ceil(slen / 3);
 	 char* buffer = (char*) (malloc(encodedSize + 1));
 	 memset(buffer,0,encodedSize+1);*/
-	BIO* mem_bio = BIO_new(BIO_s_mem());
-	BIO* b64 = BIO_new(BIO_f_base64());
-	BIO* bio1 = BIO_push(b64, mem_bio);
+	BIO *mem_bio = BIO_new(BIO_s_mem());
+	BIO *b64 = BIO_new(BIO_f_base64());
+	BIO *bio1 = BIO_push(b64, mem_bio);
 	BIO_set_flags(bio1, BIO_FLAGS_BASE64_NO_NL);
 	BIO_write(bio1, signature, slen);
 	BIO_flush(bio1);
-	char* charBuf;
+	char *charBuf;
 	int sz = BIO_get_mem_data(mem_bio, &charBuf);
 	string signatureStr;
 	signatureStr.assign(charBuf, sz);
@@ -191,7 +217,9 @@ const string CryptoHelperLinux::Opensslb64Encode(size_t slen,
 }
 
 CryptoHelperLinux::~CryptoHelperLinux() {
-	RSA_free(rsa);
+	if (m_pktmp) {
+		EVP_PKEY_free(m_pktmp);
+	}
 }
 
 } /* namespace license */

@@ -6,7 +6,7 @@ ADD_LIBRARY(
     license_generator_lib STATIC
     license-generator.cpp
     command_line-parser.cpp
-    project.cpp
+    product.cpp
 )
 
 target_link_libraries(
@@ -32,7 +32,18 @@ target_link_libraries(
     license_generator_lib
 )
 
-install(TARGETS olm RUNTIME DESTINATION bin)
+install(TARGETS olm EXPORT license_generator 
+	RUNTIME DESTINATION bin)
+
+#set_property(TARGET olm PROPERTY VERSION ${OLM_VERSION_STRING})
+install(EXPORT license_generator 
+	NAMESPACE license_generator:: 
+	DESTINATION lib/olm)
+
+set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
+export(TARGETS olm NAMESPACE license_generator:: FILE olm-config.cmake)
+export(PACKAGE olm)
+#export(TARGETS olm NAMESPACE license_manager:: FILE OlmTargets.cmake)
 #install(EXPORT olm-targets DESTINATION lib/olm/olm-targets.cmake)
 
 #install(TARGETS license_generator_lib ARCHIVE DESTINATION lib/${PROJECT_NAME})

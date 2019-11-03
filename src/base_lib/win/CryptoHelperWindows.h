@@ -8,35 +8,31 @@
 #ifndef CRYPTOHELPERWINDOWS_H_
 #define CRYPTOHELPERWINDOWS_H_
 
-//#define _WIN32_WINNT 0x0400
 #include <windows.h>
 #include <wincrypt.h>
 #include <tchar.h>
 #include <string>
-#include "../CryptoHelper.h"
-
-
+#include "../crypto_helper.hpp"
 
 namespace license {
 using namespace std;
 
 class CryptoHelperWindows: public CryptoHelper {
-private :
-	void acquireContext();
-	//	Handle to the cryptography provider.
-	HCRYPTPROV m_hCryptProv;
-	//	Handle to the cryptography key.
-	HCRYPTKEY m_hCryptKey;
-	void printHash(HCRYPTHASH* hHash) const;
+private:
+	//	Handle to the private key.
+	BCRYPT_KEY_HANDLE m_hTmpKey = nullptr;
+	const BCRYPT_ALG_HANDLE m_hSignAlg;
+	BCRYPT_ALG_HANDLE m_hHashAlg = nullptr;
+	void printHash(HCRYPTHASH *hHash) const;
+
 public:
 	CryptoHelperWindows();
 
 	virtual void generateKeyPair();
-	virtual const string exportPrivateKey() const;
-	virtual const string exportPublicKey() const;
-
-	virtual const string signString(const void* privateKey, size_t pklen,
-			const string& license) const;
+	const virtual string exportPrivateKey() const;
+	const virtual string exportPublicKey() const;
+	virtual void loadPrivateKey(const std::string &privateKey);
+	const virtual string signString(const string &license) const;
 
 	virtual ~CryptoHelperWindows();
 };

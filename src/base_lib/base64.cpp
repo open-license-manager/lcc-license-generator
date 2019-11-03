@@ -3,8 +3,7 @@
 
 namespace license {
 
-
-const static char* b64 =
+const static char *b64 =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 // maps A=>0,B=>1..
@@ -36,9 +35,9 @@ const static unsigned char unb64[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //10
 		0, 0, 0, 0, 0, 0, }; // This array has 255 elements
 
 //review api
-char* base64(const void* binaryData, int len, int *flen) {
-	const unsigned char* bin = (const unsigned char*) binaryData;
-	char* res;
+char* base64(const void *binaryData, size_t len, size_t *flen) {
+	const unsigned char *bin = (const unsigned char*) binaryData;
+	char *res;
 
 	int rc = 0; // result counter
 	int byteNo; // I need this after the loop
@@ -80,7 +79,7 @@ char* base64(const void* binaryData, int len, int *flen) {
 	return res;
 }
 
-unsigned char* unbase64(const char* ascii, int len, int *flen) {
+unsigned char* unbase64(const char *ascii, int len, int *flen) {
 	const unsigned char *safeAsciiPtr = (const unsigned char*) ascii;
 	unsigned char *bin;
 	int cb = 0;

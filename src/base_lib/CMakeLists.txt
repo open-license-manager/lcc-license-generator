@@ -2,15 +2,15 @@
 if(WIN32)
 ADD_LIBRARY(
     olm_base STATIC
-    base64.c
-    CryptoHelper.cpp
+    base64.cpp
+    crypto_helper.cpp
     win/CryptoHelperWindows.cpp
 )
 else(WIN32)
 ADD_LIBRARY(
     olm_base STATIC
     base64.cpp
-    CryptoHelper.cpp
+    crypto_helper.cpp
     linux/CryptoHelperLinux.cpp
 )
 ENDIF(WIN32)

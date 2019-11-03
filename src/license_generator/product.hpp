@@ -9,21 +9,21 @@
 #define SRC_TOOLS_LICENSE_GENERATOR_PROJECT_HPP_
 
 #include <string>
-
+#include <boost/optional.hpp>
 namespace license {
 
 class Project {
 private:
 	const std::string m_name;
-	std::string m_primary_key_file_name;
-	std::string m_public_key_file_name;
+	boost::optional<std::string> m_primary_key_file_name(boost::optional<std::string>());
+	boost::optional<std::string> m_public_key_file_name(boost::optional<std::string>());
 	std::string m_project_folder;
 	std::string m_source_folder;
-
+	const bool m_force_overwrite;
 public:
-	Project(const std::string &name, const std::string &primary_key_file_name,
-			const std::string &public_key_file_name,
-			const std::string &project_folder, const std::string &source_folder);
+	Project(const std::string &name,
+			const std::string &project_folder, const std::string &source_folder,
+			const bool force_overwrite = false);
 	int initialize();
 	~Project();
 };

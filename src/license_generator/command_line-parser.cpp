@@ -27,9 +27,9 @@
 #include <build_properties.h>
 
 #include "../base_lib/base64.h"
-#include "../base_lib/CryptoHelper.h"
 #include "command_line-parser.hpp"
-#include "project.hpp"
+
+#include "product.hpp"
 
 namespace po = boost::program_options;
 using namespace std;
@@ -56,7 +56,7 @@ static void printBasicHelp(const char *prog_name) {
 	printHelpHeader(prog_name);
 	cout << prog_name << " [command] [options]" << endl;
 	cout
-			<< " available commands: \"project initialize\", \"project list\", \"license issue\", \"license list\""
+			<< " available commands: \"product initialize\", \"product list\", \"license issue\", \"license list\""
 			<< endl;
 	cout << " to see specific command options type: " << prog_name
 			<< " [command] --help" << endl << endl;
@@ -79,8 +79,6 @@ int CommandLineParser::project_init(const std::string &project_name, //
 		const boost::optional<string> &source_folder) {
 	cout << source_folder.is_initialized() << endl;
 	Project project(project_name,
-			primary_key.is_initialized() ? primary_key.get() : "",
-			public_key.is_initialized() ? public_key.get() : "",
 			project_folder.is_initialized() ? project_folder.get() : "",
 			source_folder.is_initialized() ? source_folder.get() : "");
 
@@ -103,7 +101,7 @@ static void rerunBoostPO(const po::parsed_options &parsed,
 	} catch (std::exception &e) {
 		std::cerr << "Error: " << e.what() << endl;
 		printHelpHeader(argv[0]);
-		cout << argv[0] << " project " << cmds[1] << " [options]" << endl;
+		cout << argv[0] << " product " << cmds[1] << " [options]" << endl;
 		global.print(cout);
 		project_desc.print(cout);
 	}
@@ -118,7 +116,7 @@ int CommandLineParser::parseCommandLine(int argc, const char **argv) {
 	global.add_options()("verbose,v", "Turn on verbose output");
 	po::options_description hidden("Hidden options");
 	hidden.add_options()("command", po::value<std::vector<std::string>>(),
-			"command to execute: project init, project list, license list, license issue")(
+			"command to execute: product init, product list, license list, license issue")(
 			"subargs", po::value<std::vector<std::string>>(),
 			"Arguments for command, use option --help to see");
 
@@ -140,7 +138,7 @@ int CommandLineParser::parseCommandLine(int argc, const char **argv) {
 	CommandLineParser cmd_parser(verbose);
 
 	if (cmds[0] == "project") {
-		po::options_description project_desc("project " + cmds[1] + " options");
+		po::options_description project_desc("product " + cmds[1] + " options");
 		if (cmds[1].substr(0, 4) == "init") {
 			string project_name;
 			boost::optional<string> primary_key;
@@ -154,20 +152,22 @@ int CommandLineParser::parseCommandLine(int argc, const char **argv) {
 					"use externally generated primary key, public key must also be specified.") //
 			("public-key", po::value<boost::optional<string>>(&public_key),
 					"Use externally generated public key, private key must also be specified.") //
-			("projects-folder,p",
+			("products-folder,p",
 					po::value<boost::optional<string>>(&project_folder),
-					"path to where the projects are stored.") //
+					"path to where product configurations are stored.") //
 			("source,s", po::value<boost::optional<string>>(&source_folder),
-					"path to unconfigured library source.") //
+					"path to the library source.") //
 			("help", "Print this help."); //
 
 			rerunBoostPO(parsed, project_desc, vm, argv, cmds, global);
 			cmd_parser.project_init(project_name, primary_key, public_key,
 					project_folder, source_folder);
 		} else if (cmds[1] == "list") {
+			boost::optional<string> project_folder;
 			project_desc.add_options() //
-			("projects-folder,p", po::value<std::string>(),
-					"path to where the projects are stored.") //
+					("products-folder,p",
+							po::value<boost::optional<string>>(&project_folder),
+							"path to where product configurations are stored.") //
 			("help", "Print this help."); //
 
 		} else {
