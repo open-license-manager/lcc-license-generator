@@ -159,9 +159,8 @@ void LicenseGenerator::generateB64Licenses(const po::variables_map &vm,
 	std::string str = tempStream.str();
 	const char *chr = str.c_str();
 	size_t finalLenght;
-	char *encoded = base64(chr, str.length(), &finalLenght);
-	outputFile.write(encoded, finalLenght);
-	free(encoded);
+	string encoded = base64(chr, str.length());
+	outputFile.write(encoded.c_str(), encoded.length());
 }
 
 int LicenseGenerator::generateLicense(int argc, const char **argv) {

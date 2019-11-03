@@ -9,12 +9,11 @@
 namespace license {
 using namespace std;
 
-unique_ptr<CryptoHelper> CryptoHelper::getInstance(
-		const std::string &product_name) {
+unique_ptr<CryptoHelper> CryptoHelper::getInstance() {
 #ifdef __linux__
 	unique_ptr<CryptoHelper> ptr((CryptoHelper*) new CryptoHelperLinux());
 #elif _WIN32
-	unique_ptr<CryptoHelper> ptr((CryptoHelper*) new CryptoHelperWindows(product_name));
+	unique_ptr<CryptoHelper> ptr((CryptoHelper*) new CryptoHelperWindows());
 #endif
 	return ptr;
 }

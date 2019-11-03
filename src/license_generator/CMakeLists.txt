@@ -6,7 +6,7 @@ ADD_LIBRARY(
     license_generator_lib STATIC
     license-generator.cpp
     command_line-parser.cpp
-    product.cpp
+    project.cpp
 )
 
 target_link_libraries(

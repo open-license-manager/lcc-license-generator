@@ -4,6 +4,7 @@
 #include <memory>
 #include <cstddef>
 #include <string>
+#include <vector>
 
 namespace license {
 
@@ -29,7 +30,7 @@ protected:
 public:
 	virtual void generateKeyPair() = 0;
 	const virtual std::string exportPrivateKey() const = 0;
-	const virtual std::string exportPublicKey() const = 0;
+	const virtual std::vector<unsigned char> exportPublicKey() const = 0;
 
 	virtual void loadPrivateKey(const std::string &privateKey) = 0;
 	/**
@@ -38,11 +39,9 @@ public:
 	 * @return
 	 */
 	const virtual std::string signString(const std::string &license) const = 0;
-	static std::unique_ptr<CryptoHelper> getInstance(
-			const std::string &product_name);
+	static std::unique_ptr<CryptoHelper> getInstance();
 	inline virtual ~CryptoHelper() {
 	}
-	;
 };
 }
 #endif

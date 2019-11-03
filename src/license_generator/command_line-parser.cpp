@@ -29,7 +29,7 @@
 #include "../base_lib/base64.h"
 #include "command_line-parser.hpp"
 
-#include "product.hpp"
+#include "project.hpp"
 
 namespace po = boost::program_options;
 using namespace std;

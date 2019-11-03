@@ -17,17 +17,17 @@ ELSE()
 ENDIF()
 
 add_executable(
- test_product
- product_test.cpp
+ test_project
+ project_test.cpp
 )
 
 target_link_libraries(
- test_product
+ test_project
  license_generator_lib
  ${Boost_LIBRARIES}
 )
 
-ADD_TEST(NAME test_product COMMAND test_product WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+ADD_TEST(NAME test_project COMMAND test_project WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_executable(
  test_cryptohelper

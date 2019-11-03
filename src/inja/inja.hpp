@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 // #include "environment.hpp"
 #ifndef PANTOR_INJA_ENVIRONMENT_HPP
@@ -20,7 +20,7 @@
 #include <sstream>
 #include <string>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 // #include "config.hpp"
 #ifndef PANTOR_INJA_CONFIG_HPP
@@ -459,9 +459,9 @@ public:
     typedef CharT  value_type;
 
     typedef CharT       * pointer;
-    typedef CharT const * const_pointer;
+			typedef const CharT * const_pointer;
     typedef CharT       & reference;
-    typedef CharT const & const_reference;
+			typedef const CharT & const_reference;
 
     typedef const_pointer iterator;
     typedef const_pointer const_iterator;
@@ -479,7 +479,7 @@ public:
     {}
 
 #if nssv_CPP11_OR_GREATER
-    nssv_constexpr basic_string_view( basic_string_view const & other ) nssv_noexcept = default;
+			nssv_constexpr basic_string_view( const basic_string_view & other ) nssv_noexcept = default;
 #else
     nssv_constexpr basic_string_view( basic_string_view const & other ) nssv_noexcept
         : data_( other.data_)
@@ -487,12 +487,12 @@ public:
     {}
 #endif
 
-    nssv_constexpr basic_string_view( CharT const * s, size_type count )
+			nssv_constexpr basic_string_view( const CharT * s, size_type count )
         : data_( s )
         , size_( count )
     {}
 
-    nssv_constexpr basic_string_view( CharT const * s)
+			nssv_constexpr basic_string_view( const CharT * s)
         : data_( s )
         , size_( Traits::length(s) )
     {}
@@ -500,7 +500,7 @@ public:
     // Assignment:
 
 #if nssv_CPP11_OR_GREATER
-    nssv_constexpr14 basic_string_view & operator=( basic_string_view const & other ) nssv_noexcept = default;
+			nssv_constexpr14 basic_string_view & operator=( const basic_string_view & other ) nssv_noexcept = default;
 #else
     nssv_constexpr14 basic_string_view & operator=( basic_string_view const & other ) nssv_noexcept
     {
@@ -635,17 +635,17 @@ public:
         return substr( pos1, n1 ).compare( other.substr( pos2, n2 ) );
     }
 
-    nssv_constexpr int compare( CharT const * s ) const // (4)
+			nssv_constexpr int compare( const CharT * s ) const // (4)
     {
         return compare( basic_string_view( s ) );
     }
 
-    nssv_constexpr int compare( size_type pos1, size_type n1, CharT const * s ) const // (5)
+			nssv_constexpr int compare( size_type pos1, size_type n1, const CharT * s ) const // (5)
     {
         return substr( pos1, n1 ).compare( basic_string_view( s ) );
     }
 
-    nssv_constexpr int compare( size_type pos1, size_type n1, CharT const * s, size_type n2 ) const // (6)
+			nssv_constexpr int compare( size_type pos1, size_type n1, const CharT * s, size_type n2 ) const // (6)
     {
         return substr( pos1, n1 ).compare( basic_string_view( s, n2 ) );
     }
@@ -664,7 +664,7 @@ public:
         return starts_with( basic_string_view( &c, 1 ) );
     }
 
-    nssv_constexpr bool starts_with( CharT const * s ) const  // (3)
+			nssv_constexpr bool starts_with( const CharT * s ) const  // (3)
     {
         return starts_with( basic_string_view( s ) );
     }
@@ -681,7 +681,7 @@ public:
         return ends_with( basic_string_view( &c, 1 ) );
     }
 
-    nssv_constexpr bool ends_with( CharT const * s ) const  // (3)
+			nssv_constexpr bool ends_with( const CharT * s ) const  // (3)
     {
         return ends_with( basic_string_view( s ) );
     }
@@ -701,12 +701,12 @@ public:
         return find( basic_string_view( &c, 1 ), pos );
     }
 
-    nssv_constexpr14 size_type find( CharT const * s, size_type pos, size_type n ) const  // (3)
+			nssv_constexpr14 size_type find( const CharT * s, size_type pos, size_type n ) const // (3)
     {
         return find( basic_string_view( s, n ), pos );
     }
 
-    nssv_constexpr14 size_type find( CharT const * s, size_type pos = 0 ) const  // (4)
+			nssv_constexpr14 size_type find( const CharT * s, size_type pos = 0 ) const // (4)
     {
         return find( basic_string_view( s ), pos );
     }
@@ -732,12 +732,12 @@ public:
         return rfind( basic_string_view( &c, 1 ), pos );
     }
 
-    nssv_constexpr14 size_type rfind( CharT const * s, size_type pos, size_type n ) const  // (3)
+			nssv_constexpr14 size_type rfind( const CharT * s, size_type pos, size_type n ) const // (3)
     {
         return rfind( basic_string_view( s, n ), pos );
     }
 
-    nssv_constexpr14 size_type rfind( CharT const * s, size_type pos = npos ) const  // (4)
+			nssv_constexpr14 size_type rfind( const CharT * s, size_type pos = npos ) const // (4)
     {
         return rfind( basic_string_view( s ), pos );
     }
@@ -756,12 +756,12 @@ public:
         return find_first_of( basic_string_view( &c, 1 ), pos );
     }
 
-    nssv_constexpr size_type find_first_of( CharT const * s, size_type pos, size_type n ) const  // (3)
+			nssv_constexpr size_type find_first_of( const CharT * s, size_type pos, size_type n ) const // (3)
     {
         return find_first_of( basic_string_view( s, n ), pos );
     }
 
-    nssv_constexpr size_type find_first_of(  CharT const * s, size_type pos = 0 ) const  // (4)
+			nssv_constexpr size_type find_first_of( const CharT * s, size_type pos = 0 ) const // (4)
     {
         return find_first_of( basic_string_view( s ), pos );
     }
@@ -782,12 +782,12 @@ public:
         return find_last_of( basic_string_view( &c, 1 ), pos );
     }
 
-    nssv_constexpr size_type find_last_of( CharT const * s, size_type pos, size_type count ) const  // (3)
+			nssv_constexpr size_type find_last_of( const CharT * s, size_type pos, size_type count ) const // (3)
     {
         return find_last_of( basic_string_view( s, count ), pos );
     }
 
-    nssv_constexpr size_type find_last_of( CharT const * s, size_type pos = npos ) const  // (4)
+			nssv_constexpr size_type find_last_of( const CharT * s, size_type pos = npos ) const // (4)
     {
         return find_last_of( basic_string_view( s ), pos );
     }
@@ -806,12 +806,12 @@ public:
         return find_first_not_of( basic_string_view( &c, 1 ), pos );
     }
 
-    nssv_constexpr size_type find_first_not_of( CharT const * s, size_type pos, size_type count ) const  // (3)
+			nssv_constexpr size_type find_first_not_of( const CharT * s, size_type pos, size_type count ) const // (3)
     {
         return find_first_not_of( basic_string_view( s, count ), pos );
     }
 
-    nssv_constexpr size_type find_first_not_of( CharT const * s, size_type pos = 0 ) const  // (4)
+			nssv_constexpr size_type find_first_not_of( const CharT * s, size_type pos = 0 ) const // (4)
     {
         return find_first_not_of( basic_string_view( s ), pos );
     }
@@ -832,12 +832,12 @@ public:
         return find_last_not_of( basic_string_view( &c, 1 ), pos );
     }
 
-    nssv_constexpr size_type find_last_not_of( CharT const * s, size_type pos, size_type count ) const  // (3)
+			nssv_constexpr size_type find_last_not_of( const CharT * s, size_type pos, size_type count ) const // (3)
     {
         return find_last_not_of( basic_string_view( s, count ), pos );
     }
 
-    nssv_constexpr size_type find_last_not_of( CharT const * s, size_type pos = npos ) const  // (4)
+			nssv_constexpr size_type find_last_not_of( const CharT * s, size_type pos = npos ) const // (4)
     {
         return find_last_not_of( basic_string_view( s ), pos );
     }
@@ -892,7 +892,7 @@ public:
 #if nssv_CONFIG_CONVERSION_STD_STRING_CLASS_METHODS
 
     template< class Allocator >
-    basic_string_view( std::basic_string<CharT, Traits, Allocator> const & s ) nssv_noexcept
+			basic_string_view( const std::basic_string<CharT,Traits,Allocator> & s ) nssv_noexcept
         : data_( s.data() )
         , size_( s.size() )
     {}
@@ -911,7 +911,7 @@ public:
 
     template< class Allocator = std::allocator<CharT> >
     std::basic_string<CharT, Traits, Allocator>
-    to_string( Allocator const & a = Allocator() ) const
+			to_string( const Allocator & a = Allocator() ) const
     {
         return std::basic_string<CharT, Traits, Allocator>( begin(), end(), a );
     }
@@ -1095,7 +1095,7 @@ void write_padding( Stream & os, std::streamsize n )
 }
 
 template< class Stream, class View >
-Stream & write_to_stream( Stream & os, View const & sv )
+			Stream & write_to_stream( Stream & os, const View & sv )
 {
     typename Stream::sentry sentry( os );
 
@@ -1222,7 +1222,8 @@ namespace sv_lite {
 
 template< class CharT, class Traits, class Allocator = std::allocator<CharT> >
 std::basic_string<CharT, Traits, Allocator>
-to_string( basic_string_view<CharT, Traits> v, Allocator const & a = Allocator() )
+to_string(
+		basic_string_view<CharT, Traits> v, const Allocator &a = Allocator())
 {
     return std::basic_string<CharT,Traits, Allocator>( v.begin(), v.end(), a );
 }
@@ -1247,7 +1248,8 @@ to_string( basic_string_view<CharT, Traits> v, Allocator const & a )
 
 template< class CharT, class Traits, class Allocator >
 basic_string_view<CharT, Traits>
-to_string_view( std::basic_string<CharT, Traits, Allocator> const & s )
+to_string_view(
+		const std::basic_string<CharT, Traits, Allocator> &s)
 {
     return basic_string_view<CharT, Traits>( s.data(), s.size() );
 }
@@ -1405,7 +1407,7 @@ struct ParserConfig {
 
 #include <utility>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 // #include "string_view.hpp"
 
@@ -2010,7 +2012,7 @@ using TemplateStorage = std::map<std::string, Template>;
 // #include "utils.hpp"
 
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 
 namespace inja {
@@ -2048,7 +2050,7 @@ class ParserStatic {
   ParserStatic(const ParserStatic&) = delete;
   ParserStatic& operator=(const ParserStatic&) = delete;
 
-  static const ParserStatic& get_instance() {
+	static const ParserStatic& get_instance() {
     static ParserStatic inst;
     return inst;
   }
@@ -2605,7 +2607,7 @@ namespace stdinja = std;
 #include <algorithm>
 #include <numeric>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 // #include "bytecode.hpp"
 

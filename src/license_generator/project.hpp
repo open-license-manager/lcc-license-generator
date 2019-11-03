@@ -10,6 +10,9 @@
 
 #include <string>
 #include <boost/optional.hpp>
+#include <boost/filesystem.hpp>
+#include "../base_lib/base.h"
+
 namespace license {
 
 class Project {
@@ -24,7 +27,7 @@ public:
 	Project(const std::string &name,
 			const std::string &project_folder, const std::string &source_folder,
 			const bool force_overwrite = false);
-	int initialize();
+	FUNCTION_RETURN initialize();
 	~Project();
 };
 

@@ -11,6 +11,7 @@
 #include <openssl/evp.h>
 #include <cstddef>
 #include <string>
+#include <vector>
 #include "../crypto_helper.hpp"
 
 namespace license {
@@ -27,7 +28,7 @@ public:
 
 	virtual void generateKeyPair();
 	const virtual string exportPrivateKey() const;
-	const virtual string exportPublicKey() const;
+	const virtual std::vector<unsigned char> exportPublicKey() const;
 	virtual void loadPrivateKey(const std::string &privateKey);
 	const virtual string signString(const string &stringToBeSigned) const;
 	virtual ~CryptoHelperLinux();

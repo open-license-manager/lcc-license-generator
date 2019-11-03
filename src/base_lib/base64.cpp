@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "base64.h"
 namespace license {
+using namespace std;
 
-const static char *b64 =
+const static char* b64 =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 // maps A=>0,B=>1..
@@ -35,9 +37,14 @@ const static unsigned char unb64[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //10
 		0, 0, 0, 0, 0, 0, }; // This array has 255 elements
 
 //review api
-char* base64(const void *binaryData, size_t len, size_t *flen) {
-	const unsigned char *bin = (const unsigned char*) binaryData;
-	char *res;
+const void add_CR_if_needed(string& encodeBuffer, int lineLenght) {
+	if (lineLenght > 0 && ((encodeBuffer.size()+1) % lineLenght) == 0) {
+		encodeBuffer += '\n';
+	}
+}
+
+string base64(const void* binaryData, size_t len, int lineLenght) {
+	const unsigned char* bin = (const unsigned char*) binaryData;
 
 	int rc = 0; // result counter
 	int byteNo; // I need this after the loop
@@ -45,41 +52,57 @@ char* base64(const void *binaryData, size_t len, size_t *flen) {
 	int modulusLen = len % 3;
 	int pad = ((modulusLen & 1) << 1) + ((modulusLen & 2) >> 1); // 2 gives 1 and 1 gives 2, but 0 gives 0.
 
-	*flen = 4 * (len + pad) / 3;
-	res = (char*) malloc(*flen + 1); // and one for the null
-	if (!res) {
-		puts("ERROR: base64 could not allocate enough memory.");
-		puts("I must stop because I could not get enough");
-		return 0;
+	size_t flen = 4 * (len + pad) / 3;
+	size_t totalLength = flen;
+	if (lineLenght > 0) {
+		totalLength += ((int)flen / lineLenght) + 3;
 	}
+
+	string encodeBuffer;
+	encodeBuffer.reserve(totalLength);
+	//char* res = const_cast<char*>(encodeBuffer.data());
 
 	for (byteNo = 0; byteNo <= len - 3; byteNo += 3) {
 		unsigned char BYTE0 = bin[byteNo];
 		unsigned char BYTE1 = bin[byteNo + 1];
 		unsigned char BYTE2 = bin[byteNo + 2];
-		res[rc++] = b64[BYTE0 >> 2];
-		res[rc++] = b64[((0x3 & BYTE0) << 4) + (BYTE1 >> 4)];
-		res[rc++] = b64[((0x0f & BYTE1) << 2) + (BYTE2 >> 6)];
-		res[rc++] = b64[0x3f & BYTE2];
+
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += b64[BYTE0 >> 2];
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += b64[((0x3 & BYTE0) << 4) + (BYTE1 >> 4)];
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += b64[((0x0f & BYTE1) << 2) + (BYTE2 >> 6)];
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += b64[0x3f & BYTE2];
 	}
 
 	if (pad == 2) {
-		res[rc++] = b64[bin[byteNo] >> 2];
-		res[rc++] = b64[(0x3 & bin[byteNo]) << 4];
-		res[rc++] = '=';
-		res[rc++] = '=';
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += b64[bin[byteNo] >> 2];
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += b64[(0x3 & bin[byteNo]) << 4];
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += '=';
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += '=';
 	} else if (pad == 1) {
-		res[rc++] = b64[bin[byteNo] >> 2];
-		res[rc++] = b64[((0x3 & bin[byteNo]) << 4) + (bin[byteNo + 1] >> 4)];
-		res[rc++] = b64[(0x0f & bin[byteNo + 1]) << 2];
-		res[rc++] = '=';
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += b64[bin[byteNo] >> 2];
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += b64[((0x3 & bin[byteNo]) << 4) + (bin[byteNo + 1] >> 4)];
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += b64[(0x0f & bin[byteNo + 1]) << 2];
+		add_CR_if_needed(encodeBuffer, lineLenght);
+		encodeBuffer += '=';
 	}
-
-	res[rc] = 0; // NULL TERMINATOR! ;)
-	return res;
+	if (lineLenght && encodeBuffer.back() != '\n') {
+		encodeBuffer += '\n';
+	}
+	return encodeBuffer;
 }
 
-unsigned char* unbase64(const char *ascii, int len, int *flen) {
+unsigned char* unbase64(const char* ascii, int len, int *flen) {
 	const unsigned char *safeAsciiPtr = (const unsigned char*) ascii;
 	unsigned char *bin;
 	int cb = 0;

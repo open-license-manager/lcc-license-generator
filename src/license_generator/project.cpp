@@ -2,47 +2,44 @@
  * Project.cpp
  *
  *  Created on: Oct 22, 2019
- *      Author: devel
+ *      Author: GC
  */
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <stdexcept>
 
-#include "../base_lib/crypto_helper.hpp"
 #include "../base_lib/base.h"
-#include "product.hpp"
+#include "../base_lib/crypto_helper.hpp"
+#include "../inja/inja.hpp"
+#include "project.hpp"
 
 namespace license {
 namespace fs = boost::filesystem;
+using json = nlohmann::json;
+using namespace inja;
 using namespace std;
 
-Project::Project(const std::string &name,
-		const std::string &project_folder, const std::string &source_folder,
-		bool force_overwrite) :
-		m_name(name), m_project_folder(project_folder), m_source_folder(
-				source_folder), m_force_overwrite(force_overwrite) {
-}
+static const constexpr char *const TEMPLATE = "public_key.inja";
 
-static const constexpr char *const TEMPLATES[] = { "public_key.inja",
-		"datatypes.inja" };
-
-static FUNCTION_RETURN check_templates(const string &source_folder,
-		fs::path templates_arr[]) {
-	fs::path source_path(source_folder);
+static FUNCTION_RETURN check_templates(const string &source_folder) {
+	const fs::path source_path(source_folder);
 	if (!fs::exists(source_path) || !fs::is_directory(source_path)) {
 		throw std::runtime_error(
 				"Source directory [" + source_folder
 						+ "] does not exist or is not a directory");
 	}
-	fs::path templates_path(source_path / "templates");
+	const fs::path templates_path(source_path / "templates");
 	if (!fs::exists(templates_path) || !fs::is_directory(templates_path)) {
 		throw std::runtime_error(
 				string("Templates directory [") + templates_path.string()
 						+ "] does not exist or is not a directory");
 	}
-	for (string file : TEMPLATES) {
-
+	const fs::path template_fname(templates_path / TEMPLATE);
+	if (!fs::exists(template_fname) || !fs::is_regular_file(template_fname)) {
+		throw std::runtime_error(
+				string("Templates file [") + template_fname.string()
+						+ "] does not exist");
 	}
 	return FUNC_RET_OK;
 }
@@ -52,11 +49,17 @@ static const fs::path publicKeyFolder(const fs::path &product_folder,
 	return product_folder / "include" / "licensecc" / product_name;
 }
 
-int Project::initialize() {
-	check_templates(m_source_folder, nullptr);
+Project::Project(const std::string &name, const std::string &project_folder,
+		const std::string &source_folder, bool force_overwrite) :
+		m_name(name), m_project_folder(project_folder), m_source_folder(
+				source_folder), m_force_overwrite(force_overwrite) {
+}
+
+FUNCTION_RETURN Project::initialize() {
+	check_templates(m_source_folder);
 	const fs::path destinationDir(fs::path(m_project_folder) / m_name);
-	const fs::path public_key_folder(publicKeyFolder(destinationDir, m_name));
-	const fs::path publicKeyFile(public_key_folder / PUBLIC_KEY_INC_FNAME);
+	const fs::path include_folder(publicKeyFolder(destinationDir, m_name));
+	const fs::path publicKeyFile(include_folder / PUBLIC_KEY_INC_FNAME);
 	const fs::path privateKeyFile(destinationDir / PRIVATE_KEY_FNAME);
 	bool keyFilesExist = false;
 	if (fs::exists(destinationDir)) {
@@ -67,36 +70,43 @@ int Project::initialize() {
 			fs::remove(destinationDir / PRIVATE_KEY_FNAME);
 			fs::remove(publicKeyFile);
 		}
-		if (!fs::exists(public_key_folder)) {
-			if (!fs::create_directories(public_key_folder)) {
+		if (!fs::exists(include_folder)) {
+			if (!fs::create_directories(include_folder)) {
 				throw std::runtime_error(
 						"Cannot create public key directory ["
-								+ public_key_folder.string() + "]");
+								+ include_folder.string() + "]");
 			}
 		}
 	} else if (!fs::create_directories(destinationDir)
-			|| !fs::create_directories(public_key_folder)) {
+			|| !fs::create_directories(include_folder)) {
 		throw std::runtime_error(
 				"Cannot create destination directory ["
 						+ destinationDir.string() + "]");
 	}
-	int result;
+	FUNCTION_RETURN result = FUNC_RET_OK;
 	if (!keyFilesExist) {
-		unique_ptr<CryptoHelper> cryptoHelper(
-				CryptoHelper::getInstance(m_name));
+		unique_ptr<CryptoHelper> cryptoHelper(CryptoHelper::getInstance());
 		cryptoHelper->generateKeyPair();
 		const std::string privateKey = cryptoHelper->exportPrivateKey();
 		ofstream ofs(privateKeyFile.c_str());
 		ofs << privateKey;
 		ofs.close();
+
+		const fs::path templates_path(fs::path(m_source_folder) / "templates");
+		Environment env(templates_path.string()+"/",include_folder.string() +"/");
+
+		Template temp = env.parse_template(TEMPLATE);
+		json data;
+		data["public_key"] = cryptoHelper->exportPublicKey();
+		data["product_name"] = m_name;
+		env.write(temp, data, PUBLIC_KEY_INC_FNAME);
 	} else {
-		result = -1;
+		result = FUNC_RET_NOT_AVAIL;
 	}
 	return result;
 }
 
 Project::~Project() {
-	// TODO Auto-generated destructor stub
 }
 
 } /* namespace license */

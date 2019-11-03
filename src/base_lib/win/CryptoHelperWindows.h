@@ -9,8 +9,7 @@
 #define CRYPTOHELPERWINDOWS_H_
 
 #include <windows.h>
-#include <wincrypt.h>
-#include <tchar.h>
+#include <bcrypt.h>
 #include <string>
 #include "../crypto_helper.hpp"
 
@@ -22,15 +21,20 @@ private:
 	//	Handle to the private key.
 	BCRYPT_KEY_HANDLE m_hTmpKey = nullptr;
 	const BCRYPT_ALG_HANDLE m_hSignAlg;
-	BCRYPT_ALG_HANDLE m_hHashAlg = nullptr;
-	void printHash(HCRYPTHASH *hHash) const;
+	const BCRYPT_ALG_HANDLE m_hHashAlg;
 
 public:
 	CryptoHelperWindows();
 
 	virtual void generateKeyPair();
+	/*
+	* exports the private key in openssl pkcs#1 PEM encoded format.
+	*/
 	const virtual string exportPrivateKey() const;
-	const virtual string exportPublicKey() const;
+	const virtual vector<unsigned char> exportPublicKey() const;
+	/*
+	* loads a private key in openssl pkcs#1 PEM encoded format.
+	*/
 	virtual void loadPrivateKey(const std::string &privateKey);
 	const virtual string signString(const string &license) const;
 
