@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE test_command - line
+#define BOOST_TEST_MODULE test_command_line
 
 #include <fstream>
 #include <boost/test/unit_test.hpp>
@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
 						   "--projects-folder",
 						   projects_folder.string().c_str(),
 						   "--templates",
-						   (const char *)mock_source_folder.c_str()};
+						   mock_source_folder.string().c_str()};
 	// initialize_project
 	int result = CommandLineParser::parseCommandLine(argc, argv1);
 	BOOST_CHECK_EQUAL(result, 0);

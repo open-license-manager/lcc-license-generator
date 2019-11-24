@@ -1,6 +1,28 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+#Visual studio files
+.vs
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+/Makefile
+/Testing
+
 /Debug/
-build
 /.project
 /.cproject
 /.settings/
 *.out
+
+# Cmake generated files
+build/*
+!build/.gitkeep 
