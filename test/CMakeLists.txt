@@ -1,0 +1,42 @@
+
+add_executable(
+ test_license
+ license_test.cpp
+)
+
+target_link_libraries(
+ test_license
+ license_generator_lib
+ ${Boost_LIBRARIES}
+)
+
+IF( NOT (( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux") AND CMAKE_CROSSCOMPILING))
+	#bcrypt is not well implemented in wine... 
+	ADD_TEST(NAME test_license COMMAND test_license WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+ENDIF()
+
+add_executable(
+ test_project
+ project_test.cpp
+)
+
+target_link_libraries(
+ test_project
+ license_generator_lib
+ ${Boost_LIBRARIES}
+)
+
+ADD_TEST(NAME test_project COMMAND test_project WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(
+ test_cryptohelper
+ cryptohelper_test.cpp
+)
+
+target_link_libraries(
+ test_cryptohelper
+ license_generator_lib
+ ${Boost_LIBRARIES}
+)
+
+ADD_TEST(NAME test_cryptohelper COMMAND test_cryptohelper WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
