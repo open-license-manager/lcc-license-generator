@@ -6,12 +6,12 @@ ADD_LIBRARY(
     command_line-parser.cpp
     license.cpp
     project.cpp
+    ../ini/ConvertUTF.cpp
 )
 
 target_link_libraries(
      license_generator_lib
      olm_base
-     simple_ini
      ${Boost_LIBRARIES}	 
      ${EXTERNAL_LIBS}
 )

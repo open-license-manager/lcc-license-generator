@@ -25,7 +25,7 @@ using namespace std;
 namespace fs = boost::filesystem;
 
 static const unordered_set<string> NO_OUTPUT_PARAM = {PARAM_BASE64, PARAM_LICENSE_NAME, PARAM_PRODUCT_NAME,
-													  PARAM_PROJECT_FOLDER};
+													  PARAM_PROJECT_FOLDER, PARAM_PRIMARY_KEY};
 
 const std::string formats[] = {"%4u-%2u-%2u", "%4u/%2u/%2u", "%4u%2u%2u"};
 const size_t formats_n = 3;
@@ -64,11 +64,13 @@ static const string normalize_project_path(const string &project_path) {
 	return normalized.string();
 }
 
-static const string print_for_sign(const std::map<std::string, std::string> &values_map) {
-	std::stringstream buf;
+static const string print_for_sign(const string &project, const std::map<std::string, std::string> &values_map) {
+	stringstream buf;
+	buf << boost::to_upper_copy(project);
 	for (auto &it : values_map) {
 		buf << boost::algorithm::trim_copy(it.first) << boost::algorithm::trim_copy(it.second);
 	}
+	// cout << "!!! -----:" << buf.str() << endl;
 	return buf.str();
 }
 
@@ -84,7 +86,7 @@ void License::printAsIni(ostream &a_ostream, const string &signature) const {
 	string result;
 	const string product = boost::to_upper_copy(m_project_name);
 	CSimpleIniA::StreamWriter sw(a_ostream);
-	ini.SetLongValue(product.c_str(), "lic_ver", 2);
+	ini.SetLongValue(product.c_str(), "lic_ver", 200);
 	for (auto it : values_map) {
 		ini.SetValue(product.c_str(), it.first.c_str(), it.second.c_str());
 	}
@@ -98,13 +100,13 @@ void License::write_license() {
 	const fs::path license_name(m_licenseName + ".lic");
 	if (!fs::exists(license_folder)) {
 		if (!fs::create_directories(license_folder)) {
-			throw std::runtime_error("Cannot create licenses directory [" + license_folder.string() + "]");
+			throw runtime_error("Cannot create licenses directory [" + license_folder.string() + "]");
 		}
 	}
 	if (!license_name.parent_path().empty()) {
 		fs::path license_final_path(license_folder / license_name.parent_path());
 		if (!fs::create_directories(license_final_path)) {
-			throw std::runtime_error("Cannot create licenses directory [" + license_final_path.string() + "]");
+			throw runtime_error("Cannot create licenses directory [" + license_final_path.string() + "]");
 		}
 		license_folder = license_final_path;
 	}
@@ -112,7 +114,7 @@ void License::write_license() {
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
 	crypto->loadPrivateKey_file(m_private_key);
 
-	string license_for_sign = print_for_sign(values_map);
+	string license_for_sign = print_for_sign(m_project_name, values_map);
 	string signature = crypto->signString(license_for_sign);
 
 	ofstream license_stream;
@@ -128,17 +130,21 @@ void License::add_parameter(const std::string &param_name, const std::string &pa
 	if (NO_OUTPUT_PARAM.find(param_name) == NO_OUTPUT_PARAM.end()) {
 		if (param_name.find("date") != std::string::npos) {
 			values_map[param_name] = normalize_date(param_value);
+		} else if (param_name.find("version") != std::string::npos) {
+			if (param_value != "0") {
+				values_map[param_name] = param_value;
+			}
 		} else {
 			values_map[param_name] = param_value;
 		}
 	} else if (PARAM_PRODUCT_NAME == param_name) {
 		m_project_name = param_value;
 	} else if (PARAM_PRIMARY_KEY == param_name) {
-		if (!fs::exists(param_name)) {
+		if (!fs::exists(param_value)) {
 			cerr << "Primary key " << param_value << " not found." << endl;
-			throw new logic_error("Primary key " + param_value + " not found");
+			throw new logic_error("Primary key [" + param_value + "] not found");
 		}
-		m_private_key = param_name;
+		m_private_key = param_value;
 	}
 }
 } /* namespace license */

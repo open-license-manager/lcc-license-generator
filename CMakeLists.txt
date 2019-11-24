@@ -116,7 +116,6 @@ message( STATUS "Install prefix    : " ${CMAKE_INSTALL_PREFIX})
 #include (build directory)/include to find build_properties.h
 include_directories(${CMAKE_BINARY_DIR}/include)
 add_subdirectory("src/base_lib")
-add_subdirectory("src/ini")
 add_subdirectory("src/license_generator")
 
 INCLUDE(CTest)

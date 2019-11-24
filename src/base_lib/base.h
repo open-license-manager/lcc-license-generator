@@ -31,15 +31,31 @@ typedef int bool;
 #define PRIVATE_KEY_FNAME "private_key.rsa"
 #define PUBLIC_KEY_INC_FNAME "public_key.h"
 
+/**
+ * Version at the beginning of license file.
+ */
+#define LICENSE_FILE_VERSION "200";
+
 /*
  * command line parameters
  */
 #define PARAM_BASE64 "base64"
-#define PARAM_EXPIRY_DATE "expiry-date"
 #define PARAM_LICENSE_NAME "license-name"
 #define PARAM_PRODUCT_NAME "product-name"
 #define PARAM_PROJECT_FOLDER "project-folder"
 #define PARAM_PRIMARY_KEY "primary-key"
+
+// license file parameters -- copy this block to open-license-manager
+#define PARAM_EXPIRY_DATE "valid-to"
+#define PARAM_BEGIN_DATE "valid-from"
+#define PARAM_VERSION_FROM "start-version"
+#define PARAM_CLIENT_SIGNATURE "client-signature"
+#define PARAM_VERSION_TO "end-version"
+#define PARAM_EXTRA_DATA "extra-data"
+// license file extra entries
+#define LICENSE_SIGNATURE "sig"
+#define LICENSE_VERSION "lic_ver"
+// license file parameters -- copy this block to open-license-manager
 
 typedef enum { FUNC_RET_OK, FUNC_RET_NOT_AVAIL, FUNC_RET_ERROR, FUNC_RET_BUFFER_TOO_SMALL } FUNCTION_RETURN;
 

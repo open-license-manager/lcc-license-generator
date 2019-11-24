@@ -10,9 +10,21 @@ target_link_libraries(
  ${Boost_LIBRARIES}
 )
 
+add_executable(
+ test_command-line
+ command-line_test.cpp
+)
+
+target_link_libraries(
+ test_command-line
+ license_generator_lib
+ ${Boost_LIBRARIES}
+)
+
 IF( NOT (( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux") AND CMAKE_CROSSCOMPILING))
 	#bcrypt is not well implemented in wine... 
 	ADD_TEST(NAME test_license COMMAND test_license WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+	ADD_TEST(NAME test_command-line COMMAND test_command-line WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 ENDIF()
 
 add_executable(

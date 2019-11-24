@@ -13,7 +13,6 @@
 #include <iostream>
 
 namespace license {
-
 class License {
 private:
 	std::string m_private_key;

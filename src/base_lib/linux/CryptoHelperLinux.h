@@ -23,7 +23,6 @@ private:
 	static const int kExp = 65537;
 	EVP_PKEY *m_pktmp;
 	const string Opensslb64Encode(size_t slen, unsigned char *signature) const;
-
 public:
 	CryptoHelperLinux();
 
