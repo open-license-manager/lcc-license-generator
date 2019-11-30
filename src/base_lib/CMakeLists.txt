@@ -29,8 +29,8 @@ else(UNIX OR OPENSSL_FOUND) #windows and zlib not found
 	)
 ENDIF(UNIX OR OPENSSL_FOUND)
 
-IF(BUILD_TESTING)
-	if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+
+if(CODE_COVERAGE AND UNIX)
 	  MESSAGE(STATUS "Enabling code coverage")
 	  target_compile_options(lcc_base INTERFACE
 	    -O0        # no optimization
@@ -43,5 +43,4 @@ IF(BUILD_TESTING)
 	  else()
 	    target_link_libraries(lcc_base gcov)
 	  endif()
-	endif(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-ENDIF(BUILD_TESTING)
+endif(CODE_COVERAGE AND UNIX)
