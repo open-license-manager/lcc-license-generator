@@ -29,7 +29,6 @@ else(UNIX OR OPENSSL_FOUND) #windows and zlib not found
 	)
 ENDIF(UNIX OR OPENSSL_FOUND)
 
-
 if(CODE_COVERAGE AND UNIX)
 	  MESSAGE(STATUS "Enabling code coverage")
 	  target_compile_options(lcc_base INTERFACE
