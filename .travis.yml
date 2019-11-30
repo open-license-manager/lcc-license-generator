@@ -149,7 +149,7 @@ matrix:
                dir 
            fi
          - cd "${TRAVIS_BUILD_DIR}/build"
-         - cmake -G "MinGW Makefiles" --trace-expand -DBOOST_ROOT="C:/local/boost" -DBoost_ARCHITECTURE="-x64" -DCMAKE_CXX_COMPILER_ARCHITECTURE_ID="x64" -DCMAKE_SH="CMAKE_SH-NOTFOUND" ..
+         - cmake -G "MinGW Makefiles" -DBOOST_ROOT="C:/local/boost" -DBoost_ARCHITECTURE="-x64" -DCMAKE_CXX_COMPILER_ARCHITECTURE_ID="x64" -DCMAKE_SH="CMAKE_SH-NOTFOUND" ..
          
 env:
     - CTEST_OUTPUT_ON_FAILURE=1     
