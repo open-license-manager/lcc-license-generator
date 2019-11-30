@@ -3,9 +3,9 @@
 #include <fstream>
 
 #include "crypto_helper.hpp"
-#ifdef __linux__
-#include "linux/CryptoHelperLinux.h"
-#elif _WIN32
+#ifdef HAS_OPENSSL
+#include "openssl/crypto_helper_ssl.hpp"
+#else
 #include "win/CryptoHelperWindows.h"
 #endif
 
@@ -14,9 +14,9 @@ using namespace std;
 namespace fs = boost::filesystem;
 
 unique_ptr<CryptoHelper> CryptoHelper::getInstance() {
-#ifdef __linux__
+#ifdef HAS_OPENSSL
 	unique_ptr<CryptoHelper> ptr((CryptoHelper *)new CryptoHelperLinux());
-#elif _WIN32
+#else
 	unique_ptr<CryptoHelper> ptr((CryptoHelper *)new CryptoHelperWindows());
 #endif
 	return ptr;

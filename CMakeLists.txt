@@ -25,13 +25,19 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT
 	SET(CMAKE_CROSSCOMPILING_EMULATOR "wine")	
 ENDIF()
 
-
-if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
-	#find a static version of openssl crypto library
-	SET ( OPENSSL_USE_STATIC_LIBS ON )
-	find_package(OpenSSL REQUIRED COMPONENTS Crypto)
+SET ( OPENSSL_USE_STATIC_LIBS ON )
+find_package(OpenSSL COMPONENTS Crypto)
+IF(OPENSSL_FOUND)
+	add_definitions(-DHAS_OPENSSL)
 	include_directories(${OPENSSL_INCLUDE_DIR})
 	MESSAGE(STATUS "Found openssl version ${OPENSSL_VERSION} ")
+ENDIF(OPENSSL_FOUND)
+
+if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
+	#openssl required for linux
+	IF(NOT OPENSSL_FOUND)
+		MESSAGE(SEND_ERROR "Openssl not found - required in Linux")
+	ENDIF(NOT OPENSSL_FOUND)
 	
     find_package(Threads)
 	if(THREADS_HAVE_PTHREAD_ARG)
@@ -57,6 +63,7 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 	    list(APPEND EXTERNAL_LIBS ${DBUS_LIBRARIES})
 	endif(USE_DBUS_IDENTIFIER)    
 else(UNIX) #windows and linux crosscompiling for windows target
+	find_package(OpenSSL COMPONENTS Crypto)
 	if(MSVC)
 		include(target_arch)
 		target_architecture( TARGET_ARCHITECTURE )
@@ -121,9 +128,9 @@ add_subdirectory("src/license_generator")
 
 INCLUDE(CTest)
 IF(BUILD_TESTING)
-  SET(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
-  MARK_AS_ADVANCED(BUILDNAME)
-  add_subdirectory("test")
+    SET(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
+	MARK_AS_ADVANCED(BUILDNAME)
+	add_subdirectory("test")
 ENDIF(BUILD_TESTING)
 
 

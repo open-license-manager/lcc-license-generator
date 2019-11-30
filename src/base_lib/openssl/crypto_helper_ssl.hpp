@@ -7,7 +7,7 @@
 
 #ifndef CRYPTPHELPERLINUX_H_
 #define CRYPTPHELPERLINUX_H_
-//#include <openssl/rsa.h>
+
 #include <openssl/evp.h>
 #include <cstddef>
 #include <string>
@@ -22,7 +22,8 @@ private:
 	static const int kBits = 1024;
 	static const int kExp = 65537;
 	EVP_PKEY *m_pktmp;
-	const string Opensslb64Encode(size_t slen, unsigned char *signature) const;
+	const string Opensslb64Encode(const size_t slen, const unsigned char *signature) const;
+
 public:
 	CryptoHelperLinux();
 

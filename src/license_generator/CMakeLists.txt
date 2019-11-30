@@ -16,22 +16,6 @@ target_link_libraries(
      ${EXTERNAL_LIBS}
 )
 
-option(CODE_COVERAGE "Enable coverage reporting" OFF)
-if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  # Add required flags (GCC & LLVM/Clang)
-  target_compile_options(license_generator_lib INTERFACE
-    -O0        # no optimization
-    -g         # generate debug info
-    --coverage # sets all required flags
-  )
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-    target_link_options(license_generator_lib INTERFACE --coverage)
-    target_link_libraries(license_generator_lib PUBLIC gcov)
-  else()
-    target_link_libraries(license_generator_lib gcov)
-  endif()
-endif(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-
 add_executable(
  lcc
  open-license-main.cpp

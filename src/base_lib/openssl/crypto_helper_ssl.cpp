@@ -5,7 +5,6 @@
  *
  */
 
-#include "CryptoHelperLinux.h"
 #include <boost/algorithm/string.hpp>
 
 #include <openssl/evp.h>
@@ -17,6 +16,8 @@
 #include <string>
 #include <cstddef>
 #include <stdexcept>
+
+#include "crypto_helper_ssl.hpp"
 
 namespace license {
 using namespace std;
@@ -88,10 +89,6 @@ const vector<unsigned char> CryptoHelperLinux::exportPublicKey() const {
 	// char *pem_key = (char*) (calloc(keylen + 1, 1));
 	BIO_read(bio_public, &buffer[0], keylen);
 	BIO_free_all(bio_public);
-	// boost::replace_all(buffer, "-----BEGIN RSA PRIVATE KEY-----", "");
-	// boost::replace_all(buffer, "-----END RSA PRIVATE KEY-----", "");
-	// boost::replace_all(buffer, "\n", "");
-	// return base64_decode(buffer);
 	return buffer;
 }
 
@@ -187,14 +184,7 @@ void CryptoHelperLinux::loadPrivateKey(const std::string &privateKey) {
 	BIO_free(bio);
 }
 
-const string CryptoHelperLinux::Opensslb64Encode(size_t slen, unsigned char *signature) const {
-	/*
-	 FILE*  stream = fmemopen(*buffer, encodedSize+1, "w");
-	 */
-	// bio = BIO_new_fp(stdout, BIO_NOCLOSE);
-	/*int encodedSize = 4 * ceil(slen / 3);
-	 char* buffer = (char*) (malloc(encodedSize + 1));
-	 memset(buffer,0,encodedSize+1);*/
+const string CryptoHelperLinux::Opensslb64Encode(const size_t slen, const unsigned char *signature) const {
 	BIO *mem_bio = BIO_new(BIO_s_mem());
 	BIO *b64 = BIO_new(BIO_f_base64());
 	BIO *bio1 = BIO_push(b64, mem_bio);
