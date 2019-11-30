@@ -121,7 +121,7 @@ void License::write_license() {
 	ofstream license_stream;
 	const fs::path license_path(license_folder / license_name.filename());
 	const string lic_path_str = license_path.string();
-	license_stream.open(license_path.c_str(), ios::trunc | ios::binary);
+	license_stream.open(lic_path_str.c_str(), ios::trunc | ios::binary);
 	printAsIni(license_stream, signature);
 	license_stream.close();
 }
