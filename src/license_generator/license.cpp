@@ -116,7 +116,7 @@ void License::write_license() {
 	crypto->loadPrivateKey_file(m_private_key);
 
 	const string license_for_sign = print_for_sign(m_project_name, values_map);
-	const sstring signature = crypto->signString(license_for_sign);
+	const string signature = crypto->signString(license_for_sign);
 
 	ofstream license_stream;
 	const fs::path license_path(license_folder / license_name.filename());
