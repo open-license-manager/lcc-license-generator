@@ -60,7 +60,7 @@ static void printBasicHelp(const char *prog_name) {
 	cout << " to see specific command options type: " << prog_name << " [command] --help" << endl << endl;
 }
 
-CommandLineParser::CommandLineParser(bool verb) : m_verbose(verb) {}
+CommandLineParser::CommandLineParser() {}
 
 CommandLineParser::~CommandLineParser() {}
 
@@ -91,7 +91,7 @@ static void initializeProject(const po::parsed_options &parsed, po::variables_ma
 	boost::optional<std::string> primary_key;
 	boost::optional<std::string> public_key;
 	boost::optional<std::string> project_folder;
-	boost::optional<std::string> templates_folder;
+	std::string templates_folder;
 	project_desc.add_options()  //
 		("project-name,n", po::value<std::string>(&project_name)->required(), "New project name (required).")  //
 		(PARAM_PRIMARY_KEY, po::value<boost::optional<std::string>>(&primary_key),
@@ -100,13 +100,12 @@ static void initializeProject(const po::parsed_options &parsed, po::variables_ma
 		 "Use externally generated public key, private key must also be specified.")  //
 		("projects-folder,p", po::value<boost::optional<std::string>>(&project_folder),  //
 		 "path to where all the projects configurations are stored.")  //
-		("templates,t", po::value<boost::optional<std::string>>(&templates_folder),
+		("templates,t", po::value<std::string>(&templates_folder)->default_value("."),
 		 "path to the templates folder.")  //
 		("help", "Print this help.");  //
 	rerunBoostPO(parsed, project_desc, vm, argv, "project init", global);
 	// cout << templates_folder.is_initialized() << endl;
-	Project project(project_name, project_folder.is_initialized() ? project_folder.get() : "",
-					templates_folder.is_initialized() ? templates_folder.get() : "");
+	Project project(project_name, project_folder.is_initialized() ? project_folder.get() : ".", templates_folder);
 
 	project.initialize();
 }

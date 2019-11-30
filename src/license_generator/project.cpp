@@ -52,7 +52,8 @@ static const string guess_templates_folder(const string &source_folder) {
 									 "] does not exist. tried also [" + template_fname.string() + "]");
 		}
 	}
-	return templates_path.string();
+	fs::path normalized = templates_path.normalize();
+	return normalized.string();
 }
 static const fs::path publicKeyFolder(const fs::path &product_folder, const string &product_name) {
 	return product_folder / "include" / "licensecc" / product_name;
@@ -108,10 +109,11 @@ FUNCTION_RETURN Project::initialize() {
 			exportPublicKey(include_folder.string(), cryptoHelper);
 		}
 	} else {
+		ofstream ofs;
 		cryptoHelper->generateKeyPair();
 		const std::string privateKey = cryptoHelper->exportPrivateKey();
-		ofstream ofs;
-		ofs.open(privateKeyFile.string().c_str(), std::fstream::trunc | std::fstream::binary);
+		const string private_key_file_str = privateKeyFile.string();
+		ofs.open(private_key_file_str.c_str(), std::fstream::trunc | std::fstream::binary);
 		ofs << privateKey;
 		ofs.close();
 		exportPublicKey(include_folder.string(), cryptoHelper);

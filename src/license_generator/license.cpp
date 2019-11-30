@@ -48,15 +48,16 @@ static const string normalize_date(const std::string &sDate) {
 }
 
 static const string normalize_project_path(const string &project_path) {
-	fs::path rproject_path(project_path);
+	const fs::path rproject_path(project_path);
 	if (!fs::exists(rproject_path) || !fs::is_directory(rproject_path)) {
 		throw logic_error("Path " + project_path + " doesn't exist or is not a directory.");
 	}
 	fs::path normalized;
+	const string rproject_path_str = rproject_path.string();
 	if (rproject_path.filename().string() == ".") {
 		normalized = fs::current_path();
 		// sometimes is_relative fails under wine. a linux path is taken for a relative path.
-	} else if (rproject_path.is_relative() && !rproject_path.string().at(0) == '/') {
+	} else if (rproject_path.is_relative() && !(rproject_path_str.at(0) == '/')) {
 		normalized = fs::canonical(fs::current_path() / rproject_path);
 	} else {
 		normalized = rproject_path.string();
@@ -114,12 +115,13 @@ void License::write_license() {
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
 	crypto->loadPrivateKey_file(m_private_key);
 
-	string license_for_sign = print_for_sign(m_project_name, values_map);
-	string signature = crypto->signString(license_for_sign);
+	const string license_for_sign = print_for_sign(m_project_name, values_map);
+	const sstring signature = crypto->signString(license_for_sign);
 
 	ofstream license_stream;
-	fs::path license_path(license_folder / license_name.filename());
-	license_stream.open(license_path.string().c_str(), ios::trunc | ios::binary);
+	const fs::path license_path(license_folder / license_name.filename());
+	const string lic_path_str = license_path.string();
+	license_stream.open(license_path.c_str(), ios::trunc | ios::binary);
 	printAsIni(license_stream, signature);
 	license_stream.close();
 }

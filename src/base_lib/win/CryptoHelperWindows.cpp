@@ -264,7 +264,7 @@ RSAPublicKey ::= SEQUENCE {
 	}
 
 	void CryptoHelperWindows::loadPrivateKey(const std::string& privateKey) {
-		DWORD dwBufferLen = 0, status = 0, pkiLen = 0;
+		DWORD dwBufferLen = 0, pkiLen = 0;
 		LPBYTE pbBuffer = nullptr;
 		PCRYPT_DER_BLOB pki = nullptr;
 		string errors;
@@ -282,8 +282,8 @@ RSAPublicKey ::= SEQUENCE {
 						BCryptDestroyKey(m_hTmpKey);
 						m_hTmpKey = nullptr;
 					}
-					status = BCryptImportKeyPair(m_hSignAlg, NULL, LEGACY_RSAPRIVATE_BLOB, &m_hTmpKey, (PUCHAR)pki,
-												 pkiLen, 0);
+					DWORD status = BCryptImportKeyPair(m_hSignAlg, NULL, LEGACY_RSAPRIVATE_BLOB, &m_hTmpKey,
+													   (PUCHAR)pki, pkiLen, 0);
 					if (NT_SUCCESS(status)) {
 						LocalFree(pki);
 						LocalFree(pbBuffer);

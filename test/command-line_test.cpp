@@ -29,6 +29,8 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
 						"Private key " + expectedPrivateKey.string() + " can't be deleted.");
 	BOOST_CHECK_MESSAGE(!fs::exists(expected_public_key),
 						"Public key " + expected_public_key.string() + " can't be deleted.");
+	const string mock_source = mock_source_folder.string();
+	const string projects_str = projects_folder.string();
 
 	int argc = 9;
 	const char *argv1[] = {"lcc",
@@ -37,26 +39,27 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
 						   "-n",
 						   project_name.c_str(),
 						   "--projects-folder",
-						   projects_folder.string().c_str(),
+						   projects_str.c_str(),
 						   "--templates",
-						   mock_source_folder.string().c_str()};
+						   mock_source.c_str()};
 	// initialize_project
 	int result = CommandLineParser::parseCommandLine(argc, argv1);
 	BOOST_CHECK_EQUAL(result, 0);
 	BOOST_REQUIRE_MESSAGE(fs::exists(expectedPrivateKey), "Private key " + expectedPrivateKey.string() + " created.");
 	BOOST_CHECK_MESSAGE(fs::exists(expected_public_key), "Public key " + expected_public_key.string() + " created.");
-
+	const string private_key_str = expectedPrivateKey.string();
+	const string project_folder_str = expected_project_folder.string();
 	// issue license in standard location
 	argc = 9;
 	const char *argv2[] = {"lcc",
 						   "license",
 						   "issue",
 						   "--" PARAM_PRIMARY_KEY,
-						   expectedPrivateKey.string().c_str(),
+						   private_key_str.c_str(),
 						   "--" PARAM_LICENSE_NAME,
 						   "my_license",
 						   "--" PARAM_PROJECT_FOLDER,
-						   expected_project_folder.string().c_str()};
+						   project_folder_str.c_str()};
 	result = CommandLineParser::parseCommandLine(argc, argv2);
 	BOOST_CHECK_EQUAL(result, 0);
 	fs::path expected_license(expected_project_folder / "licenses" / "my_license.lic");

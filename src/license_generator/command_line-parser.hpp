@@ -15,13 +15,12 @@ namespace license {
 
 class CommandLineParser {
 private:
-	const bool m_verbose;
 	int project_init(const std::string &project_name,  //
 					 const boost::optional<std::string> &primary_key,  //
 					 const boost::optional<std::string> &public_key,  //
 					 const boost::optional<std::string> &project_folder,  //
 					 const boost::optional<std::string> &templates_folder);
-	CommandLineParser(bool verbose);
+	CommandLineParser();
 	virtual ~CommandLineParser();
 
 public:
