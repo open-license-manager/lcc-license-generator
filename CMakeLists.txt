@@ -32,6 +32,7 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 	find_package(OpenSSL REQUIRED COMPONENTS Crypto)
 	include_directories(${OPENSSL_INCLUDE_DIR})
 	MESSAGE(STATUS "Found openssl version ${OPENSSL_VERSION} ")
+	
     find_package(Threads)
 	if(THREADS_HAVE_PTHREAD_ARG)
   		list(APPEND EXTERNAL_LIBS "-pthread")
