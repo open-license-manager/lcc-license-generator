@@ -4,7 +4,7 @@ if(UNIX OR OPENSSL_FOUND)
 	    lcc_base STATIC
 	    base64.cpp
 	    crypto_helper.cpp
-	    openssl/CryptoHelperLinux.cpp
+	    openssl/crypto_helper_ssl.cpp
 	)
 	
 	if (CMAKE_VERSION VERSION_GREATER 3.5)
