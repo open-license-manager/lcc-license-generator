@@ -11,7 +11,7 @@ ADD_LIBRARY(
 
 target_link_libraries(
      license_generator_lib
-     olm_base
+     lcc_base
      ${Boost_LIBRARIES}	 
      ${EXTERNAL_LIBS}
 )
@@ -23,7 +23,7 @@ add_executable(
 add_executable(license_generator::lcc ALIAS lcc)
 
 target_link_libraries(
-    lcc
+    lcc PRIVATE
     license_generator_lib
 )
 

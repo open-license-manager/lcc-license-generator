@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
 	BOOST_CHECK_MESSAGE(!fs::exists(expected_public_key),
 						"Public key " + expected_public_key.string() + " can't be deleted.");
 	const string mock_source = mock_source_folder.string();
-	const string projects_str = "\"" + projects_folder.string() + "\"";
+	const string projects_str = projects_folder.string();
 
 	int argc = 9;
 	const char *argv1[] = {"lcc",
