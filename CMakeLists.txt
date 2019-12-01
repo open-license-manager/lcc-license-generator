@@ -31,7 +31,9 @@ find_package(OpenSSL COMPONENTS Crypto)
 IF(OPENSSL_FOUND)
 	add_definitions(-DHAS_OPENSSL)
 	include_directories(${OPENSSL_INCLUDE_DIR})
-	MESSAGE(STATUS "Found openssl version ${OPENSSL_VERSION} ")
+	MESSAGE(STATUS "Found openssl version ${OPENSSL_VERSION} - generator")
+ELSE(OPENSSL_FOUND)
+	MESSAGE(STATUS "OpenSSL not found - generator")
 ENDIF(OPENSSL_FOUND)
 
 if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
@@ -64,7 +66,6 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 	    list(APPEND EXTERNAL_LIBS ${DBUS_LIBRARIES})
 	endif(USE_DBUS_IDENTIFIER)    
 else(UNIX) #windows and linux crosscompiling for windows target
-	find_package(OpenSSL COMPONENTS Crypto)
 	if(MSVC)
 		include(target_arch)
 		target_architecture( TARGET_ARCHITECTURE )
