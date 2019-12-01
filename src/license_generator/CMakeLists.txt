@@ -1,32 +1,13 @@
 link_directories ( ${Boost_LIBRARY_DIR} )
 
-ADD_LIBRARY(
-    license_generator_lib STATIC
-#    license-generator.cpp
-    command_line-parser.cpp
-    license.cpp
-    project.cpp
-    ../ini/ConvertUTF.cpp
-)
+ADD_LIBRARY(license_generator_lib STATIC command_line-parser.cpp license.cpp project.cpp ../ini/ConvertUTF.cpp)
+target_link_libraries(license_generator_lib lcc_base ${Boost_LIBRARIES} ${EXTERNAL_LIBS})
 
-target_link_libraries(
-     license_generator_lib
-     lcc_base
-     ${Boost_LIBRARIES}	 
-     ${EXTERNAL_LIBS}
-)
-
-add_executable(
- lcc
- open-license-main.cpp
-)
+add_executable(lcc open-license-main.cpp)
 add_executable(license_generator::lcc ALIAS lcc)
+target_link_libraries(lcc PRIVATE license_generator_lib)
 
-target_link_libraries(
-    lcc PRIVATE
-    license_generator_lib
-)
-
+#install instructions
 install(TARGETS lcc EXPORT license_generator RUNTIME DESTINATION bin)
 
 set(main_lib_dest "lib/lcc")
