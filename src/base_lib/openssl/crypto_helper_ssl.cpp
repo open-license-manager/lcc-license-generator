@@ -53,7 +53,7 @@ void CryptoHelperLinux::generateKeyPair() {
 	if (EVP_PKEY_keygen(ctx, &m_pktmp) <= 0) {
 		throw logic_error("error generating keypair");
 	}
-	// EVP_PKEY_CTX_free(ctx);
+	EVP_PKEY_CTX_free(ctx);
 }
 
 const string CryptoHelperLinux::exportPrivateKey() const {
@@ -133,41 +133,11 @@ const string CryptoHelperLinux::signString(const string &license) const {
 		EVP_MD_CTX_destroy(mdctx);
 		throw logic_error("Message signature exception");
 	}
-	/*
-	 FILE*  stream = fmemopen(*buffer, encodedSize+1, "w");
-	 */
-	// bio = BIO_new_fp(stdout, BIO_NOCLOSE);
-	/*int encodedSize = 4 * ceil(slen / 3);
-	 char* buffer = (char*) (malloc(encodedSize + 1));
-	 memset(buffer,0,encodedSize+1);*/
+
 	string signatureStr = Opensslb64Encode(slen, signature);
-	/*
-	 * BIO *bio, *b64;
-	 char message[] = "Hello World \n";
-	 b64 = BIO_new(BIO_f_base64());
-	 bio = BIO_new_fp(stdout, BIO_NOCLOSE);
-	 bio = BIO_push(b64, bio);
-	 BIO_write(bio, message, strlen(message));
-	 BIO_flush(bio);
-	 BIO_free_all(bio);
-	 Read Base64 encoded data from standard input and write the decoded data to standard output:
 
-	 BIO *bio, *b64, *bio_out;
-	 char inbuf[512];
-	 int inlen;
-	 b64 = BIO_new(BIO_f_base64());
-	 bio = BIO_new_fp(stdin, BIO_NOCLOSE);
-	 bio_out = BIO_new_fp(stdout, BIO_NOCLOSE);
-	 bio = BIO_push(b64, bio);
-	 while((inlen = BIO_read(bio, inbuf, 512)) > 0)
-	 BIO_write(bio_out, inbuf, inlen);
-	 BIO_free_all(bio);
-	 */
-	/* Clean up */
-	// free(buffer);
 	if (signature) OPENSSL_free(signature);
-
-	if (mdctx) EVP_MD_CTX_destroy(mdctx);
+	EVP_MD_CTX_destroy(mdctx);
 	return signatureStr;
 }
 void CryptoHelperLinux::loadPrivateKey(const std::string &privateKey) {
@@ -200,7 +170,7 @@ const string CryptoHelperLinux::Opensslb64Encode(const size_t slen, const unsign
 }
 
 CryptoHelperLinux::~CryptoHelperLinux() {
-	if (m_pktmp) {
+	if (m_pktmp != nullptr) {
 		EVP_PKEY_free(m_pktmp);
 	}
 }

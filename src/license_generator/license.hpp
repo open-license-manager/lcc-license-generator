@@ -29,6 +29,7 @@ public:
 	License(const std::string &licenseName, const std::string &projectFolder, bool base64 = false);
 	void add_parameter(const std::string &param_name, const std::string &param_value);
 	void write_license();
+	std::string get_license_file_path() const;
 	inline virtual ~License() {}
 };
 

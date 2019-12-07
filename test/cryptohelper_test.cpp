@@ -49,6 +49,7 @@ BOOST_AUTO_TEST_CASE(test_generate_and_sign) {
 						"Private key is in openssl pkcs#1 format");
 	const std::string signature = crypto->signString("testString");
 	BOOST_CHECK_MESSAGE(signature.size() == 172, "signature is the right size");
+	crypto.release();
 	/*
 	 ofstream myfile("private_key-linux.rsa");
 	 myfile << privateK;
@@ -67,6 +68,7 @@ BOOST_AUTO_TEST_CASE(test_load_and_export_private) {
 	// cout<<pk_exported<<endl;
 	BOOST_CHECK_MESSAGE(boost::trim_copy(pk_exported) == boost::trim_copy(pk_str),
 						"imported and exported keys are the same");
+	crypto.release();
 }
 
 BOOST_AUTO_TEST_CASE(test_load_and_export_public_key) {
@@ -88,6 +90,7 @@ BOOST_AUTO_TEST_CASE(test_load_and_export_public_key) {
 	BOOST_CHECK_MESSAGE(expected_pubkey.size() == pk_exported.size(), "exported key and expected are the same size");
 	BOOST_CHECK_MESSAGE(std::equal(expected_pubkey.begin(), expected_pubkey.end(), pk_exported.begin()),
 						"exported key and expected have the same content");
+	crypto.release();
 }
 
 BOOST_AUTO_TEST_CASE(test_load_and_sign) {
@@ -97,6 +100,7 @@ BOOST_AUTO_TEST_CASE(test_load_and_sign) {
 	const std::string signature = crypto->signString("testString");
 	BOOST_CHECK_MESSAGE(signature.size() == 172, "signature is the right size");
 	BOOST_CHECK_MESSAGE(signature == SIGNATURE, "signature is repeatable");
+	crypto.release();
 }
 
 BOOST_AUTO_TEST_CASE(test_generate_export_import_and_sign) {
@@ -107,5 +111,6 @@ BOOST_AUTO_TEST_CASE(test_generate_export_import_and_sign) {
 	const string signature = crypto->signString("testString");
 	//(1024/8)*(4/3)+4 (base64)
 	BOOST_CHECK_MESSAGE(signature.size() == 172, "signature is the right size");
+	crypto.release();
 }
 }  // namespace test

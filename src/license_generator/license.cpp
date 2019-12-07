@@ -95,21 +95,31 @@ void License::printAsIni(ostream &a_ostream, const string &signature) const {
 	ini.Save(sw, true);
 }
 
-void License::write_license() {
-	const fs::path project_folder(m_projectFolder);
-	fs::path license_folder(project_folder / "licenses");
-	const fs::path license_name(m_licenseName + ".lic");
-	if (!fs::exists(license_folder)) {
-		if (!fs::create_directories(license_folder)) {
-			throw runtime_error("Cannot create licenses directory [" + license_folder.string() + "]");
-		}
+string License::get_license_file_path() const {
+	const string normalized_fname = boost::ends_with(m_licenseName, ".lic") ? m_licenseName : (m_licenseName + ".lic");
+	const fs::path license_name(normalized_fname);
+	string result;
+	if (license_name.is_relative() && !(m_licenseName.at(0) == '/')) {
+		const fs::path project_folder(m_projectFolder);
+		fs::path license_full(project_folder / "licenses" / license_name);
+		result = license_full.string();
+	} else {
+		result = license_name.string();
 	}
+	return result;
+}
+void License::write_license() {
+	const fs::path license_name(get_license_file_path());
 	if (!license_name.parent_path().empty()) {
-		fs::path license_final_path(license_folder / license_name.parent_path());
-		if (!fs::create_directories(license_final_path)) {
-			throw runtime_error("Cannot create licenses directory [" + license_final_path.string() + "]");
+		fs::path license_final_path(license_name.parent_path());
+		if (!fs::exists(license_final_path)) {
+			if (!fs::create_directories(license_final_path)) {
+				throw runtime_error("Cannot create licenses directory [" + license_final_path.string() + "]");
+			}
+		} else if (fs::is_regular_file(license_final_path)) {
+			throw runtime_error("trying to create folder [" + license_final_path.string() +
+								"] but there is a file with the same name. ");
 		}
-		license_folder = license_final_path;
 	}
 
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
@@ -119,8 +129,7 @@ void License::write_license() {
 	const string signature = crypto->signString(license_for_sign);
 
 	ofstream license_stream;
-	const fs::path license_path(license_folder / license_name.filename());
-	const string lic_path_str = license_path.string();
+	const string lic_path_str = license_name.string();
 	license_stream.open(lic_path_str.c_str(), ios::trunc | ios::binary);
 	printAsIni(license_stream, signature);
 	license_stream.close();

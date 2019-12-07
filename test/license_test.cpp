@@ -68,19 +68,31 @@ BOOST_AUTO_TEST_CASE(generate_license_subdir) {
 						"license has been created");
 }
 
+BOOST_AUTO_TEST_CASE(generate_license_with_absolute_path) {
+	const fs::path license_abs_path = fs::path(PROJECT_TEST_TEMP_DIR) / "test_abs_path.lic";
+	License license(license_abs_path.string(), MyGlobalFixture::project_path.string());
+	license.add_parameter(PARAM_PRODUCT_NAME, "my_fantastic_softwAre");
+	license.write_license();
+
+	BOOST_CHECK_MESSAGE(license.get_license_file_path() == license_abs_path.string(),
+						"file created " + license.get_license_file_path());
+	BOOST_REQUIRE_MESSAGE(fs::exists(license_abs_path), "license has been created");
+}
+
 BOOST_AUTO_TEST_CASE(generate_license_product) {
 	License license("myclient", MyGlobalFixture::project_path.string());
 	license.add_parameter(PARAM_PRODUCT_NAME, "my_fantastic_softwAre");
 	license.write_license();
 
 	fs::path licFile = MyGlobalFixture::licenses_path / "myclient.lic";
+	BOOST_CHECK_MESSAGE(license.get_license_file_path() == licFile.string(),
+						"file created " + license.get_license_file_path());
 	BOOST_REQUIRE_MESSAGE(fs::exists(licFile), "license has been created");
 	CSimpleIniA ini;
 	ini.LoadFile(licFile.c_str());
 	BOOST_CHECK_MESSAGE(ini.GetSectionSize("MY_FANTASTIC_SOFTWARE") == 2,
 						"Section [MY_FANTASTIC_SOFTWARE] has 2 elements");
 }
-
 #else
 BOOST_AUTO_TEST_CASE(mock) { BOOST_CHECKPOINT("Mock test for older boost versions"); }
 #endif

@@ -50,7 +50,7 @@ public:
 	 */
 	const virtual std::string signString(const std::string &license) const = 0;
 	static std::unique_ptr<CryptoHelper> getInstance();
-	inline virtual ~CryptoHelper() {}
+	virtual ~CryptoHelper() {}
 };
 }  // namespace license
 #endif

@@ -4,7 +4,7 @@ matrix:
   include:
   - os: linux
     dist: bionic
-    name: Ubuntu 18.04 - Travis CI VM - Release
+    name: "Ubuntu 18.04 - Travis CI VM - Release"
     addons:
       apt:
         packages:
@@ -33,7 +33,7 @@ matrix:
         tag: true
   - os: linux
     dist: xenial
-    name: Ubuntu 16.04 - Travis CI VM - Release
+    name: "Ubuntu 16.04 - Travis CI VM - Release"
     addons:
       apt:
         packages:
@@ -51,7 +51,7 @@ matrix:
         - libboost-date-time-dev
   - os: linux
     dist: bionic
-    name: Ubuntu 18.04 - Travis CI VM - Debug build
+    name: "Ubuntu 18.04 - Travis CI VM - Debug build"
     env:
     - CMAKE_BUILD_TYPE=Debug
     addons:
@@ -71,22 +71,19 @@ matrix:
         - libboost-date-time-dev
         - lcov
     before_script:
-    - cd build && cmake -DCMAKE_INSTALL_PREFIX=../../install -DCMAKE_BUILD_TYPE=Debug
-      -DCODE_COVERAGE=ON ..
+    - cd build && cmake -DCMAKE_INSTALL_PREFIX=../../install -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON ..
     script:
     - cmake --build . --target install
     - ctest
     - ctest -T memcheck
     after_success:
     - lcov --capture --directory . --output-file coverage.info
-    - lcov --remove coverage.info '/usr/include/*' '*/src/inja/*' '*/src/ini/*' --output-file
-      coverage.info
+    - lcov --remove coverage.info '/usr/include/*' '*/src/inja/*' '*/src/ini/*' --output-file coverage.info
     - lcov --list coverage.info
-    - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did
-      not collect coverage reports"
+    - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
   - os: linux
     dist: bionic
-    name: CentOS-7 Docker
+    name: "CentOS-7 Docker"
     before_script:
     - docker run --name centos7_toconfigure -v `pwd`:/root/open-license-manager centos:centos7
       /bin/bash -c "yum -y update && yum -y install install centos-release-scl &&
@@ -101,7 +98,7 @@ matrix:
       VIRT_ENV=CONTAINER make test"
   - os: linux
     dist: bionic
-    name: Ubuntu 18.04 - MinGW cross-compile for Windows x64
+    name: "Ubuntu 18.04 - MinGW cross-compile for Windows x64"
     addons:
       apt:
         packages:
@@ -169,9 +166,7 @@ env:
 - CTEST_OUTPUT_ON_FAILURE=1
 - CMAKE_BUILD_TYPE=Release
 before_script:
-- cd build && cmake -DCMAKE_INSTALL_PREFIX=../../install -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE
-  ..
+- cd build && cmake -DCMAKE_INSTALL_PREFIX=../../install -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
 script:
-- cmake --build . --target install --config Release
-- ctest -V -C Release
-
+- cmake --build . --target install --config ${CMAKE_BUILD_TYPE}
+- ctest -V -C ${CMAKE_BUILD_TYPE}

@@ -73,10 +73,17 @@ static void rerunBoostPO(const po::parsed_options &parsed, const po::options_des
 	std::vector<std::string> opts = po::collect_unrecognized(parsed.options, po::include_positional);
 	opts.erase(opts.begin());
 	po::store(po::command_line_parser(opts).options(project_desc).run(), vm);
-	try {
-		po::notify(vm);
-	} catch (std::exception &e) {
-		std::cerr << "Error: " << e.what() << endl;
+	if (vm.find("help") == vm.end()) {
+		try {
+			po::notify(vm);
+		} catch (std::exception &e) {
+			printHelpHeader(argv[0]);
+			cout << argv[0] << command_for_logging << " [options]" << endl;
+			global.print(cout);
+			project_desc.print(cout);
+			std::cerr << "Error: " << e.what() << endl;
+		}
+	} else {
 		printHelpHeader(argv[0]);
 		cout << argv[0] << command_for_logging << " [options]" << endl;
 		global.print(cout);
@@ -115,6 +122,7 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 	po::options_description license_desc("license issue options");
 	string license_name;
 	string project_folder;
+	string output;
 	bool base64;
 	license_desc.add_options()  //
 		(PARAM_BASE64 ",b", po::value<bool>(&base64)->default_value(false),
@@ -129,19 +137,19 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		 "The signature of the pc that requires the license. It should be in the format XXXX-XXXX-XXXX-XXXX."
 		 " If not specified the license won't be linked to a specific pc.")  //
 		(PARAM_LICENSE_NAME ",l", po::value<string>(&license_name)->required(),
-		 "License name. May contain / that will be interpreded as subfolders."
-		 "The license name is usually the client's name for which you're issuing the license")  //
+		 "License name. May contain / that will be interpreded as subfolders. If it's relative it is inside project "
+		 "folder. Otherwise may be an absolute file name.")  //
 		(PARAM_PRODUCT_NAME ",n", po::value<boost::optional<std::string>>(),
 		 "Product name (in case it doesn't correspond with project name).")  //
 		(PARAM_PRIMARY_KEY, po::value<string>(), "Primary key location, in case it is not in default folder")  //
-		(PARAM_PROJECT_FOLDER ",p", po::value<string>(&project_folder)->default_value(""),
+		(PARAM_PROJECT_FOLDER ",p", po::value<string>(&project_folder)->default_value("."),
 		 "path to where project configurations and licenses are stored.")  //
-		(PARAM_VERSION_FROM ",t", po::value<string>()->default_value("0", "All Versions"),
+		(PARAM_VERSION_FROM, po::value<string>()->default_value("0", "All Versions"),
 		 "Specify the first version of the software this license apply to.")  //
-		(PARAM_VERSION_TO ",n", po::value<string>()->default_value("0", "All Versions"),  //
+		(PARAM_VERSION_TO, po::value<string>()->default_value("0", "All Versions"),  //
 		 "Specify the last version of the software this license apply to.")  //
-		(PARAM_EXTRA_DATA ",x", po::value<string>(), "Specify extra data to be included into the license");
-	("help", "Print this help.");  //
+		(PARAM_EXTRA_DATA ",x", po::value<string>(), "Specify extra data to be included into the license")(
+			"help", "Print this help.");  //
 	rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global);
 	License license(license_name, project_folder, base64);
 	for (const auto &it : vm) {
@@ -152,7 +160,12 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 			std::cout << it.first << "not recognized value error" << endl;
 		}
 	}
-	license.write_license();
+	try {
+		license.write_license();
+		cerr << "License written " << endl;
+	} catch (exception &ex) {
+		cerr << "License writing error." << ex.what() << endl;
+	}
 }
 
 /** method used in tests for have a quick signature of a piece of data */
@@ -175,7 +188,7 @@ static void test_sign(const po::parsed_options &parsed, po::variables_map &vm, c
 		ofstream ofile;
 		ofile.open(outputFile, ios::trunc);
 		if (!ofile.is_open()) {
-			throw logic_error("can't create " + outputFile);
+			throw logic_error("can't create [" + outputFile + "]");
 		}
 		ofile << signedData;
 		ofile.close();
@@ -247,47 +260,6 @@ int CommandLineParser::parseCommandLine(int argc, const char **argv) {
 		printBasicHelp(argv[0]);
 		result = 1;
 	}
-	/*po::options_description visibleOptions = configureProgramOptions();
-	 //positional options must be added to standard options
-	 po::options_description allOptions;
-	 allOptions.add(visibleOptions).add_options()("product",
-	 po::value<vector<string>>(), "product names");
-
-	 po::positional_options_description p;
-	 p.add("product", -1);
-
-	 po::variables_map vm;
-	 po::store(
-	 po::command_line_parser(argc, argv).options(allOptions).positional(
-	 p).run(), vm);
-	 po::notify(vm);
-	 if (vm.count("help") || argc == 1) {
-	 printHelp(argv[0], visibleOptions);
-	 return 0;
-	 }*/
-
-	/*if (vm.count("output")) {
-	 const std::string fname = vm["output"].as<string>();
-
-	 fstream ofstream(fname, std::ios::out | std::ios::app);
-	 if (!ofstream.is_open()) {
-	 cerr << "can't open file [" << fname << "] for output." << endl
-	 << " error: " << strerror(errno) << endl;
-	 exit(3);
-	 }
-	 if (vm.count("base64")) {
-	 generateB64Licenses(vm, ofstream);
-	 } else {
-	 generateAndOutputLicenses(vm, ofstream);
-	 }
-	 ofstream.close();
-	 } else {
-	 if (vm.count("base64")) {
-	 generateB64Licenses(vm, cout);
-	 } else {
-	 generateAndOutputLicenses(vm, cout);
-	 }
-	 }*/
 	return result;
 }
 
