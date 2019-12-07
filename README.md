@@ -10,6 +10,7 @@ License generator for open-license-manager allow to create new projects (and the
 This code is intended to be used as a submodule of open-license-manager project. 
 All the documentation is in the main project.
 
+(the corresponding code hasn't been merged to develop yet is on the issue_42 branch)
 
 
 
