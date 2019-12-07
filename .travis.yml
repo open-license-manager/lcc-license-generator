@@ -30,16 +30,6 @@ matrix:
         - libboost-thread-dev
         - libboost-date-time-dev
         - alien
-    deploy:
-      provider: releases
-      edge: true
-      cleanup: false
-      draft: true
-      file: build/dist/lcc-generator-*.*
-      on:
-        repo: open-license-manager/lcc-license-generator
-        branch: master
-        tag: true
   - os: linux
     dist: xenial
     name: "Ubuntu 16.04 - Travis CI VM - Release"
