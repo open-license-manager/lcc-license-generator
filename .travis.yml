@@ -1,5 +1,14 @@
 language: cpp
 services: docker
+env:
+  - CTEST_OUTPUT_ON_FAILURE=1
+  - CMAKE_BUILD_TYPE=Release
+before_script:
+  - cd build && cmake -DCMAKE_INSTALL_PREFIX=../../install -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
+script:
+  - cmake --build . --target install --config ${CMAKE_BUILD_TYPE}
+  - ctest -V -C ${CMAKE_BUILD_TYPE}
+
 matrix:
   include:
   - os: linux
@@ -162,11 +171,4 @@ matrix:
     - cd "${TRAVIS_BUILD_DIR}/build"
     - cmake -G "MinGW Makefiles" -DBOOST_ROOT="C:/local/boost" -DBoost_ARCHITECTURE="-x64"
       -DCMAKE_CXX_COMPILER_ARCHITECTURE_ID="x64" -DCMAKE_SH="CMAKE_SH-NOTFOUND" ..
-env:
-- CTEST_OUTPUT_ON_FAILURE=1
-- CMAKE_BUILD_TYPE=Release
-before_script:
-- cd build && cmake -DCMAKE_INSTALL_PREFIX=../../install -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
-script:
-- cmake --build . --target install --config ${CMAKE_BUILD_TYPE}
-- ctest -V -C ${CMAKE_BUILD_TYPE}
+
