@@ -91,7 +91,7 @@ matrix:
      name: "CentOS-8 Docker"
      before_script: 
         - docker run --name centos7_toconfigure -v `pwd`:/root/open-license-manager centos:centos8 /bin/bash -c 
-            "yum -y update && dnf -y group install 'Development Tools' && yum -y install boost boost-devel
+            "yum -y update && dnf -y group install 'Development Tools' && yum -y install boost boost-devel &&
               cd /root/open-license-manager/build && cmake .."
         - docker commit centos8_toconfigure centos8_configured
      script: 
