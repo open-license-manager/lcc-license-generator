@@ -88,16 +88,14 @@ matrix:
  
    - os: linux
      dist: bionic
-     name: "CentOS-7 Docker"
+     name: "CentOS-8 Docker"
      before_script: 
-        - docker run --name centos7_toconfigure -v `pwd`:/root/open-license-manager centos:centos7 /bin/bash -c 
-            "yum -y update && yum -y install install centos-release-scl &&
-              yum -y install cmake boost boost-devel boost-static openssl openssl-devel glibc-static devtoolset-7-toolchain devtoolset-7-gcc devtoolset-7-gcc-c++ devtoolset-7-valgrind-devel && 
-              cd /root/open-license-manager/build && 
-              CC=/opt/rh/devtoolset-7/root/usr/bin/gcc CXX=/opt/rh/devtoolset-7/root/usr/bin/g++ cmake .."
-        - docker commit centos7_toconfigure centos7_configured
+        - docker run --name centos7_toconfigure -v `pwd`:/root/open-license-manager centos:centos8 /bin/bash -c 
+            "yum -y update && dnf -y group install 'Development Tools' && yum -y install boost boost-devel
+              cd /root/open-license-manager/build && cmake .."
+        - docker commit centos8_toconfigure centos8_configured
      script: 
-        - docker run --name centos7_make -v `pwd`:/root/open-license-manager centos7_configured /bin/bash -c 
+        - docker run --name centos8_make -v `pwd`:/root/open-license-manager centos8_configured /bin/bash -c 
             "cd /root/open-license-manager/build && make && make install && VIRT_ENV=CONTAINER make test"
    - os: linux
      dist: bionic
