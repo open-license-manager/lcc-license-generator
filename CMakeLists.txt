@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
 
 SET(CMAKE_DISABLE_SOURCE_CHANGES ON)
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -8,21 +8,14 @@ option(CODE_COVERAGE "Enable coverage reporting" OFF)
 cmake_policy(SET CMP0048 NEW)
 project (lcc-license-generator 
 	VERSION 2.0.0
-	DESCRIPTION "License generator for licensecc"
-	LANGUAGES CXX C)
+	DESCRIPTION "License generator for licensecc" 
+	LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 include(utilities) #import module utilities.cmake
-
-if(CMAKE_BUILD_TYPE)
-	string(TOLOWER ${CMAKE_BUILD_TYPE} _CMAKE_BUILD_TYPE)
-	EVAL_CONDITION(RELEASE_BUILD ${_CMAKE_BUILD_TYPE} STREQUAL "release")
-else(CMAKE_BUILD_TYPE)
-	SET(RELEASE_BUILD 0)
-endif(CMAKE_BUILD_TYPE)
 
 #Not sure about this. My system doesn't support binfmt misc
 IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT DEFINED CMAKE_CROSSCOMPILING_EMULATOR )
