@@ -97,8 +97,8 @@ matrix:
               ./bootstrap && make && make install && cd /root/lcc-license-generator/build && cmake .."
         - docker commit centos7_toconfigure centos7_configured
      script: 
-        - docker run --name centos7_make -v `pwd`:/root/open-license-manager centos7_configured /bin/bash -c 
-            "cd /root/open-license-manager/build && make && make install && VIRT_ENV=CONTAINER make test"
+        - docker run --name centos7_make -v `pwd`:/root/lcc-license-generator centos7_configured /bin/bash -c 
+            "cd /root/lcc-license-generator/build && make && make install && VIRT_ENV=CONTAINER make test"
 
 #   - os: linux
 #     dist: bionic
