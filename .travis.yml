@@ -115,7 +115,7 @@ matrix:
         - docker commit centos8_toconfigure centos8_configured
      script: 
         - docker run --name centos8_make -v `pwd`:/root/lcc-license-manager centos8_configured /bin/bash -c \
-            "cd /root/open-license-manager/build && make && make install && VIRT_ENV=CONTAINER make test"
+            "cd /root/lcc-license-manager/build && make && make install && VIRT_ENV=CONTAINER make test"
    - os: linux
      dist: bionic
      name: "Ubuntu 18.04 - MinGW cross-compile for Windows x64"
