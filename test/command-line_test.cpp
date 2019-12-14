@@ -3,11 +3,14 @@
 #include <fstream>
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
-#include <build_properties.h>
+#include <boost/test/output_test_stream.hpp>
+#include <iostream>
 
+#include <build_properties.h>
 #include "../src/license_generator/command_line-parser.hpp"
 #include "../src/ini/SimpleIni.h"
 #include "../src/base_lib/base.h"
+#include "cout_redirect.hpp"
 
 namespace fs = boost::filesystem;
 using namespace license;
@@ -56,13 +59,13 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
 						   "issue",
 						   "--" PARAM_PRIMARY_KEY,
 						   private_key_str.c_str(),
-						   "--" PARAM_LICENSE_NAME,
-						   "my_license",
+						   "--" PARAM_LICENSE_OUTPUT,
+						   "my_license.lic",
 						   "--" PARAM_PROJECT_FOLDER,
 						   project_folder_str.c_str()};
 	result = CommandLineParser::parseCommandLine(argc, argv2);
 	BOOST_CHECK_EQUAL(result, 0);
-	fs::path expected_license(expected_project_folder / "licenses" / "my_license.lic");
+	fs::path expected_license("my_license.lic");
 	BOOST_REQUIRE_MESSAGE(fs::exists(expected_license), "License " + expected_license.string() + " created.");
 	// load a license, check the project name corresponds and there are no extra elements.
 	CSimpleIniA ini;
@@ -70,5 +73,18 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
 	BOOST_CHECK_MESSAGE(ini.GetSectionSize(project_name.c_str()) == 2, "Section [" + project_name + "] has 2 elements");
 }
 
+BOOST_AUTO_TEST_CASE(issue_license_help) {
+	int argc = 4;
+	const char *argv1[] = {"lcc", "license", "issue", "--help"};
+	// initialize_project
+	boost::test_tools::output_test_stream output;
+	{
+		cout_redirect guard(output.rdbuf());
+		int result = CommandLineParser::parseCommandLine(argc, argv1);
+	}
+	string stdout_str = output.str();
+	BOOST_CHECK_MESSAGE(stdout_str.find(PARAM_CLIENT_SIGNATURE) != string::npos,
+						"command help was print out " + stdout_str);
+}
 }  // namespace test
 }  // namespace license

@@ -26,6 +26,7 @@
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
 #include <boost/program_options.hpp>
+#include <boost/program_options/config.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <build_properties.h>
@@ -45,13 +46,6 @@ static void printHelpHeader(const char *prog_name) {
 	cout << fs::path(prog_name).filename().string() << " Version " << PROJECT_VERSION << ". Usage:" << endl;
 }
 
-static void printHelp(const char *prog_name, const po::options_description &options) {
-	printHelpHeader(prog_name);
-	cout << fs::path(prog_name).filename().string() << " [options] product_name1 product_name2 ... " << endl << endl;
-	cout << " product_name1 ... = Product name. This string must match the one passed by the software." << endl;
-	cout << options << endl;
-}
-
 static void printBasicHelp(const char *prog_name) {
 	printHelpHeader(prog_name);
 	cout << fs::path(prog_name).filename().string() << " [command] [options]" << endl;
@@ -64,18 +58,20 @@ CommandLineParser::CommandLineParser() {}
 
 CommandLineParser::~CommandLineParser() {}
 
-static void rerunBoostPO(const po::parsed_options &parsed, const po::options_description &project_desc,
+static bool rerunBoostPO(const po::parsed_options &parsed, const po::options_description &project_desc,
 						 po::variables_map &vm, const char **argv, const std::string &command_for_logging,
 						 const po::options_description &global) {
 	// Collect all the unrecognized options from the first pass. This will include the
 	// (positional) command name, so we need to erase that.
 	// Parse again...
+	bool cont = false;
 	std::vector<std::string> opts = po::collect_unrecognized(parsed.options, po::include_positional);
 	opts.erase(opts.begin());
 	po::store(po::command_line_parser(opts).options(project_desc).run(), vm);
 	if (vm.find("help") == vm.end()) {
 		try {
 			po::notify(vm);
+			cont = true;
 		} catch (std::exception &e) {
 			printHelpHeader(argv[0]);
 			cout << argv[0] << command_for_logging << " [options]" << endl;
@@ -89,6 +85,7 @@ static void rerunBoostPO(const po::parsed_options &parsed, const po::options_des
 		global.print(cout);
 		project_desc.print(cout);
 	}
+	return cont;
 }
 
 static void initializeProject(const po::parsed_options &parsed, po::variables_map &vm, const char **argv,
@@ -110,17 +107,18 @@ static void initializeProject(const po::parsed_options &parsed, po::variables_ma
 		("templates,t", po::value<std::string>(&templates_folder)->default_value("."),
 		 "path to the templates folder.")  //
 		("help", "Print this help.");  //
-	rerunBoostPO(parsed, project_desc, vm, argv, "project init", global);
-	// cout << templates_folder.is_initialized() << endl;
-	Project project(project_name, project_folder, templates_folder);
-
-	project.initialize();
+	if (rerunBoostPO(parsed, project_desc, vm, argv, "project init", global)) {
+		// cout << templates_folder.is_initialized() << endl;
+		Project project(project_name, project_folder, templates_folder);
+		project.initialize();
+	}
 }
 
 static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm, const char **argv,
 						 const po::options_description &global) {
 	po::options_description license_desc("license issue options");
 	string license_name;
+	string *license_name_ptr = nullptr;
 	string project_folder;
 	string output;
 	bool base64;
@@ -136,9 +134,8 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		(PARAM_CLIENT_SIGNATURE ",s", po::value<string>(),
 		 "The signature of the pc that requires the license. It should be in the format XXXX-XXXX-XXXX-XXXX."
 		 " If not specified the license won't be linked to a specific pc.")  //
-		(PARAM_LICENSE_NAME ",l", po::value<string>(&license_name)->required(),
-		 "License name. May contain / that will be interpreded as subfolders. If it's relative it is inside project "
-		 "folder. Otherwise may be an absolute file name.")  //
+		(PARAM_LICENSE_OUTPUT ",o", po::value<string>(&license_name),
+		 "License output file name. May contain / that will be interpreded as subfolders.")  //
 		(PARAM_PRODUCT_NAME ",n", po::value<boost::optional<std::string>>(),
 		 "Product name (in case it doesn't correspond with project name).")  //
 		(PARAM_PRIMARY_KEY, po::value<string>(), "Primary key location, in case it is not in default folder")  //
@@ -148,23 +145,27 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		 "Specify the first version of the software this license apply to.")  //
 		(PARAM_VERSION_TO, po::value<string>()->default_value("0", "All Versions"),  //
 		 "Specify the last version of the software this license apply to.")  //
-		(PARAM_EXTRA_DATA ",x", po::value<string>(), "Specify extra data to be included into the license")(
-			"help", "Print this help.");  //
-	rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global);
-	License license(license_name, project_folder, base64);
-	for (const auto &it : vm) {
-		auto &value = it.second.value();
-		if (auto v = boost::any_cast<std::string>(&value)) {
-			license.add_parameter(it.first, *v);
-		} else {
-			std::cout << it.first << "not recognized value error" << endl;
+		(PARAM_EXTRA_DATA ",x", po::value<string>(), "Specify extra data to be included into the license")  //
+		("help", "Print this help.");  //
+	if (rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global)) {
+		if (!license_name.empty()) {
+			license_name_ptr = &license_name;
 		}
-	}
-	try {
-		license.write_license();
-		cerr << "License written " << endl;
-	} catch (exception &ex) {
-		cerr << "License writing error." << ex.what() << endl;
+		License license(license_name_ptr, project_folder, base64);
+		for (const auto &it : vm) {
+			auto &value = it.second.value();
+			if (auto v = boost::any_cast<std::string>(&value)) {
+				license.add_parameter(it.first, *v);
+			} else {
+				std::cout << it.first << "not recognized value error" << endl;
+			}
+		}
+		try {
+			license.write_license();
+			cout << "License written " << endl;
+		} catch (exception &ex) {
+			cerr << "License writing error: " << ex.what() << endl;
+		}
 	}
 }
 
@@ -242,7 +243,6 @@ int CommandLineParser::parseCommandLine(int argc, const char **argv) {
 			result = 1;
 		}
 	} else if (cmds[0] == "license") {
-		po::options_description license_desc("license " + cmds[1] + " options");
 		if (cmds[1] == "issue") {
 			issueLicense(parsed, vm, argv, global);
 		} else {

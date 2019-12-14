@@ -24,7 +24,7 @@ namespace license {
 using namespace std;
 namespace fs = boost::filesystem;
 
-static const unordered_set<string> NO_OUTPUT_PARAM = {PARAM_BASE64, PARAM_LICENSE_NAME, PARAM_PRODUCT_NAME,
+static const unordered_set<string> NO_OUTPUT_PARAM = {PARAM_BASE64, PARAM_LICENSE_OUTPUT, PARAM_PRODUCT_NAME,
 													  PARAM_PROJECT_FOLDER, PARAM_PRIMARY_KEY};
 
 const std::string formats[] = {"%4u-%2u-%2u", "%4u/%2u/%2u", "%4u%2u%2u"};
@@ -75,11 +75,11 @@ static const string print_for_sign(const string &project, const std::map<std::st
 	return buf.str();
 }
 
-License::License(const std::string &licenseName, const std::string &project_folder, bool base64)
-	: m_base64(base64), m_licenseName(licenseName), m_projectFolder(normalize_project_path(project_folder)) {
-	fs::path cur_path(m_projectFolder);
-	m_project_name = cur_path.filename().string();
-	m_private_key = (cur_path / PRIVATE_KEY_FNAME).string();
+License::License(const std::string *licenseName, const std::string &project_folder, bool base64)
+	: m_base64(base64), m_license_fname(licenseName), m_projectFolder(normalize_project_path(project_folder)) {
+	fs::path proj_folder(m_projectFolder);
+	m_project_name = proj_folder.filename().string();
+	m_private_key = (proj_folder / PRIVATE_KEY_FNAME).string();
 }
 
 void License::printAsIni(ostream &a_ostream, const string &signature) const {
@@ -95,33 +95,7 @@ void License::printAsIni(ostream &a_ostream, const string &signature) const {
 	ini.Save(sw, true);
 }
 
-string License::get_license_file_path() const {
-	const string normalized_fname = boost::ends_with(m_licenseName, ".lic") ? m_licenseName : (m_licenseName + ".lic");
-	const fs::path license_name(normalized_fname);
-	string result;
-	if (license_name.is_relative() && !(m_licenseName.at(0) == '/')) {
-		const fs::path project_folder(m_projectFolder);
-		fs::path license_full(project_folder / "licenses" / license_name);
-		result = license_full.string();
-	} else {
-		result = license_name.string();
-	}
-	return result;
-}
 void License::write_license() {
-	const fs::path license_name(get_license_file_path());
-	if (!license_name.parent_path().empty()) {
-		fs::path license_final_path(license_name.parent_path());
-		if (!fs::exists(license_final_path)) {
-			if (!fs::create_directories(license_final_path)) {
-				throw runtime_error("Cannot create licenses directory [" + license_final_path.string() + "]");
-			}
-		} else if (fs::is_regular_file(license_final_path)) {
-			throw runtime_error("trying to create folder [" + license_final_path.string() +
-								"] but there is a file with the same name. ");
-		}
-	}
-
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
 	crypto->loadPrivateKey_file(m_private_key);
 
@@ -129,9 +103,31 @@ void License::write_license() {
 	const string signature = crypto->signString(license_for_sign);
 
 	ofstream license_stream;
-	const string lic_path_str = license_name.string();
-	license_stream.open(lic_path_str.c_str(), ios::trunc | ios::binary);
-	printAsIni(license_stream, signature);
+	ostream *license_stream_ptr;
+	if (m_license_fname == nullptr) {
+		license_stream_ptr = &cout;
+	} else {
+		license_stream_ptr = &license_stream;
+		const fs::path license_name(*m_license_fname);
+		fs::path parentPath = license_name.parent_path();
+		if (!parentPath.empty()) {
+			if (!fs::exists(parentPath)) {
+				if (!fs::create_directories(parentPath)) {
+					throw runtime_error("Cannot create licenses directory [" + parentPath.string() + "]");
+				}
+			} else if (fs::is_regular_file(parentPath)) {
+				throw runtime_error("trying to create folder [" + parentPath.string() +
+									"] but there is a file with the same name. ");
+			}
+		}
+		const string lic_path_str = license_name.string();
+		license_stream.open(lic_path_str.c_str(), ios::trunc | ios::binary);
+		if (!license_stream.is_open()) {
+			throw runtime_error("Can not create file [" + lic_path_str + "].");
+		}
+	}
+
+	printAsIni(*license_stream_ptr, signature);
 	license_stream.close();
 }
 
