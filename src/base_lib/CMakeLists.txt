@@ -18,7 +18,7 @@ ENDIF(UNIX OR OPENSSL_FOUND)
 
 if(CODE_COVERAGE AND UNIX)
 	  MESSAGE(STATUS "Enabling code coverage")
-	  target_compile_options(lcc_base INTERFACE
+	  target_compile_options(lcc_base PUBLIC
 	    -O0        # no optimization
 	    -g         # generate debug info
 	    --coverage # sets all required flags

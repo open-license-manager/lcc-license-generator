@@ -54,7 +54,8 @@ BOOST_TEST_GLOBAL_FIXTURE(MyGlobalFixture);
 
 BOOST_AUTO_TEST_CASE(license_structure) {
 	const fs::path licLocation = MyGlobalFixture::licenses_path / "test.lic";
-	License license(&licLocation.string(), MyGlobalFixture::project_path.string());
+	const string lic_location_str = licLocation.string();
+	License license(&lic_location_str, MyGlobalFixture::project_path.string());
 	license.add_parameter(PARAM_EXPIRY_DATE, "19290111");
 	license.write_license();
 
@@ -67,8 +68,9 @@ BOOST_AUTO_TEST_CASE(license_structure) {
 }
 
 BOOST_AUTO_TEST_CASE(generate_license_subdir) {
-	fs::path licLocation = MyGlobalFixture::licenses_path / "test_folder" / "test.lic";
-	License license(&licLocation.string(), MyGlobalFixture::project_path.string());
+	const fs::path licLocation = MyGlobalFixture::licenses_path / "test_folder" / "test.lic";
+	const string lic_location_str = licLocation.string();
+	License license(&lic_location_str, MyGlobalFixture::project_path.string());
 	license.add_parameter(PARAM_EXPIRY_DATE, "1929-11-11");
 	license.write_license();
 
@@ -77,7 +79,8 @@ BOOST_AUTO_TEST_CASE(generate_license_subdir) {
 
 BOOST_AUTO_TEST_CASE(generate_license_with_relative_path) {
 	const fs::path license_rel_path = fs::path("license.lic");
-	License license(&license_rel_path.string(), MyGlobalFixture::project_path.string());
+	const string license_rel_path_str = license_rel_path.string();
+	License license(&license_rel_path_str, MyGlobalFixture::project_path.string());
 	license.add_parameter(PARAM_PRODUCT_NAME, "my_fantastic_softwAre");
 	license.write_license();
 	BOOST_REQUIRE_MESSAGE(fs::exists(license_rel_path), "license has been created");
@@ -96,8 +99,9 @@ BOOST_AUTO_TEST_CASE(license_stdout) {
 						"license has been written to stdout " + stdout_str);
 }
 BOOST_AUTO_TEST_CASE(generate_license_product) {
-	fs::path licFile = MyGlobalFixture::licenses_path / "myclient.lic";
-	License license(&licFile.string(), MyGlobalFixture::project_path.string());
+	const fs::path licFile = MyGlobalFixture::licenses_path / "myclient.lic";
+	const string lic_location_str = licFile.string();
+	License license(&lic_location_str, MyGlobalFixture::project_path.string());
 	license.add_parameter(PARAM_PRODUCT_NAME, "my_fantastic_softwAre");
 	license.write_license();
 	BOOST_REQUIRE_MESSAGE(fs::exists(licFile), "license has been created");
