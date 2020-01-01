@@ -23,7 +23,8 @@ private:
 	const std::string m_projectFolder;
 	std::map<std::string, std::string> values_map;
 
-	void printAsIni(std::ostream &a_ostream, const std::string &signature) const;
+	void print_as_ini(std::ostream &a_ostream, const std::string &signature) const;
+	const std::string print_for_sign() const;
 
 public:
 	License(const std::string *license_fname, const std::string &projectFolder, bool base64 = false);

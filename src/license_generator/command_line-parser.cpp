@@ -121,6 +121,7 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 	string *license_name_ptr = nullptr;
 	string project_folder;
 	string output;
+	unsigned int magic_num = 0;
 	bool base64;
 	license_desc.add_options()  //
 		(PARAM_BASE64 ",b", po::value<bool>(&base64)->default_value(false),

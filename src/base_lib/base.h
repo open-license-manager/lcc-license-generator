@@ -46,15 +46,18 @@ typedef int bool;
 #define PARAM_PRIMARY_KEY "primary-key"
 
 // license file parameters -- copy this block to open-license-manager
-#define PARAM_EXPIRY_DATE "valid-to"
 #define PARAM_BEGIN_DATE "valid-from"
-#define PARAM_VERSION_FROM "start-version"
 #define PARAM_CLIENT_SIGNATURE "client-signature"
+#define PARAM_EXPIRY_DATE "valid-to"
+#define PARAM_VERSION_FROM "start-version"
 #define PARAM_VERSION_TO "end-version"
 #define PARAM_EXTRA_DATA "extra-data"
 // license file extra entries
 #define LICENSE_SIGNATURE "sig"
 #define LICENSE_VERSION "lic_ver"
+#define PARAM_MAGIC_NUMBER \
+	"magic-num"  // this parameter must matched with the magic number passed in by the
+				 // application
 // license file parameters -- copy this block to open-license-manager
 
 typedef enum { FUNC_RET_OK, FUNC_RET_NOT_AVAIL, FUNC_RET_ERROR, FUNC_RET_BUFFER_TOO_SMALL } FUNCTION_RETURN;

@@ -24,8 +24,8 @@ namespace license {
 using namespace std;
 namespace fs = boost::filesystem;
 
-static const unordered_set<string> NO_OUTPUT_PARAM = {PARAM_BASE64, PARAM_LICENSE_OUTPUT, PARAM_PRODUCT_NAME,
-													  PARAM_PROJECT_FOLDER, PARAM_PRIMARY_KEY};
+static const unordered_set<string> NO_OUTPUT_PARAM = {PARAM_BASE64,			PARAM_LICENSE_OUTPUT, PARAM_PRODUCT_NAME,
+													  PARAM_PROJECT_FOLDER, PARAM_PRIMARY_KEY,	PARAM_MAGIC_NUMBER};
 
 const std::string formats[] = {"%4u-%2u-%2u", "%4u/%2u/%2u", "%4u%2u%2u"};
 const size_t formats_n = 3;
@@ -65,16 +65,6 @@ static const string normalize_project_path(const string &project_path) {
 	return normalized.string();
 }
 
-static const string print_for_sign(const string &project, const std::map<std::string, std::string> &values_map) {
-	stringstream buf;
-	buf << boost::to_upper_copy(project);
-	for (auto &it : values_map) {
-		buf << boost::algorithm::trim_copy(it.first) << boost::algorithm::trim_copy(it.second);
-	}
-	// cout << "!!! -----:" << buf.str() << endl;
-	return buf.str();
-}
-
 License::License(const std::string *licenseName, const std::string &project_folder, bool base64)
 	: m_base64(base64), m_license_fname(licenseName), m_projectFolder(normalize_project_path(project_folder)) {
 	fs::path proj_folder(m_projectFolder);
@@ -82,7 +72,17 @@ License::License(const std::string *licenseName, const std::string &project_fold
 	m_private_key = (proj_folder / PRIVATE_KEY_FNAME).string();
 }
 
-void License::printAsIni(ostream &a_ostream, const string &signature) const {
+const string License::print_for_sign() const {
+	stringstream buf;
+	buf << boost::to_upper_copy(m_project_name);
+	for (auto &it : values_map) {
+		buf << boost::algorithm::trim_copy(it.first) << boost::algorithm::trim_copy(it.second);
+	}
+	// cout << "!!! -----:" << buf.str() << endl;
+	return buf.str();
+}
+
+void License::print_as_ini(ostream &a_ostream, const string &signature) const {
 	CSimpleIniA ini;
 	string result;
 	const string product = boost::to_upper_copy(m_project_name);
@@ -99,7 +99,7 @@ void License::write_license() {
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
 	crypto->loadPrivateKey_file(m_private_key);
 
-	const string license_for_sign = print_for_sign(m_project_name, values_map);
+	const string license_for_sign = print_for_sign();
 	const string signature = crypto->signString(license_for_sign);
 
 	ofstream license_stream;
@@ -127,7 +127,7 @@ void License::write_license() {
 		}
 	}
 
-	printAsIni(*license_stream_ptr, signature);
+	print_as_ini(*license_stream_ptr, signature);
 	license_stream.close();
 }
 
@@ -152,6 +152,8 @@ void License::add_parameter(const std::string &param_name, const std::string &pa
 			throw new logic_error("Primary key [" + param_value + "] not found");
 		}
 		m_private_key = param_value;
+	} else {
+		throw logic_error(param_name + " not recognized");
 	}
 }
 } /* namespace license */
