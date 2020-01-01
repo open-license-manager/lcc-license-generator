@@ -120,7 +120,7 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 	string license_name;
 	string *license_name_ptr = nullptr;
 	string project_folder;
-	string output;
+	// string output;
 	unsigned int magic_num = 0;
 	bool base64;
 	license_desc.add_options()  //
@@ -155,10 +155,12 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		License license(license_name_ptr, project_folder, base64);
 		for (const auto &it : vm) {
 			auto &value = it.second.value();
-			if (auto v = boost::any_cast<std::string>(&value)) {
-				license.add_parameter(it.first, *v);
-			} else {
-				std::cout << it.first << "not recognized value error" << endl;
+			if (it.first != "command" && it.first != "subargs") {
+				if (auto v = boost::any_cast<std::string>(&value)) {
+					license.add_parameter(it.first, *v);
+				} else {
+					std::cout << it.first << "not recognized value error" << endl;
+				}
 			}
 		}
 		try {

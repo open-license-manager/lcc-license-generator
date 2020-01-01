@@ -24,8 +24,9 @@ namespace license {
 using namespace std;
 namespace fs = boost::filesystem;
 
-static const unordered_set<string> NO_OUTPUT_PARAM = {PARAM_BASE64,			PARAM_LICENSE_OUTPUT, PARAM_PRODUCT_NAME,
-													  PARAM_PROJECT_FOLDER, PARAM_PRIMARY_KEY,	PARAM_MAGIC_NUMBER};
+static const unordered_set<string> NO_OUTPUT_PARAM = {
+	PARAM_BASE64, PARAM_LICENSE_OUTPUT, PARAM_PRODUCT_NAME, PARAM_PROJECT_FOLDER, PARAM_PRIMARY_KEY, PARAM_MAGIC_NUMBER,
+};
 
 const std::string formats[] = {"%4u-%2u-%2u", "%4u/%2u/%2u", "%4u%2u%2u"};
 const size_t formats_n = 3;
@@ -152,6 +153,8 @@ void License::add_parameter(const std::string &param_name, const std::string &pa
 			throw new logic_error("Primary key [" + param_value + "] not found");
 		}
 		m_private_key = param_value;
+	} else if (PARAM_LICENSE_OUTPUT == param_name || PARAM_PROJECT_FOLDER == param_name) {
+		// just ignore
 	} else {
 		throw logic_error(param_name + " not recognized");
 	}
