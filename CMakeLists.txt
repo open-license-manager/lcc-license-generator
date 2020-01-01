@@ -23,20 +23,21 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT
 ENDIF()
 
 SET ( OPENSSL_USE_STATIC_LIBS ON )
-find_package(OpenSSL COMPONENTS Crypto)
+find_package(OpenSSL COMPONENTS Crypto QUIET)
 IF(OPENSSL_FOUND)
 	add_definitions(-DHAS_OPENSSL)
 	include_directories(${OPENSSL_INCLUDE_DIR})
 	MESSAGE(STATUS "Found openssl version ${OPENSSL_VERSION} - generator")
-ELSE(OPENSSL_FOUND)
-	MESSAGE(STATUS "OpenSSL not found - generator")
 ENDIF(OPENSSL_FOUND)
 
 if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
 	#openssl required for linux
 	IF(NOT OPENSSL_FOUND)
-		MESSAGE(SEND_ERROR "Openssl not found - required in Linux")
+		MESSAGE(SEND_ERROR "Openssl not found - generator - required in Linux")
 	ENDIF(NOT OPENSSL_FOUND)
+	IF(${STATIC_RUNTIME})
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
+	ENDIF(${STATIC_RUNTIME})
 	
     find_package(Threads)
 	if(THREADS_HAVE_PTHREAD_ARG)
@@ -46,22 +47,21 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
   			 list(APPEND EXTERNAL_LIBS "${CMAKE_THREAD_LIBS_INIT}")
 		endif()
 	endif(THREADS_HAVE_PTHREAD_ARG)
-	#Zlib required when openssl version < 1.0.1f
-	SET ( ZLIB_USE_STATIC_LIBS ON ) 
-	find_package(ZLIB REQUIRED)
-	list(APPEND EXTERNAL_LIBS ${ZLIB_LIBRARIES})
-	MESSAGE(STATUS "Found zlib version ${ZLIB_VERSION} ")
+	
+	#Zlib required when openssl version < 1.0.1f (centos 7)
+	IF(OPENSSL_VERSION VERSION_LESS 1.0.2)
+		SET ( ZLIB_USE_STATIC_LIBS ON ) 
+		find_package(ZLIB REQUIRED)
+		list(APPEND EXTERNAL_LIBS ${ZLIB_LIBRARIES})
+		MESSAGE(STATUS "Found zlib version ${ZLIB_VERSION_STRING} - generator")
+	ENDIF(OPENSSL_VERSION VERSION_LESS 1.0.2)
 
 	find_program( MEMORYCHECK_COMMAND valgrind )
-	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
-	if(USE_DBUS_IDENTIFIER)
-	    FIND_PACKAGE(Dbus REQUIRED)
-	    add_definitions(-DUSE_DBUS)
-	    include_directories(${DBUS_INCLUDE_DIR})
-	    include_directories(${DBUS_ARCH_INCLUDE_DIR})
-	    list(APPEND EXTERNAL_LIBS ${DBUS_LIBRARIES})
-	endif(USE_DBUS_IDENTIFIER)    
+	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" ) 
 else(UNIX) #windows and linux crosscompiling for windows target
+	IF(NOT OPENSSL_FOUND)
+		MESSAGE(STATUS "Openssl not found - generator - configuring libary without it.")
+	ENDIF(NOT OPENSSL_FOUND)
 	if(MSVC)
 		include(target_arch)
 		target_architecture( TARGET_ARCHITECTURE )
@@ -75,7 +75,6 @@ else(UNIX) #windows and linux crosscompiling for windows target
 			string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 			SET(Boost_USE_STATIC_RUNTIME ON)
 		endif(${STATIC_RUNTIME})
-	
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
 	else(MSVC)
 	    if(MINGW)
