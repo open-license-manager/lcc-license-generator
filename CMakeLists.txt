@@ -48,13 +48,13 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 		endif()
 	endif(THREADS_HAVE_PTHREAD_ARG)
 	
-	#Zlib required when openssl version < 1.0.1f (centos 7)
-	IF(OPENSSL_VERSION VERSION_LESS 1.0.2)
+	#Zlib required when openssl version < 1.0.2k (centos 7)
+	IF(OPENSSL_VERSION VERSION_LESS_EQUAL 1.0.2)
 		SET ( ZLIB_USE_STATIC_LIBS ON ) 
 		find_package(ZLIB REQUIRED)
 		list(APPEND EXTERNAL_LIBS ${ZLIB_LIBRARIES})
 		MESSAGE(STATUS "Found zlib version ${ZLIB_VERSION_STRING} - generator")
-	ENDIF(OPENSSL_VERSION VERSION_LESS 1.0.2)
+	ENDIF(OPENSSL_VERSION VERSION_LESS_EQUAL 1.0.2)
 
 	find_program( MEMORYCHECK_COMMAND valgrind )
 	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" ) 
