@@ -38,7 +38,7 @@ const static unsigned char unb64[] = {
 };  // This array has 255 elements
 
 // review api
-const void add_CR_if_needed(string& encodeBuffer, int lineLenght) {
+void add_CR_if_needed(string& encodeBuffer, int lineLenght) {
 	if (lineLenght > 0 && ((encodeBuffer.size() + 1) % lineLenght) == 0) {
 		encodeBuffer += '\n';
 	}
@@ -53,7 +53,7 @@ string base64(const void* binaryData, size_t len, int lineLenght) {
 	int modulusLen = len % 3;
 	int pad = ((modulusLen & 1) << 1) + ((modulusLen & 2) >> 1);  // 2 gives 1 and 1 gives 2, but 0 gives 0.
 
-	size_t flen = 4 * (len + pad) / 3;
+	const size_t flen = 4 * (len + pad) / 3;
 	size_t totalLength = flen;
 	if (lineLenght > 0) {
 		totalLength += ((int)flen / lineLenght) + 3;
@@ -61,7 +61,6 @@ string base64(const void* binaryData, size_t len, int lineLenght) {
 
 	string encodeBuffer;
 	encodeBuffer.reserve(totalLength);
-	// char* res = const_cast<char*>(encodeBuffer.data());
 
 	for (byteNo = 0; byteNo <= len - 3; byteNo += 3) {
 		unsigned char BYTE0 = bin[byteNo];
