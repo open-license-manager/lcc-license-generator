@@ -98,6 +98,7 @@ BOOST_AUTO_TEST_CASE(license_stdout) {
 	BOOST_CHECK_MESSAGE(stdout_str.find("[MY_FANTASTIC_SOFTWARE]") != string::npos,
 						"license has been written to stdout " + stdout_str);
 }
+
 BOOST_AUTO_TEST_CASE(generate_license_product) {
 	const fs::path licFile = MyGlobalFixture::licenses_path / "myclient.lic";
 	const string lic_location_str = licFile.string();
