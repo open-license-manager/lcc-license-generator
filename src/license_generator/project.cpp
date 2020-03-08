@@ -64,7 +64,12 @@ Project::Project(const std::string &name, const std::string &project_folder, con
 	: m_name(name),
 	  m_project_folder(project_folder),
 	  m_templates_folder(guess_templates_folder(source_folder)),
-	  m_force_overwrite(force_overwrite) {}
+	  m_force_overwrite(force_overwrite) {
+	if (name.find('[') != std::string::npos || name.find(']') != std::string::npos ||
+		name.find('/') != std::string::npos || name.find('\\') != std::string::npos) {
+		throw invalid_argument("project name should not contain any of '[ ] / \' characters.");
+	}
+}
 
 void Project::exportPublicKey(const std::string &include_folder, const std::unique_ptr<CryptoHelper> &cryptoHelper) {
 	const fs::path templates_path(m_templates_folder);

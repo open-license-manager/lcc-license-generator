@@ -228,39 +228,44 @@ int CommandLineParser::parseCommandLine(int argc, const char **argv) {
 		return 1;
 	}
 	bool verbose = vm.count("verbose") > 0;
+	try {
+		if (cmds[0] == "project") {
+			if (cmds[1].substr(0, 4) == "init") {
+				initializeProject(parsed, vm, argv, global);
+			} else if (cmds[1] == "list") {
+				po::options_description project_desc("project " + cmds[1] + " options");
+				boost::optional<string> project_folder;
+				project_desc.add_options()  //
+					("projects-folder,p", po::value<boost::optional<string>>(&project_folder),
+					 "path to where project configurations are stored.")  //
+					("help", "Print this help.");  //
 
-	if (cmds[0] == "project") {
-		if (cmds[1].substr(0, 4) == "init") {
-			initializeProject(parsed, vm, argv, global);
-		} else if (cmds[1] == "list") {
-			po::options_description project_desc("project " + cmds[1] + " options");
-			boost::optional<string> project_folder;
-			project_desc.add_options()  //
-				("projects-folder,p", po::value<boost::optional<string>>(&project_folder),
-				 "path to where project configurations are stored.")  //
-				("help", "Print this help.");  //
-
+			} else {
+				std::cerr << endl << "command " << cmds[0] << " " << cmds[1] << " not recognized.";
+				printBasicHelp(argv[0]);
+				result = 1;
+			}
+		} else if (cmds[0] == "license") {
+			if (cmds[1] == "issue") {
+				issueLicense(parsed, vm, argv, global);
+			} else {
+				printBasicHelp(argv[0]);
+				result = 1;
+			}
+		} else if (cmds[0] == "test") {
+			po::options_description license_desc("test " + cmds[1] + " options");
+			if (cmds[1] == "sign") {
+				test_sign(parsed, vm, argv, global);
+			} else {
+				result = 1;
+			}
 		} else {
-			std::cerr << endl << "command " << cmds[0] << " " << cmds[1] << " not recognized.";
 			printBasicHelp(argv[0]);
 			result = 1;
 		}
-	} else if (cmds[0] == "license") {
-		if (cmds[1] == "issue") {
-			issueLicense(parsed, vm, argv, global);
-		} else {
-			printBasicHelp(argv[0]);
-			result = 1;
-		}
-	} else if (cmds[0] == "test") {
-		po::options_description license_desc("test " + cmds[1] + " options");
-		if (cmds[1] == "sign") {
-			test_sign(parsed, vm, argv, global);
-		} else {
-			result = 1;
-		}
-	} else {
+	} catch (const invalid_argument &e) {
 		printBasicHelp(argv[0]);
+		cout << endl << "Parameter error: " << e.what() << endl;
 		result = 1;
 	}
 	return result;

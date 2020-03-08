@@ -86,5 +86,37 @@ BOOST_AUTO_TEST_CASE(issue_license_help) {
 	BOOST_CHECK_MESSAGE(stdout_str.find(PARAM_CLIENT_SIGNATURE) != string::npos,
 						"command help was print out " + stdout_str);
 }
+
+/**
+ * The project name should not contain '\ / [ ]' charactoers
+ */
+BOOST_AUTO_TEST_CASE(init_project_name_wrong) {
+	const string project_name("a/TEST");
+	const fs::path mock_source_folder(fs::path(PROJECT_TEST_SRC_DIR) / "data" / "src");
+	const fs::path projects_folder(fs::path(PROJECT_TEST_TEMP_DIR) / "lcc_projects_wa");
+	const string mock_source = mock_source_folder.string();
+	const string projects_str = projects_folder.string();
+
+	int argc = 9;
+	const char *argv1[] = {"lcc",
+						   "project",
+						   "init",
+						   "-n",
+						   project_name.c_str(),
+						   "--projects-folder",
+						   projects_str.c_str(),
+						   "--templates",
+						   mock_source.c_str()};
+	int result;
+	boost::test_tools::output_test_stream output;
+	{
+		cout_redirect guard(output.rdbuf());
+		result = CommandLineParser::parseCommandLine(argc, argv1);
+	}
+	string stdout_str = output.str();
+	BOOST_CHECK_EQUAL(result, 1);
+	BOOST_CHECK_MESSAGE(stdout_str.find("rror") != string::npos && stdout_str.find("project name") != string::npos,
+						"error was print out " + stdout_str);
+}
 }  // namespace test
 }  // namespace license
