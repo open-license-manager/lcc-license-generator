@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
 SET(CMAKE_DISABLE_SOURCE_CHANGES ON)
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 SET(LICENSECC_SHORT_LICENSE "BSD Software License")
-option(CODE_COVERAGE "Enable coverage reporting" OFF)
+#option(CODE_COVERAGE "Enable coverage reporting" OFF)
 
 cmake_policy(SET CMP0048 NEW)
 project (lcc-license-generator 
@@ -36,7 +36,8 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 		MESSAGE(SEND_ERROR "Openssl not found - generator - required in Linux")
 	ENDIF(NOT OPENSSL_FOUND)
 	IF(${STATIC_RUNTIME})
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--whole-archive -static-libgcc -static-libstdc++ -static")
+		unset(CMAKE_DL_LIBS)
 	ENDIF(${STATIC_RUNTIME})
 	
     find_package(Threads)
@@ -109,16 +110,16 @@ configure_file (
 	"${CMAKE_BINARY_DIR}/include/build_properties.h"
 )
 
-message( STATUS "CXX compiler      : " ${CMAKE_CXX_COMPILER})
-message( STATUS "CXX compiler flags: " ${CMAKE_CXX_FLAGS})
-message( STATUS "CXX compiler flags debug : " ${CMAKE_CXX_FLAGS_DEBUG})
+message( STATUS "CXX compiler              : " ${CMAKE_CXX_COMPILER})
+message( STATUS "CXX compiler flags        : " ${CMAKE_CXX_FLAGS})
+message( STATUS "CXX compiler flags debug  : " ${CMAKE_CXX_FLAGS_DEBUG})
 message( STATUS "CXX compiler flags release: " ${CMAKE_CXX_FLAGS_RELEASE})
 if(CMAKE_BUILD_TYPE)
-  message( STATUS "Build type        : " ${CMAKE_BUILD_TYPE})
+  message( STATUS "Build type                : " ${CMAKE_BUILD_TYPE})
 endif(CMAKE_BUILD_TYPE)
-message( STATUS "Install prefix    : " ${CMAKE_INSTALL_PREFIX})
-
+message( STATUS "Install prefix            : " ${CMAKE_INSTALL_PREFIX})
 #include (build directory)/include to find build_properties.h
+message( STATUS "External libs             : " ${EXTERNAL_LIBS})
 include_directories(${CMAKE_BINARY_DIR}/include)
 add_subdirectory("src/base_lib")
 add_subdirectory("src/license_generator")

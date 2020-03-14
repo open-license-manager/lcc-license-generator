@@ -2,7 +2,12 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/test/unit_test.hpp>
+#include <boost/version.hpp>
+#if (BOOST_VERSION > 107000)
+#include <boost/test/tools/output_test_stream.hpp>
+#else
 #include <boost/test/output_test_stream.hpp>
+#endif
 #include <iostream>
 #include <build_properties.h>
 
