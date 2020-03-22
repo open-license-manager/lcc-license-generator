@@ -22,8 +22,8 @@
 #include "../base64.h"
 #include "CryptoHelperWindows.h"
 
-#pragma comment(lib, "bcrypt.lib")
-#pragma comment(lib, "crypt32.lib")
+//#pragma comment(lib, "bcrypt.lib")
+//#pragma comment(lib, "crypt32.lib")
 
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
 #define RSA_KEY_BITLEN 1024
