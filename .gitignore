@@ -9,6 +9,7 @@
 
 #Visual studio files
 .vs
+/out
 
 # Compiled Static libraries
 *.lai
@@ -26,3 +27,6 @@
 # Cmake generated files
 build/*
 !build/.gitkeep 
+/CMakeSettings.json
+
+
