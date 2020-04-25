@@ -133,8 +133,8 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		 "Specify the expire date for this license. "
 		 " Format YYYYMMDD. If not specified the license won't expire")  //
 		(PARAM_CLIENT_SIGNATURE ",s", po::value<string>(),
-		 "The signature of the pc that requires the license. It should be in the format XXXX-XXXX-XXXX-XXXX."
-		 " If not specified the license won't be linked to a specific pc.")  //
+		 "The signature of the hardware that requires the license. It should be in the format XXXX-XXXX-XXXX-XXXX."
+		 " If not specified the license won't be linked to a specific hardware (eg. demo license).")  //
 		(PARAM_LICENSE_OUTPUT ",o", po::value<string>(&license_name),
 		 "License output file name. May contain / that will be interpreded as subfolders.")  //
 		(PARAM_PRODUCT_NAME ",n", po::value<boost::optional<std::string>>(),
