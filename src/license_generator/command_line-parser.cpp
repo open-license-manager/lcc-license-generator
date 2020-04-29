@@ -158,6 +158,8 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 			if (it.first != "command" && it.first != "subargs") {
 				if (auto v = boost::any_cast<std::string>(&value)) {
 					license.add_parameter(it.first, *v);
+				} else if (auto v = boost::any_cast<boost::optional<std::string>>(&value)) {
+					license.add_parameter(it.first, v->value());
 				} else {
 					std::cout << it.first << "not recognized value error" << endl;
 				}
