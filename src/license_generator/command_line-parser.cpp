@@ -155,7 +155,7 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		License license(license_name_ptr, project_folder, base64);
 		for (const auto &it : vm) {
 			auto &value = it.second.value();
-			if (it.first != "command" && it.first != "subargs") {
+			if (it.first != "command" && it.first != "subargs" && it.first != "base64") {
 				if (auto v = boost::any_cast<std::string>(&value)) {
 					license.add_parameter(it.first, *v);
 				} else {

@@ -49,19 +49,19 @@ static const string normalize_date(const std::string &sDate) {
 }
 
 static const string normalize_project_path(const string &project_path) {
-	const fs::path rproject_path(project_path);
+	const fs::path rprojectw_path(project_path);
 	if (!fs::exists(rproject_path) || !fs::is_directory(rproject_path)) {
 		throw logic_error("Path " + project_path + " doesn't exist or is not a directory.");
 	}
 	fs::path normalized;
 	const string rproject_path_str = rproject_path.string();
-	if (rproject_path.filename().string() == ".") {
+	if (rproject_path.string() == ".") {
 		normalized = fs::current_path();
 		// sometimes is_relative fails under wine. a linux path is taken for a relative path.
 	} else if (rproject_path.is_relative() && !(rproject_path_str.at(0) == '/')) {
 		normalized = fs::canonical(fs::current_path() / rproject_path);
 	} else {
-		normalized = rproject_path.string();
+		normalized = fs::canonical(rproject_path);
 	}
 	return normalized.string();
 }
