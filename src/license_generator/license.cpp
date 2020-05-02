@@ -49,7 +49,7 @@ static const string normalize_date(const std::string &sDate) {
 }
 
 static const string normalize_project_path(const string &project_path) {
-	const fs::path rprojectw_path(project_path);
+	const fs::path rproject_path(project_path);
 	if (!fs::exists(rproject_path) || !fs::is_directory(rproject_path)) {
 		throw logic_error("Path " + project_path + " doesn't exist or is not a directory.");
 	}
