@@ -125,7 +125,7 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 	bool base64 = false;
 	license_desc.add_options()  //
 		(PARAM_BASE64 ",b", po::bool_switch(&base64),
-		 "License is base64 encoded for inclusion in environment variables")  //
+		 "Encode license as base64 for inclusion in environment variables.")  //
 		(PARAM_BEGIN_DATE, po::value<string>(),
 		 "Specify the start of the validity for this license. "
 		 " Format YYYYMMDD. If not specified defaults to today")  //
