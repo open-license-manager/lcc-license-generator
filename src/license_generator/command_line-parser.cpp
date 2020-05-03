@@ -122,9 +122,9 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 	string project_folder;
 	// string output;
 	unsigned int magic_num = 0;
-	bool base64;
+	bool base64 = false;
 	license_desc.add_options()  //
-		(PARAM_BASE64 ",b", po::value<bool>(&base64)->default_value(false),
+		(PARAM_BASE64 ",b", po::bool_switch(&base64),
 		 "License is base64 encoded for inclusion in environment variables")  //
 		(PARAM_BEGIN_DATE, po::value<string>(),
 		 "Specify the start of the validity for this license. "
@@ -148,7 +148,7 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		(PARAM_VERSION_TO, po::value<string>()->default_value("0", "All Versions"),  //
 		 "Specify the last version of the software this license apply to.")  //
 		(PARAM_EXTRA_DATA ",x", po::value<string>(), "Specify extra data to be included into the license")  //
-		("help", "Print this help.");  //
+		("help,h", "Print this help.");  //
 	if (rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global)) {
 		if (!license_name.empty()) {
 			license_name_ptr = &license_name;
