@@ -137,8 +137,9 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		 " If not specified the license won't be linked to a specific hardware (eg. demo license).")  //
 		(PARAM_LICENSE_OUTPUT ",o", po::value<string>(&license_name),
 		 "License output file name. May contain / that will be interpreded as subfolders.")  //
-		(PARAM_PRODUCT_NAME ",n", po::value<boost::optional<std::string>>(),
-		 "Product name (in case it doesn't correspond with project name).")  //
+		(PARAM_FEATURE_NAMES ",f", po::value<boost::optional<std::string>>(),
+		 "Feature names: comma separate list of project features to enable. if not specified will be taken as project "
+		 "name.")  //
 		(PARAM_PRIMARY_KEY, po::value<string>(), "Primary key location, in case it is not in default folder")  //
 		(PARAM_PROJECT_FOLDER ",p", po::value<string>(&project_folder)->default_value("."),
 		 "path to where project configurations and licenses are stored.")  //
@@ -158,8 +159,8 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 			if (it.first != "command" && it.first != "subargs" && it.first != "base64") {
 				if (auto v = boost::any_cast<std::string>(&value)) {
 					license.add_parameter(it.first, *v);
-				} else if (auto v = boost::any_cast<boost::optional<std::string>>(&value)) {
-					license.add_parameter(it.first, v->value());
+				} else if (auto v = boost::any_cast<boost::optional<std::string>>(value)) {
+					license.add_parameter(it.first, v.value());
 				} else {
 					std::cout << it.first << "not recognized value error" << endl;
 				}

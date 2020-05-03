@@ -34,14 +34,14 @@ typedef int bool;
 /**
  * Version at the beginning of license file.
  */
-#define LICENSE_FILE_VERSION "200";
+#define LICENSE_FILE_VERSION 200
 
 /*
  * command line parameters
  */
 #define PARAM_BASE64 "base64"
 #define PARAM_LICENSE_OUTPUT "output-file-name"
-#define PARAM_PRODUCT_NAME "product-name"
+#define PARAM_FEATURE_NAMES "feature-names"
 #define PARAM_PROJECT_FOLDER "project-folder"
 #define PARAM_PRIMARY_KEY "primary-key"
 

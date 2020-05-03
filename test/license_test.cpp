@@ -57,6 +57,9 @@ const std::string MyGlobalFixture::licenses_path_str(licenses_path.string());
 
 BOOST_TEST_GLOBAL_FIXTURE(MyGlobalFixture);
 
+/**
+ * Test date normalization
+ */
 BOOST_AUTO_TEST_CASE(license_structure) {
 	const fs::path licLocation = MyGlobalFixture::licenses_path / "test.lic";
 	const string lic_location_str = licLocation.string();
@@ -68,8 +71,9 @@ BOOST_AUTO_TEST_CASE(license_structure) {
 	CSimpleIniA ini;
 	ini.LoadFile(licLocation.c_str());
 	BOOST_CHECK_MESSAGE(ini.GetSectionSize("TEST_PROJECT") == 3, "Section TEST_PROJECT has 3 elements");
-	BOOST_CHECK_MESSAGE(ini.GetValue("TEST_PROJECT", PARAM_EXPIRY_DATE, "X") != "1929-01-11",
+	BOOST_CHECK_MESSAGE(string(ini.GetValue("TEST_PROJECT", PARAM_EXPIRY_DATE, "X")) == "1929-01-11",
 						"Section TEST_PROJECT has expiry date");
+	// std::cout << ini.GetValue("TEST_PROJECT", PARAM_EXPIRY_DATE, "X") << endl;
 }
 
 BOOST_AUTO_TEST_CASE(generate_license_subdir) {
@@ -86,17 +90,18 @@ BOOST_AUTO_TEST_CASE(generate_license_with_relative_path) {
 	const fs::path license_rel_path = fs::path("license.lic");
 	const string license_rel_path_str = license_rel_path.string();
 	License license(&license_rel_path_str, MyGlobalFixture::project_path.string());
-	license.add_parameter(PARAM_PRODUCT_NAME, "my_fantastic_softwAre");
+	license.add_parameter(PARAM_FEATURE_NAMES, "my_fantastic_softwAre");
 	license.write_license();
 	BOOST_REQUIRE_MESSAGE(fs::exists(license_rel_path), "license has been created");
 }
+
 BOOST_AUTO_TEST_CASE(license_stdout) {
 	boost::test_tools::output_test_stream output;
 	{
 		cout_redirect guard(output.rdbuf());
 
 		License license(nullptr, MyGlobalFixture::project_path.string());
-		license.add_parameter(PARAM_PRODUCT_NAME, "my_fantastic_softwAre");
+		license.add_parameter(PARAM_FEATURE_NAMES, "my_fantastic_softwAre");
 		license.write_license();
 	}
 	string stdout_str = output.str();
@@ -104,18 +109,43 @@ BOOST_AUTO_TEST_CASE(license_stdout) {
 						"license has been written to stdout " + stdout_str);
 }
 
-BOOST_AUTO_TEST_CASE(generate_license_product) {
-	const fs::path licFile = MyGlobalFixture::licenses_path / "myclient.lic";
+BOOST_AUTO_TEST_CASE(generate_license_features) {
+	const fs::path licFile = MyGlobalFixture::licenses_path / "myclient2.lic";
 	const string lic_location_str = licFile.string();
 	License license(&lic_location_str, MyGlobalFixture::project_path.string());
-	license.add_parameter(PARAM_PRODUCT_NAME, "my_fantastic_softwAre");
+	license.add_parameter(PARAM_FEATURE_NAMES, "my_fantastic_softwAre,another_feature");
 	license.write_license();
 	BOOST_REQUIRE_MESSAGE(fs::exists(licFile), "license has been created");
 	CSimpleIniA ini;
 	ini.LoadFile(licFile.c_str());
 	BOOST_CHECK_MESSAGE(ini.GetSectionSize("MY_FANTASTIC_SOFTWARE") == 2,
 						"Section [MY_FANTASTIC_SOFTWARE] has 2 elements");
+	BOOST_CHECK_MESSAGE(ini.GetSectionSize("ANOTHER_FEATURE") == 2, "Section [ANOTHER_FEATURE] has 2 elements");
 }
+
+BOOST_AUTO_TEST_CASE(extend_license) {
+	const fs::path licFile = MyGlobalFixture::licenses_path / "myclient.lic";
+	const string lic_location_str = licFile.string();
+	License license(&lic_location_str, MyGlobalFixture::project_path.string());
+	license.add_parameter(PARAM_EXPIRY_DATE, "1929-11-11");
+	license.add_parameter(PARAM_CLIENT_SIGNATURE, "XXX-XXX-XXX");
+	license.write_license();
+	BOOST_REQUIRE_MESSAGE(fs::exists(licFile), "license has been created");
+	CSimpleIniA ini;
+	ini.LoadFile(licFile.c_str());
+	BOOST_CHECK_MESSAGE(string(ini.GetValue("TEST_PROJECT", PARAM_EXPIRY_DATE)) == "1929-11-11", "Date was written");
+
+	License license_renew(&lic_location_str, MyGlobalFixture::project_path.string());
+	const string new_date("2020-05-01");
+	license_renew.add_parameter(PARAM_EXPIRY_DATE, new_date.c_str());
+	license_renew.write_license();
+	ini.Reset();
+	ini.LoadFile(licFile.c_str());
+	BOOST_CHECK_MESSAGE(ini.GetValue("TEST_PROJECT", PARAM_EXPIRY_DATE) == new_date, "license extended");
+	BOOST_CHECK_MESSAGE(ini.GetValue("TEST_PROJECT", PARAM_CLIENT_SIGNATURE) == string("XXX-XXX-XXX"),
+						"license extended");
+}
+
 #else
 BOOST_AUTO_TEST_CASE(mock) { BOOST_CHECKPOINT("Mock test for older boost versions"); }
 #endif
