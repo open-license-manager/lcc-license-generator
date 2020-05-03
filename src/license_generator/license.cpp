@@ -90,7 +90,6 @@ static const string print_for_sign(const string &feature_name, const CSimpleIniA
 			buf << boost::algorithm::trim_copy(key) << boost::algorithm::trim_copy(string(it->second));
 		}
 	}
-	cout << "!!! -----:" << buf.str() << endl;
 	return buf.str();
 }
 
