@@ -28,14 +28,14 @@ target_link_libraries(lccgen PRIVATE license_generator_lib)
 #install instructions
 install(TARGETS lccgen EXPORT license_generator RUNTIME DESTINATION bin)
 
-set(main_lib_dest "lib/lcc")
-install(EXPORT license_generator NAMESPACE license_generator:: DESTINATION ${main_lib_dest})
-install(FILES ../../cmake/lcc-config.cmake DESTINATION ${main_lib_dest})
+set(cmake_package_desc_dest "lib/cmake/${CMAKE_PROJECT_NAME}")
+install(EXPORT license_generator NAMESPACE license_generator:: DESTINATION ${cmake_package_desc_dest})
+install(FILES ../../cmake/lccgen-config.cmake DESTINATION ${cmake_package_desc_dest})
 
 #if we're building as standalone export the current build directory for easy retrieval 
 if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
 	message(STATUS "Exporting current build directory")
-	export(TARGETS lccgen NAMESPACE license_generator:: FILE ${CMAKE_BINARY_DIR}/lcc-config.cmake)
+	export(TARGETS lccgen NAMESPACE license_generator:: FILE ${CMAKE_BINARY_DIR}/lccgen-config.cmake)
 	export(PACKAGE lccgen)
 endif()
 
