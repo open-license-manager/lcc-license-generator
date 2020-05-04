@@ -58,6 +58,7 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 
 	find_program( MEMORYCHECK_COMMAND valgrind )
 	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" ) 
+	set(pkg_config_dest "lib/cmake/${PROJECT_NAME}")
 else(UNIX) #windows and linux crosscompiling for windows target
 	IF(NOT OPENSSL_FOUND)
 		MESSAGE(STATUS "Openssl not found - generator - configuring libary without it.")
@@ -83,6 +84,7 @@ else(UNIX) #windows and linux crosscompiling for windows target
 	        SET(CMAKE_EXE_LINKER_FLAGS "-static")
 	    endif(MINGW)
 	endif(MSVC)
+	set(pkg_config_dest "cmake/${PROJECT_NAME}")
 endif(UNIX)
 
 #bug in cmake win32 - can't find boost compiled with mingw 
