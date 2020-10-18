@@ -13,11 +13,9 @@ ENDIF(UNIX OR OPENSSL_FOUND)
 
 if(CODE_COVERAGE AND UNIX)
 	  target_compile_options(license_generator_lib PUBLIC -O0 -g --coverage)
+	  target_link_libraries(license_generator_lib PUBLIC gcov)
 	  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
 	    target_link_options(license_generator_lib PUBLIC --coverage)
-	    target_link_libraries(license_generator_lib PUBLIC gcov)
-	  else()
-	    target_link_libraries(license_generator_lib gcov)
 	  endif()
 endif(CODE_COVERAGE AND UNIX)
 
