@@ -25,6 +25,7 @@ private:
 
 public:
 	CryptoHelperWindows();
+	CryptoHelperWindows(const CryptoHelperWindows &) = delete;
 
 	virtual void generateKeyPair();
 	/*

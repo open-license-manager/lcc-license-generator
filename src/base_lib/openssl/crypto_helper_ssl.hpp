@@ -26,6 +26,8 @@ private:
 
 public:
 	CryptoHelperLinux();
+	// disable copy constructor
+	CryptoHelperLinux(const CryptoHelperLinux &) = delete;
 
 	virtual void generateKeyPair();
 	const virtual string exportPrivateKey() const;
