@@ -7,8 +7,8 @@ SET(LICENSECC_SHORT_LICENSE "BSD Software License")
 cmake_policy(SET CMP0048 NEW)
 project (lccgen
 	VERSION 2.0.0
-	DESCRIPTION "License generator for licensecc" 
 	LANGUAGES CXX)
+set(PROJECT_DESCRIPTION "License generator for licensecc")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
