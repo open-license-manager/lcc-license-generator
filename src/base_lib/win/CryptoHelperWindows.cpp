@@ -270,7 +270,7 @@ RSAPublicKey ::= SEQUENCE {
 		string errors;
 
 		if (!boost::starts_with(privateKey, "-----BEGIN RSA PRIVATE KEY-----")) {
-			throw new logic_error("Private Key is not in the right format. It must be pkcs#1 encoded PEM.");
+			throw logic_error("Private Key is not in the right format. It must be pkcs#1 encoded PEM.");
 		}
 		if (CryptStringToBinaryA(privateKey.c_str(), 0, CRYPT_STRING_BASE64HEADER, NULL, &dwBufferLen, NULL, NULL)) {
 			pbBuffer = (LPBYTE)LocalAlloc(0, dwBufferLen);

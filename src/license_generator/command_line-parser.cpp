@@ -51,7 +51,7 @@ static void printBasicHelp(const char *prog_name) {
 	cout << fs::path(prog_name).filename().string() << " [command] [options]" << endl;
 	cout << " available commands: \"project initialize\", \"project list\", \"license issue\", \"license list\""
 		 << endl;
-	cout << " to see specific command options type: " << prog_name << " [command] --help" << endl << endl;
+	cout << " to see help on specific command options type: " << prog_name << " [command] --help" << endl << endl;
 }
 
 CommandLineParser::CommandLineParser() {}
@@ -123,7 +123,7 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 	// string output;
 	unsigned int magic_num = 0;
 	bool base64 = false;
-	license_desc.add_options()  //
+	license_desc.add_options()	//
 		(PARAM_BASE64 ",b", po::bool_switch(&base64),
 		 "Encode license as base64 for inclusion in environment variables.")  //
 		(PARAM_BEGIN_DATE, po::value<string>(),
@@ -131,12 +131,12 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		 " Format YYYYMMDD. If not specified defaults to today")  //
 		(PARAM_EXPIRY_DATE ",e", po::value<string>(),
 		 "Specify the expire date for this license. "
-		 " Format YYYYMMDD. If not specified the license won't expire")  //
+		 " Format YYYYMMDD. If not specified the license won't expire")	 //
 		(PARAM_CLIENT_SIGNATURE ",s", po::value<string>(),
-		 "The signature of the hardware that requires the license. It should be in the format XXXX-XXXX-XXXX-XXXX."
+		 "The signature of the hardware that requires the license. It should be in the format XXXX-XXXX-XXXX."
 		 " If not specified the license won't be linked to a specific hardware (eg. demo license).")  //
 		(PARAM_LICENSE_OUTPUT ",o", po::value<string>(&license_name),
-		 "License output file name. May contain / that will be interpreded as subfolders.")  //
+		 "License output file name. May contain / that will be interpreded as subfolders.")	 //
 		(PARAM_FEATURE_NAMES ",f", po::value<boost::optional<std::string>>(),
 		 "Feature names: comma separate list of project features to enable. if not specified will be taken as project "
 		 "name.")  //
@@ -145,10 +145,10 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		 "path to where project configurations and licenses are stored.")  //
 		(PARAM_VERSION_FROM, po::value<string>()->default_value("0", "All Versions"),
 		 "Specify the first version of the software this license apply to.")  //
-		(PARAM_VERSION_TO, po::value<string>()->default_value("0", "All Versions"),  //
-		 "Specify the last version of the software this license apply to.")  //
-		(PARAM_EXTRA_DATA ",x", po::value<string>(), "Specify extra data to be included into the license")  //
-		("help,h", "Print this help.");  //
+		(PARAM_VERSION_TO, po::value<string>()->default_value("0", "All Versions"),	 //
+		 "Specify the last version of the software this license apply to.")	 //
+		(PARAM_EXTRA_DATA ",x", po::value<string>(), "Specify extra data to be included into the license")	//
+		("help,h", "Print this help.");	 //
 	if (rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global)) {
 		if (!license_name.empty()) {
 			license_name_ptr = &license_name;
@@ -208,6 +208,10 @@ int CommandLineParser::parseCommandLine(int argc, const char **argv) {
 	if (argc == 1) {
 		printBasicHelp(argv[0]);
 		return 1;
+	}
+	if (argc == 2 && (string("-h") == argv[1] || string("--help") == argv[1])) {
+		printBasicHelp(argv[0]);
+		return 0;
 	}
 	int result = 0;
 	po::options_description global("Global options");
