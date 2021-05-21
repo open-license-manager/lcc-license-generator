@@ -6,8 +6,10 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b1474db812744cac837aadc191e710c7)](https://www.codacy.com/manual/gcontini/lcc-license-generator?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=open-license-manager/lcc-license-generator&amp;utm_campaign=Badge_Grade)
 [![codecov](https://codecov.io/gh/open-license-manager/lcc-license-generator/branch/develop/graph/badge.svg)](https://codecov.io/gh/open-license-manager/lcc-license-generator)
 
-License generator for open-license-manager allow to create new projects (and their public and private keys) and issue licenses. 
-This code is intended to be used as a submodule of open-license-manager project. 
+License generator for `licensecc` allows to create new projects (and their public and private keys) and issue licenses. 
+It is a standalone project, but the code in here can be used as a (git) submodule of `licensecc` project,
+so unless you don't have specific issues you should compile it from there. 
+
 All the documentation is in the main project.
 
 
