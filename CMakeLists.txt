@@ -21,7 +21,9 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT
 	SET(CMAKE_CROSSCOMPILING_EMULATOR "wine")	
 ENDIF()
 
+if(${STATIC_RUNTIME})
 SET ( OPENSSL_USE_STATIC_LIBS ON )
+endif()
 find_package(OpenSSL COMPONENTS Crypto QUIET)
 IF(OPENSSL_FOUND)
 	add_definitions(-DHAS_OPENSSL)
@@ -98,7 +100,9 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
     message(STATUS "Compiler architecture: ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
 endif()
 
+if(${STATIC_RUNTIME})
 SET( Boost_USE_STATIC_LIBS ON )
+endif()
 find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options system unit_test_framework)
 
 #set below in case of dynamic linking in debug.
