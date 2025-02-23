@@ -52,7 +52,7 @@ static const string guess_templates_folder(const string &source_folder) {
 									 "] does not exist. tried also [" + template_fname.string() + "]");
 		}
 	}
-	fs::path normalized = templates_path.normalize();
+	fs::path normalized = templates_path.lexically_normal();
 	return normalized.string();
 }
 static const fs::path publicKeyFolder(const fs::path &product_folder, const string &product_name) {
