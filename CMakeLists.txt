@@ -77,7 +77,8 @@ else(UNIX) #windows and linux crosscompiling for windows target
 			SET(Boost_USE_STATIC_RUNTIME ON)
 		endif(${STATIC_RUNTIME})
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
-		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi")
+		# Windows system libraries needed for static OpenSSL linking
+		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi" "kernel32" "user32" "advapi32")
 	else(MSVC)
 	    if(MINGW)
 	        list(APPEND EXTERNAL_LIBS "-lcrypt32 -lbcrypt -lws2_32 -liphlpapi")
