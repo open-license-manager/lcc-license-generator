@@ -79,6 +79,12 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
 		# Windows system libraries needed for static OpenSSL linking
 		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi" "kernel32" "user32" "advapi32")
+		# C runtime libraries needed for static linking with newer OpenSSL/MSVC
+		if(${STATIC_RUNTIME})
+			list(APPEND EXTERNAL_LIBS "libcmt" "libvcruntime" "libucrt")
+		else()
+			list(APPEND EXTERNAL_LIBS "msvcrt" "vcruntime140" "ucrt")
+		endif()
 	else(MSVC)
 	    if(MINGW)
 	        list(APPEND EXTERNAL_LIBS "-lcrypt32 -lbcrypt -lws2_32 -liphlpapi")
