@@ -84,7 +84,6 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi" "kernel32" "user32" "advapi32")
 		# Legacy stdio definitions for OpenSSL compatibility with newer MSVC
 		list(APPEND EXTERNAL_LIBS "legacy_stdio_definitions")
-		endif()
 	else(MSVC)
 	    if(MINGW)
 	        list(APPEND EXTERNAL_LIBS "-lcrypt32 -lbcrypt -lws2_32 -liphlpapi")
