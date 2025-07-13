@@ -68,24 +68,22 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		target_architecture( TARGET_ARCHITECTURE )
 		message(STATUS "architecture detected: ${TARGET_ARCHITECTURE}")
 		
-		#Boost > 3.15 handle the /MD flag more nicely than this
+		# Use modern CMake approach for runtime library selection
 		if(${STATIC_RUNTIME})
-			string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-			string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-			string(REPLACE "/MDd" "/MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
-			string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+			# Set static runtime library for all targets
+			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 			SET(Boost_USE_STATIC_RUNTIME ON)
-		endif(${STATIC_RUNTIME})
+			message(STATUS "Using static runtime library (CMAKE_MSVC_RUNTIME_LIBRARY)")
+		else()
+			# Set dynamic runtime library for all targets
+			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+			message(STATUS "Using dynamic runtime library (CMAKE_MSVC_RUNTIME_LIBRARY)")
+		endif()
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
 		# Windows system libraries needed for static OpenSSL linking
 		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi" "kernel32" "user32" "advapi32")
-		# Let CMake handle C runtime linking automatically based on OpenSSL's requirements
-		if(${STATIC_RUNTIME})
-			# For static runtime, ensure consistent linking
-			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-		else()
-			# For dynamic runtime, ensure consistent linking  
-			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+		# Legacy stdio definitions for OpenSSL compatibility with newer MSVC
+		list(APPEND EXTERNAL_LIBS "legacy_stdio_definitions")
 		endif()
 	else(MSVC)
 	    if(MINGW)
