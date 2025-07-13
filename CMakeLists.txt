@@ -5,6 +5,12 @@ SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 SET(LICENSECC_SHORT_LICENSE "BSD Software License")
 
 cmake_policy(SET CMP0048 NEW)
+
+# Set MSVC runtime library policy early (requires CMake 3.15+, fallback for older)
+if(POLICY CMP0091)
+    cmake_policy(SET CMP0091 NEW)
+endif()
+
 project (lccgen
 	VERSION 2.1.0
 	DESCRIPTION "License generator for licensecc" 
@@ -13,6 +19,17 @@ project (lccgen
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
+# Set MSVC runtime library globally before any targets are created
+if(MSVC)
+    if(DEFINED STATIC_RUNTIME AND STATIC_RUNTIME)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+        message(STATUS "Using static MSVC runtime library")
+    else()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL") 
+        message(STATUS "Using dynamic MSVC runtime library")
+    endif()
+endif()
 
 include(utilities) #import module utilities.cmake
 
@@ -68,16 +85,9 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		target_architecture( TARGET_ARCHITECTURE )
 		message(STATUS "architecture detected: ${TARGET_ARCHITECTURE}")
 		
-		# Use modern CMake approach for runtime library selection
-		if(${STATIC_RUNTIME})
-			# Set static runtime library for all targets
-			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+		# Set Boost to use static runtime if we're using static runtime
+		if(DEFINED STATIC_RUNTIME AND STATIC_RUNTIME)
 			SET(Boost_USE_STATIC_RUNTIME ON)
-			message(STATUS "Using static runtime library (CMAKE_MSVC_RUNTIME_LIBRARY)")
-		else()
-			# Set dynamic runtime library for all targets
-			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-			message(STATUS "Using dynamic runtime library (CMAKE_MSVC_RUNTIME_LIBRARY)")
 		endif()
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
 		# Windows system libraries needed for static OpenSSL linking
