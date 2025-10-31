@@ -19,7 +19,6 @@ using namespace std;
 
 class CryptoHelperLinux : public CryptoHelper {
 private:
-	static const int kBits = 1024;
 	static const int kExp = 65537;
 	EVP_PKEY *m_pktmp;
 	const string Opensslb64Encode(const size_t slen, const unsigned char *signature) const;
@@ -29,7 +28,7 @@ public:
 	// disable copy constructor
 	CryptoHelperLinux(const CryptoHelperLinux &) = delete;
 
-	virtual void generateKeyPair();
+	virtual void generateKeyPair(int keyBits = 2048);
 	const virtual string exportPrivateKey() const;
 	const virtual std::vector<unsigned char> exportPublicKey() const;
 	virtual void loadPrivateKey(const std::string &privateKey);

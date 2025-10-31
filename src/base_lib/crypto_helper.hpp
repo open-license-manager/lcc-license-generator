@@ -26,7 +26,7 @@ protected:
 	inline CryptoHelper() {}
 
 public:
-	virtual void generateKeyPair() = 0;
+	virtual void generateKeyPair(int keyBits = 2048) = 0;
 	const virtual std::string exportPrivateKey() const = 0;
 	const virtual std::vector<unsigned char> exportPublicKey() const = 0;
 

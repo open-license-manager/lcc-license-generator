@@ -31,7 +31,11 @@ CryptoHelperLinux::CryptoHelperLinux() : m_pktmp(nullptr) {
 		OpenSSL_add_all_algorithms();
 	}
 }
-void CryptoHelperLinux::generateKeyPair() {
+void CryptoHelperLinux::generateKeyPair(int keyBits) {
+	// Validate key size (OpenSSL 3.0.2 supports 1024, 2048, 3072, 4096)
+	if (keyBits != 1024 && keyBits != 2048 && keyBits != 3072 && keyBits != 4096) {
+		throw logic_error("Invalid RSA key size. Supported: 1024, 2048, 3072, 4096 bits");
+	}
 	if (m_pktmp) {
 		EVP_PKEY_free(m_pktmp);
 		m_pktmp = nullptr;
@@ -46,7 +50,7 @@ void CryptoHelperLinux::generateKeyPair() {
 	if (EVP_PKEY_keygen_init(ctx) <= 0) {
 	}
 
-	if (EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, 1024) <= 0) {
+	if (EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, keyBits) <= 0) {
 		throw logic_error("error setting key properties");
 	}
 
