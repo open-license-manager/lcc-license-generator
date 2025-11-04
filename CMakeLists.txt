@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.22)
 
 set(LICENSECC_SHORT_LICENSE "BSD Software License")
 cmake_policy(SET CMP0048 NEW)
