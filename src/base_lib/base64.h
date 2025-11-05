@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 #ifdef __linux__
 
 #elif _WIN32
