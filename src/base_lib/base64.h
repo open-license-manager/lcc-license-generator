@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <stdint.h>
 #ifdef __linux__
 
 #elif _WIN32
