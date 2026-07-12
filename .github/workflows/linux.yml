@@ -40,7 +40,7 @@ jobs:
 
           if [[ "${{ runner.os }}" == "ubuntu-26.04" ]]; then
             sudo apt-get install -y libjitterentropy3-dev
-          endif
+          fi
     #- name: Install cmake 4
     #  run: |
     #       test -f /usr/share/doc/kitware-archive-keyring/copyright || wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | \
