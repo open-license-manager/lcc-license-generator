@@ -1,4 +1,4 @@
-if(UNIX OR OPENSSL_FOUND)
+if(UNIX OR OpenSSL_FOUND)
 
 	ADD_LIBRARY(
 	    lcc_base OBJECT
@@ -7,14 +7,14 @@ if(UNIX OR OPENSSL_FOUND)
 	    openssl/crypto_helper_ssl.cpp
 	)
 	
-else(UNIX OR OPENSSL_FOUND) #windows and zlib not found
+else(UNIX OR OpenSSL_FOUND) #windows and zlib not found
 	ADD_LIBRARY(
 	    lcc_base OBJECT
 	    base64.cpp
 	    crypto_helper.cpp
 	    win/CryptoHelperWindows.cpp
 	)
-ENDIF(UNIX OR OPENSSL_FOUND)
+ENDIF(UNIX OR OpenSSL_FOUND)
 
 if(CODE_COVERAGE AND UNIX)
 	  MESSAGE(STATUS "Enabling code coverage")

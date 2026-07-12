@@ -5,8 +5,9 @@ ADD_LIBRARY(license_generator_lib
 	$<TARGET_OBJECTS:lcc_base> )
 
 if(UNIX)
+	set_target_properties(license_generator_lib PROPERTIES POSITION_INDEPENDENT_CODE ${STATIC_RUNTIME})
 	target_link_libraries(license_generator_lib PUBLIC
-			     ${Boost_LIBRARIES} PkgConfig::openssl ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
+			     ${Boost_LIBRARIES} OpenSSL::Crypto ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
 else(UNIX)
     if(OPENSSL_FOUND) #windows and openssl found
 		target_link_libraries(license_generator_lib PUBLIC ${Boost_LIBRARIES} ${EXTERNAL_LIBS})
