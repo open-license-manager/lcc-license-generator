@@ -4,16 +4,20 @@ ADD_LIBRARY(license_generator_lib
 	STATIC command_line-parser.cpp license.cpp project.cpp ../ini/ConvertUTF.cpp
 	$<TARGET_OBJECTS:lcc_base> )
 
-target_include_directories(license_generator_lib PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
+target_include_directories(license_generator_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-if(UNIX OR OPENSSL_FOUND)
+if(UNIX)
+	set_target_properties(license_generator_lib PROPERTIES POSITION_INDEPENDENT_CODE ${STATIC_RUNTIME})
 	target_link_libraries(license_generator_lib PUBLIC
 			     ${Boost_LIBRARIES} OpenSSL::Crypto ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
-else(UNIX OR OPENSSL_FOUND) #windows and zlib not found
-	target_link_libraries(license_generator_lib PUBLIC ${Boost_LIBRARIES} ${EXTERNAL_LIBS})
-ENDIF(UNIX OR OPENSSL_FOUND)
+else(UNIX)
+  if(OPENSSL_FOUND) #windows and openssl found
+		target_link_libraries(license_generator_lib PUBLIC ${Boost_LIBRARIES} ${EXTERNAL_LIBS})
+	else(OPENSSL_FOUND)
+		target_link_libraries(license_generator_lib PUBLIC
+			     ${Boost_LIBRARIES} OpenSSL::Crypto ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
+	endif(OPENSSL_FOUND)
+ENDIF(UNIX)
 
 if(CODE_COVERAGE AND UNIX)
 	  target_compile_options(license_generator_lib PUBLIC -O0 -g --coverage)

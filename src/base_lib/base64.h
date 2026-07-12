@@ -2,6 +2,7 @@
 #define BASE64_H
 
 #include <string>
+#include <cstdint>
 #include <vector>
 #ifdef __linux__
 
