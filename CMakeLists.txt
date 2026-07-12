@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 4.1 FATAL_ERROR)
 
 SET(CMAKE_DISABLE_SOURCE_CHANGES ON)
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -6,7 +6,7 @@ SET(LICENSECC_SHORT_LICENSE "BSD Software License")
 
 cmake_policy(SET CMP0048 NEW)
 project (lccgen
-	VERSION 2.1.0
+	VERSION 2.0.0
 	DESCRIPTION "License generator for licensecc" 
 	LANGUAGES CXX)
 
@@ -21,19 +21,8 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT
 	SET(CMAKE_CROSSCOMPILING_EMULATOR "wine")	
 ENDIF()
 
-SET ( OPENSSL_USE_STATIC_LIBS ON )
-find_package(OpenSSL COMPONENTS Crypto QUIET)
-IF(OPENSSL_FOUND)
-	add_definitions(-DHAS_OPENSSL)
-	include_directories(${OPENSSL_INCLUDE_DIR})
-	MESSAGE(STATUS "Found openssl version ${OPENSSL_VERSION} - generator")
-ENDIF(OPENSSL_FOUND)
-
 if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
 	#openssl required for linux
-	IF(NOT OPENSSL_FOUND)
-		MESSAGE(SEND_ERROR "Openssl not found - generator - required in Linux")
-	ENDIF(NOT OPENSSL_FOUND)
 	IF(${STATIC_RUNTIME})
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--whole-archive -static-libgcc -static-libstdc++ -static")
 		unset(CMAKE_DL_LIBS)
@@ -48,21 +37,25 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 		endif()
 	endif(THREADS_HAVE_PTHREAD_ARG)
 	
-	#Zlib required when openssl version < 1.0.2k (centos 7)
-	IF(OPENSSL_VERSION VERSION_LESS_EQUAL 1.0.2)
-		SET ( ZLIB_USE_STATIC_LIBS ON ) 
-		find_package(ZLIB REQUIRED)
-		list(APPEND EXTERNAL_LIBS ${ZLIB_LIBRARIES})
-		MESSAGE(STATUS "Found zlib version ${ZLIB_VERSION_STRING} - generator")
-	ENDIF(OPENSSL_VERSION VERSION_LESS_EQUAL 1.0.2)
+	cmake_pkg_config(IMPORT openssl REQUIRED)
+	add_definitions(-DHAS_OPENSSL)
+	SET(OPENSSL_FOUND TRUE)
 
 	find_program( MEMORYCHECK_COMMAND valgrind )
 	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" ) 
 	set(pkg_config_dest "lib/cmake/${PROJECT_NAME}")
 else(UNIX) #windows and linux crosscompiling for windows target
+	SET ( OPENSSL_USE_STATIC_LIBS ON )
+	find_package(OpenSSL COMPONENTS Crypto QUIET)
+	IF(OPENSSL_FOUND)
+		add_definitions(-DHAS_OPENSSL)
+		include_directories(${OPENSSL_INCLUDE_DIR})
+		MESSAGE(STATUS "Found openssl version ${OPENSSL_VERSION} - generator")
+	ENDIF(OPENSSL_FOUND)
 	IF(NOT OPENSSL_FOUND)
 		MESSAGE(STATUS "Openssl not found - generator - configuring libary without it.")
 	ENDIF(NOT OPENSSL_FOUND)
+
 	if(MSVC)
 		include(target_arch)
 		target_architecture( TARGET_ARCHITECTURE )
@@ -99,7 +92,7 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
 endif()
 
 SET( Boost_USE_STATIC_LIBS ON )
-find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options system unit_test_framework)
+find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options unit_test_framework)
 
 #set below in case of dynamic linking in debug.
 #set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:BOOST_TEST_DYN_LINK>)

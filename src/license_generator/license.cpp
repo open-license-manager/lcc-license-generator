@@ -111,7 +111,7 @@ void License::write_license() {
 		ifstream previous_license(*m_license_fname);
 		if (previous_license.is_open()) {
 			SI_Error error = ini.LoadData(previous_license);
-			if (error != SI_Error::SI_OK) {
+			if (error != SI_OK) {
 				throw runtime_error(
 					"License file existing, but there were errors in loading it. Is it a license file?");
 			}
