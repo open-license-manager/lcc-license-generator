@@ -1,4 +1,4 @@
-name: Linux tests
+name: Linux build
 on:
   push:
     branches: [ "develop" ]
@@ -34,9 +34,12 @@ jobs:
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
     - name: Dependencies
       run: |
-           sudo apt-get -y install cmake valgrind libssl-dev zlib1g-dev libboost-test-dev libboost-filesystem-dev \
-           libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libboost-date-time-dev \
-           ca-certificates gpg wget
+          sudo apt-get -y install cmake valgrind libssl-dev zlib1g-dev libboost-test-dev libboost-filesystem-dev \
+          libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libboost-date-time-dev \
+          ca-certificates gpg wget
+          if [[ "${{ runner.os }}" == "ubuntu-26.04" ]]; then
+            sudo apt-get install -y libjitterentropy3-dev
+          endif
     #- name: Install cmake 4
     #  run: |
     #       test -f /usr/share/doc/kitware-archive-keyring/copyright || wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | \
