@@ -33,10 +33,11 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
     - name: Dependencies
-      run: |
-          sudo apt-get -y install cmake valgrind libssl-dev zlib1g-dev libboost-test-dev libboost-filesystem-dev \
-          libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libboost-date-time-dev \
-          ca-certificates gpg wget
+      run: >
+          sudo apt-get -y install cmake valgrind libssl-dev zlib1g-dev libboost-test-dev libboost-filesystem-dev 
+          libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libboost-date-time-dev 
+
+
           if [[ "${{ runner.os }}" == "ubuntu-26.04" ]]; then
             sudo apt-get install -y libjitterentropy3-dev
           endif
