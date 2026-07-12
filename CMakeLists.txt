@@ -1,12 +1,11 @@
-cmake_minimum_required(VERSION 4.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 SET(CMAKE_DISABLE_SOURCE_CHANGES ON)
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 SET(LICENSECC_SHORT_LICENSE "BSD Software License")
 
-cmake_policy(SET CMP0048 NEW)
 project (lccgen
-	VERSION 2.0.0
+	VERSION 2.1.0
 	DESCRIPTION "License generator for licensecc" 
 	LANGUAGES CXX)
 
@@ -22,10 +21,15 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT
 ENDIF()
 
 if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
-	#openssl required for linux
+	
 	IF(${STATIC_RUNTIME})
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--whole-archive -static-libgcc -static-libstdc++ -static")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 		unset(CMAKE_DL_LIBS)
+		add_definitions(-DBOOST_TEST_STATIC_LINK)
+		SET (OPENSSL_USE_STATIC_LIBS TRUE)
+		set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+		set(BUILD_SHARED_LIBS OFF)
+		#set(CMAKE_HAVE_LIBC_PTHREAD TRUE) #strange hack with cmake 4.3, why it's needed with static compile
 	ENDIF(${STATIC_RUNTIME})
 	
     find_package(Threads)
@@ -36,10 +40,11 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
   			 list(APPEND EXTERNAL_LIBS "${CMAKE_THREAD_LIBS_INIT}")
 		endif()
 	endif(THREADS_HAVE_PTHREAD_ARG)
-	
-	cmake_pkg_config(IMPORT openssl REQUIRED)
+
+	#openssl always required in linux
+	find_package(OpenSSL REQUIRED COMPONENTS Crypto QUIET)
 	add_definitions(-DHAS_OPENSSL)
-	SET(OPENSSL_FOUND TRUE)
+	message( STATUS "OpenSSL libraries         :  ${OPENSSL_CRYPTO_LIBRARIES}")
 
 	find_program( MEMORYCHECK_COMMAND valgrind )
 	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" ) 
