@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(extend_license) {
 }
 
 #else
-BOOST_AUTO_TEST_CASE(mock) { BOOST_CHECKPOINT("Mock test for older boost versions"); }
+BOOST_AUTO_TEST_CASE(mock) { BOOST_TEST_CHECKPOINT("Mock test for older boost versions"); }
 #endif
 }  // namespace test
 }  // namespace license
