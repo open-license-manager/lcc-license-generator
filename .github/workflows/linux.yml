@@ -1,4 +1,4 @@
-name: Linux tests
+name: Linux build
 on:
   push:
     branches: [ "develop" ]
@@ -19,7 +19,7 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-26.04]
         build_type: [Debug,Release]
         cpp_compiler: [g++, clang++]
         static: ["true","false"]
@@ -33,10 +33,14 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
     - name: Dependencies
-      run: |
-           sudo apt-get -y install cmake valgrind libssl-dev zlib1g-dev libboost-test-dev libboost-filesystem-dev \
-           libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libboost-date-time-dev \
-           ca-certificates gpg wget
+      run: >
+          sudo apt-get -y install cmake valgrind libssl-dev zlib1g-dev libboost-test-dev libboost-filesystem-dev 
+          libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libboost-date-time-dev 
+
+    - name: Extra Dependecies Ubuntu 26.04
+      if: ${{ matrix.os == 'ubuntu-26.04' }}
+      run: >
+        sudo apt-get install -y libjitterentropy3-dev
     #- name: Install cmake 4
     #  run: |
     #       test -f /usr/share/doc/kitware-archive-keyring/copyright || wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | \
