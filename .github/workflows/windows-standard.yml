@@ -38,23 +38,22 @@ jobs:
             echo "BOOST_ROOT=C:/local/boost_1_74_0" >> $GITHUB_ENV     
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         run: |
-            cd build
-            cmake .. -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} 
+         run: >
+            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} 
                -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DLCC_PROJECT_NAME:STRING=test 
                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
                -S ${{ github.workspace }}
-               -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
+               -B ${{ steps.strings.outputs.build-output-dir }}
+               -DCMAKE_INSTALL_PREFIX=${{ steps.strings.outputs.build-output-dir }}/install
          shell: bash
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         run: |
-            cd build
-            cmake --build . --target install --config ${{ matrix.build_type }} -S ${{ github.workspace }}
+         run: >
+            cmake -B ${{ steps.strings.outputs.build-output-dir }} --target install 
+               --config ${{ matrix.build_type }} -S ${{ github.workspace }}
          shell: bash
       -  name: Test
          run: |
-            cd build 
             ctest -C ${{ matrix.build_type }}
          shell: bash
          env:
