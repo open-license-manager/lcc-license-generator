@@ -37,7 +37,7 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 		#set(CMAKE_HAVE_LIBC_PTHREAD TRUE) #strange hack with cmake 4.3, why it's needed with static compile
 	ENDIF(${STATIC_RUNTIME})
 	
-        find_package(Threads)
+	find_package(Threads)
 	if(THREADS_HAVE_PTHREAD_ARG)
   		list(APPEND EXTERNAL_LIBS "-pthread")
 	else(THREADS_HAVE_PTHREAD_ARG)
@@ -53,6 +53,11 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 
 	set(CTEST_MEMORYCHECK_TYPE "Valgrind")
 	find_program( MEMORYCHECK_COMMAND valgrind )
+	IF(${MEMORYCHECK_COMMAND} == "MEMORYCHECK_COMMAND-NOTFOUND")
+		message( STATUS "valgrind                  : Not Found")
+	ELSE
+		message( STATUS "valgrind                  : ${MEMORYCHECK_COMMAND}")
+	ENDIF
 	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-exitcode=1" )
 
 	set(pkg_config_dest "lib/cmake/${PROJECT_NAME}")

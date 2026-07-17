@@ -67,7 +67,7 @@ jobs:
       run: ctest --build-config ${{ matrix.build_type }}
     - name: Memory checks in ubuntu 26.04
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      if: ${{ matrix.os == 'ubuntu-26.04' }} and ${{ matrix.static == 'false' }}
+      if: ${{ matrix.os == 'ubuntu-26.04' && matrix.static == 'false' }}
       run: >
           ctest -T memcheck
     - name: On_Failure_print_logs
