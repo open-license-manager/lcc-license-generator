@@ -18,6 +18,13 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT
 	SET(CMAKE_CROSSCOMPILING_EMULATOR "wine")	
 ENDIF()
 
+IF(NOT DEFINED STATIC_RUNTIME)
+	SET(STATIC_RUNTIME FALSE CACHE BOOL "Compile a static executable or a dynamic linked one")
+	MARK_AS_ADVANCED(STATIC_RUNTIME)
+ENDIF()
+message( STATUS "Static linking            : " ${STATIC_RUNTIME})
+
+SET (OPENSSL_USE_STATIC_LIBS ${STATIC_RUNTIME})
 if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
 	
 	IF(${STATIC_RUNTIME})
@@ -44,8 +51,10 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 	add_definitions(-DHAS_OPENSSL)
 	message( STATUS "OpenSSL libraries         :  ${OPENSSL_CRYPTO_LIBRARIES}")
 
+	set(CTEST_MEMORYCHECK_TYPE "Valgrind")
 	find_program( MEMORYCHECK_COMMAND valgrind )
-	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" ) 
+	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-exitcode=1" )
+
 	set(pkg_config_dest "lib/cmake/${PROJECT_NAME}")
 else(UNIX) #windows and linux crosscompiling for windows target
 	SET ( OPENSSL_USE_STATIC_LIBS ON )
