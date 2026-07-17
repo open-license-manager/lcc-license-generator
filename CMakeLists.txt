@@ -21,13 +21,13 @@ ENDIF()
 IF(NOT DEFINED STATIC_RUNTIME)
 	SET(STATIC_RUNTIME FALSE CACHE BOOL "Compile a static executable or a dynamic linked one")
 	MARK_AS_ADVANCED(STATIC_RUNTIME)
-ENDIF()
-message( STATUS "Static linking            : " ${STATIC_RUNTIME})
+ENDIF(NOT DEFINED STATIC_RUNTIME)
+message( STATUS "Static linking            :  ${STATIC_RUNTIME}")
 
 SET (OPENSSL_USE_STATIC_LIBS ${STATIC_RUNTIME})
 if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
 	
-	IF(${STATIC_RUNTIME})
+	IF(STATIC_RUNTIME)
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 		unset(CMAKE_DL_LIBS)
 		add_definitions(-DBOOST_TEST_STATIC_LINK)
@@ -35,7 +35,7 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 		set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 		set(BUILD_SHARED_LIBS OFF)
 		#set(CMAKE_HAVE_LIBC_PTHREAD TRUE) #strange hack with cmake 4.3, why it's needed with static compile
-	ENDIF(${STATIC_RUNTIME})
+	ENDIF(STATIC_RUNTIME)
 	
 	find_package(Threads)
 	if(THREADS_HAVE_PTHREAD_ARG)
@@ -53,11 +53,11 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 
 	set(CTEST_MEMORYCHECK_TYPE "Valgrind")
 	find_program( MEMORYCHECK_COMMAND valgrind )
-	IF(${MEMORYCHECK_COMMAND} == "MEMORYCHECK_COMMAND-NOTFOUND")
+	IF( MEMORYCHECK_COMMAND STREQUAL "MEMORYCHECK_COMMAND-NOTFOUND" )
 		message( STATUS "valgrind                  : Not Found")
-	ELSE
-		message( STATUS "valgrind                  : ${MEMORYCHECK_COMMAND}")
-	ENDIF
+	ELSE()
+		message( STATUS "valgrind                  : ${MEMORYCHECK_COMMAND}" )
+	ENDIF()
 	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-exitcode=1" )
 
 	set(pkg_config_dest "lib/cmake/${PROJECT_NAME}")
@@ -79,13 +79,13 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		message(STATUS "architecture detected: ${TARGET_ARCHITECTURE}")
 		
 		#cmake > 3.15 handle the /MD flag more nicely than this
-		if(${STATIC_RUNTIME})
+		if(STATIC_RUNTIME)
 			string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 			string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 			string(REPLACE "/MDd" "/MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 			string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 			SET(Boost_USE_STATIC_RUNTIME ON)
-		endif(${STATIC_RUNTIME})
+		endif(STATIC_RUNTIME)
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
 		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi")
 	else(MSVC)
