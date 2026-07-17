@@ -1,6 +1,4 @@
-MESSAGE(STATUS "xxxx: ${UNIX} o ${OpenSSL_FOUND}")
 if(UNIX OR OpenSSL_FOUND)
-	MESSAGE(STATUS "xxxx: wrong branch")	
 	ADD_LIBRARY(
 	    lcc_base OBJECT
 	    base64.cpp

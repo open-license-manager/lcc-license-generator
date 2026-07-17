@@ -67,6 +67,7 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		add_definitions(-DHAS_OPENSSL)
 		include_directories(${OPENSSL_INCLUDE_DIR})
 		MESSAGE(STATUS "Openssl - generator       : ${OPENSSL_VERSION}")
+		MESSAGE(STATUS "Openssl - generator       : ${OPENSSL_VERSION}")
 	ELSE(OpenSSL_FOUND) 
 		MESSAGE(STATUS "Openssl - generator       : not found - using windows cryptography.")
 	ENDIF(OpenSSL_FOUND)

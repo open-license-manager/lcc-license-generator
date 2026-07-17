@@ -11,12 +11,13 @@ if(UNIX)
 	target_link_libraries(license_generator_lib PUBLIC
 			     ${Boost_LIBRARIES} OpenSSL::Crypto ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
 else(UNIX)
-  if(OPENSSL_FOUND) #windows and openssl found
-		target_link_libraries(license_generator_lib PUBLIC ${Boost_LIBRARIES} ${EXTERNAL_LIBS})
-	else(OPENSSL_FOUND)
+  	if(OpenSSL_FOUND) #windows and openssl found
+		target_link_libraries(license_generator_lib PUBLIC ${Boost_LIBRARIES} 
+			OpenSSL::Crypto ${EXTERNAL_LIBS})
+	else(OpenSSL_FOUND)
 		target_link_libraries(license_generator_lib PUBLIC
-			     ${Boost_LIBRARIES} OpenSSL::Crypto ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
-	endif(OPENSSL_FOUND)
+			     ${Boost_LIBRARIES} ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
+	endif(OpenSSL_FOUND)
 ENDIF(UNIX)
 
 if(CODE_COVERAGE AND UNIX)
