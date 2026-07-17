@@ -4,10 +4,8 @@ SET(CMAKE_DISABLE_SOURCE_CHANGES ON)
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 SET(LICENSECC_SHORT_LICENSE "BSD Software License")
 
-project (lccgen
-	VERSION 2.1.0
-	DESCRIPTION "License generator for licensecc" 
-	LANGUAGES CXX)
+project (lccgen VERSION 2.1.0 LANGUAGES CXX)
+set(PROJECT_DESCRIPTION "License generator for licensecc")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -66,7 +64,7 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		target_architecture( TARGET_ARCHITECTURE )
 		message(STATUS "architecture detected: ${TARGET_ARCHITECTURE}")
 		
-		#Boost > 3.15 handle the /MD flag more nicely than this
+		#cmake > 3.15 handle the /MD flag more nicely than this
 		if(${STATIC_RUNTIME})
 			string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 			string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
