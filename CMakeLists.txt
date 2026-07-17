@@ -37,7 +37,7 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 		#set(CMAKE_HAVE_LIBC_PTHREAD TRUE) #strange hack with cmake 4.3, why it's needed with static compile
 	ENDIF(${STATIC_RUNTIME})
 	
-    find_package(Threads)
+        find_package(Threads)
 	if(THREADS_HAVE_PTHREAD_ARG)
   		list(APPEND EXTERNAL_LIBS "-pthread")
 	else(THREADS_HAVE_PTHREAD_ARG)
