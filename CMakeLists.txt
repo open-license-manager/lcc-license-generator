@@ -31,7 +31,6 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 		unset(CMAKE_DL_LIBS)
 		add_definitions(-DBOOST_TEST_STATIC_LINK)
-		SET (OPENSSL_USE_STATIC_LIBS TRUE)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 		set(BUILD_SHARED_LIBS OFF)
 		#set(CMAKE_HAVE_LIBC_PTHREAD TRUE) #strange hack with cmake 4.3, why it's needed with static compile
@@ -64,14 +63,13 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 else(UNIX) #windows and linux crosscompiling for windows target
 	SET ( OPENSSL_USE_STATIC_LIBS ON )
 	find_package(OpenSSL COMPONENTS Crypto QUIET)
-	IF(OPENSSL_FOUND)
+	IF(OpenSSL_FOUND)
 		add_definitions(-DHAS_OPENSSL)
 		include_directories(${OPENSSL_INCLUDE_DIR})
-		MESSAGE(STATUS "Found openssl version ${OPENSSL_VERSION} - generator")
-	ENDIF(OPENSSL_FOUND)
-	IF(NOT OPENSSL_FOUND)
-		MESSAGE(STATUS "Openssl not found - generator - configuring libary without it.")
-	ENDIF(NOT OPENSSL_FOUND)
+		MESSAGE(STATUS "Openssl - generator       : ${OPENSSL_VERSION}")
+	ELSE(OpenSSL_FOUND) 
+		MESSAGE(STATUS "Openssl - generator       : not found - using windows cryptography.")
+	ENDIF(OpenSSL_FOUND)
 
 	if(MSVC)
 		include(target_arch)

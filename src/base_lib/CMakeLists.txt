@@ -1,5 +1,6 @@
+MESSAGE(STATUS "xxxx: ${UNIX} o ${OpenSSL_FOUND}")
 if(UNIX OR OpenSSL_FOUND)
-
+	MESSAGE(STATUS "xxxx: wrong branch")	
 	ADD_LIBRARY(
 	    lcc_base OBJECT
 	    base64.cpp
@@ -7,7 +8,7 @@ if(UNIX OR OpenSSL_FOUND)
 	    openssl/crypto_helper_ssl.cpp
 	)
 	
-else(UNIX OR OpenSSL_FOUND) #windows and zlib not found
+else(UNIX OR OpenSSL_FOUND) 
 	ADD_LIBRARY(
 	    lcc_base OBJECT
 	    base64.cpp

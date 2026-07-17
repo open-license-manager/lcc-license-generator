@@ -24,13 +24,13 @@ jobs:
          shell: bash
          run: |
             echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
-      -  name: install boost boost-msvc-14.2
+      -  name: install boost boost-msvc-14.2 on Windows 2025
          shell: bash
          if: ${{ matrix.os == 'windows-2025' }}
          run: |
             choco install -y boost-msvc-14.2 --version 1.74.0
             echo "BOOST_ROOT=C:/local/boost_1_74_0" >> $GITHUB_ENV
-      -  name: install boost boost-msvc-14.1
+      -  name: install boost boost-msvc-14.1 on Windows 2025
          shell: bash
          if: ${{ matrix.os == 'windows-2022' }}
          run: |
