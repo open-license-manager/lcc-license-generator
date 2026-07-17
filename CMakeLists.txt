@@ -58,7 +58,7 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 	ELSE()
 		message( STATUS "valgrind                  : ${MEMORYCHECK_COMMAND}" )
 	ENDIF()
-	set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-exitcode=1" )
+	set( MEMORYCHECK_COMMAND_OPTIONS "--error-exitcode=1" )
 
 	set(pkg_config_dest "lib/cmake/${PROJECT_NAME}")
 else(UNIX) #windows and linux crosscompiling for windows target
