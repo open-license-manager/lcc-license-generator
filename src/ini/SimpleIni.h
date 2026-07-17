@@ -247,7 +247,8 @@
 #include <limits>
 #include <list>
 #include <map>
-#include <stdio.h>
+#include <cstdio>
+#include <functional>
 #include <string>
 
 #ifdef SI_SUPPORT_IOSTREAMS

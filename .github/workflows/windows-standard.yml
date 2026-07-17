@@ -34,7 +34,7 @@ jobs:
          shell: bash
          if: ${{ matrix.os == 'windows-2022' }}
          run: |
-            choco install -y boost-msvc-14.1 --version 1.74.0
+            choco install -y boost-msvc-14.2 --version 1.74.0
             echo "BOOST_ROOT=C:/local/boost_1_74_0" >> $GITHUB_ENV     
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
