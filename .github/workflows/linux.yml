@@ -65,9 +65,9 @@ jobs:
       # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
-    - name: Memory checks in ubuntu 26.04
-        if: ${{ matrix.os == 'ubuntu-26.04' }}
-        run: >
+    - name: Memory_checks ubuntu_26.04
+      if: ${{ matrix.os == 'ubuntu-26.04' }}
+      run: >
           ctest -T memcheck
     - name: On_Failure_print_logs
       if: ${{ failure() }}
