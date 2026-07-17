@@ -39,17 +39,17 @@ jobs:
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
-            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} 
-               -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DLCC_PROJECT_NAME:STRING=test 
-               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-               -S ${{ github.workspace }}
-               -B ${{ steps.strings.outputs.build-output-dir }}
+            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+               -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DLCC_PROJECT_NAME:STRING=test \
+               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+               -S ${{ github.workspace }} \
+               -B ${{ steps.strings.outputs.build-output-dir }} \
                -DCMAKE_INSTALL_PREFIX=${{ steps.strings.outputs.build-output-dir }}/install
          shell: bash
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
-            cmake -B ${{ steps.strings.outputs.build-output-dir }} --target install 
+            cmake -B ${{ steps.strings.outputs.build-output-dir }} --target install \
                --config ${{ matrix.build_type }} -S ${{ github.workspace }}
          shell: bash
       -  name: Test
