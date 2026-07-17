@@ -18,10 +18,7 @@ jobs:
           static: ["FALSE"]
       steps:
       -  uses: actions/checkout@v6
-      -  name: Setup 
-         shell: bash
-         run: env
-      - name: Set reusable strings
+      -  name: Set reusable strings
          # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
          id: strings
          shell: bash
