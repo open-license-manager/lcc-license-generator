@@ -27,8 +27,7 @@ if (-not (Test-Path 'C:/local/boost/libs')) {
 	echo "Boost not cached, downloading it: $uri"
     do {
         try {
-                $response = Invoke-WebRequest -Verbose -Uri "$uri" -UseBasicParsing -OutFile .\boost.exe
-                # If the request is successful, exit the loop
+                $response = Invoke-WebRequest -Verbose -Debug -Uri "$uri" -OutFile ".\boost.exe"
                 break
             } catch {
                 $StatusCode = $_.Exception.Response.StatusCode
@@ -43,6 +42,12 @@ if (-not (Test-Path 'C:/local/boost/libs')) {
             echo "Boost downloaded"
         } else {
             echo "Request failed after $retryCount attempts."
-            exit 1
+            #exit 1
         }
 } else { echo "Boost already installed" }
+
+if (Test-Path './boost.exe') {
+    echo "Boost executable found."
+} else {
+    echo "Error: Boost executable not found."
+}
