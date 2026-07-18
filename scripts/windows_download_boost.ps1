@@ -23,7 +23,9 @@ if (-not (Test-Path 'C:/local/boost/libs')) {
 	echo "Boost not cached, downloading it"
     do {
         try {
+                echo "Downloading boost from $uri ..."
                 $response = Invoke-WebRequest -Uri $uri -UseBasicParsing -OutFile boost.exe
+                echo "$_.Exception.Message"
                 # If the request is successful, exit the loop
                 break
             } catch {
@@ -38,7 +40,7 @@ if (-not (Test-Path 'C:/local/boost/libs')) {
         if ($response) {
             echo "Boost downloaded"
         } else {
-            echo "Request failed after $maxRetries attempts."
+            echo "Request failed after $retryCount attempts."
             exit 1
         }
 } else { echo "Boost already installed" }
