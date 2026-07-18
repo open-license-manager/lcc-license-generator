@@ -48,6 +48,7 @@ if (-not (Test-Path 'C:/local/boost/libs')) {
 
 if (Test-Path './boost.exe') {
     echo "Boost executable found."
+    dir
 } else {
     echo "Error: Boost executable not found."
 }

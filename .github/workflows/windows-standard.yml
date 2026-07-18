@@ -38,10 +38,9 @@ jobs:
             ${{ github.workspace }}\scripts\windows_download_boost.ps1 ${{ matrix.boost_version }} 14.3 64
       -  name: install boost
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         shell: pwsh
          run: |
-            ${{ steps.strings.outputs.build-output-dir }}\boost.exe /S /D=C:\local\boost
-            echo "BOOST_ROOT=C:/local/boost" >> $GITHUB_ENV        
+            ${{ steps.strings.outputs.build-output-dir }}\boost.exe /DIR=${{ steps.strings.outputs.build-output-dir }}\boost
+            echo "BOOST_ROOT=${{ steps.strings.outputs.build-output-dir }}\boost" >> $GITHUB_ENV        
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
