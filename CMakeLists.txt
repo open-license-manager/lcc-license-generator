@@ -16,7 +16,10 @@ set(PROJECT_DESCRIPTION "License generator for licensecc")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
-cmake_policy(SET CMP0144 NEW) 
+
+IF(POLICY CMP0144)
+	cmake_policy(SET CMP0144 NEW)
+ENDIF(POLICY CMP0144)
 
 include(utilities) #import module utilities.cmake
 
@@ -33,7 +36,6 @@ message( STATUS "Static linking            : ${STATIC_RUNTIME}")
 
 
 SET (OPENSSL_USE_STATIC_LIBS ${STATIC_RUNTIME})	
-SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME})
 
 if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
 	
@@ -132,7 +134,8 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
     message(STATUS "Compiler architecture: ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
 endif()
 
-SET( Boost_USE_STATIC_LIBS ON )
+#SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) doesn't work well in Linux... 
+SET	(Boost_USE_STATIC_LIBS ON )
 find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options unit_test_framework OPTIONAL_COMPONENTS system)
 
 #set below in case of dynamic linking in debug.
