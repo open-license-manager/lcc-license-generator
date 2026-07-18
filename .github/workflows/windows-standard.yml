@@ -25,26 +25,22 @@ jobs:
          shell: bash
          run: |
             echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
-      #-  name: install boost boost-msvc-14.2 on Windows 2025
-      #   shell: bash
-      #   if: ${{ matrix.os == 'windows-2025' }}
-      #   run: |
-      #      choco install -y boost-msvc-14.2 --version 1.74.0
-      #      echo "BOOST_ROOT=C:/local/boost_1_74_0" >> $GITHUB_ENV
       -  name: download boost boost-msvc-14.3
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         shell: pwsh
+         shell: powershell
          run: |
             ${{ github.workspace }}\scripts\windows_download_boost.ps1 ${{ matrix.boost_version }} 14.3 64 "${{ steps.strings.outputs.build-output-dir }}"
       -  name: install boost
+         shell: powershell
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: |
-            ${{ steps.strings.outputs.build-output-dir }}\boost.exe /SILENT /DIR=${{ steps.strings.outputs.build-output-dir }}/boost
-            echo "BOOST_ROOT=${{ steps.strings.outputs.build-output-dir }}\boost" >> $GITHUB_ENV        
+            $Process = Start-Process -Wait -FilePath "${{ steps.strings.outputs.build-output-dir }}\boost.exe" -Argumentlist @( "/VERYSILENT" , "/DIR=${{ steps.strings.outputs.build-output-dir }}/boost") -PassThru
+            echo "boost-root=${{ steps.strings.outputs.build-output-dir }}\boost" >> $GITHUB_ENV
+            exit $Process.ExitCode
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
-            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBOOST_ROOT=${{ steps.strings.outputs.build-output-dir }}\boost
+            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBOOST_ROOT=${{ steps.strings.outputs.boost-root }}
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
       -  name: Compile
