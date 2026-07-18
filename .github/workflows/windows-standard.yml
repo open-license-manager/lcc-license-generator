@@ -10,10 +10,15 @@ jobs:
       strategy:
         fail-fast: false
         matrix:
-          build_type: ["Debug", "Release"]
-          os: ["windows-2025", "windows-2022"]
-          static: ["FALSE"]
-          boost_version: [1.78.0,1.90.0]
+          build_type: ["Release"]
+          os: ["windows-2025"]
+          static: ["TRUE"]
+          boost_version: [1.90.0]
+
+          #build_type: ["Debug", "Release"]
+          #os: ["windows-2025", "windows-2022"]
+          #static: ["FALSE"]
+          #boost_version: [1.78.0,1.90.0]
       steps:
       -  uses: actions/checkout@v6
       -  name: Set reusable strings
@@ -40,7 +45,7 @@ jobs:
          run: >
             cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBOOST_ROOT=${{ steps.strings.outputs.build-output-dir }}/boost
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
-            -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
+            -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} -DUSE_OPENSSL=OFF
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
@@ -52,7 +57,7 @@ jobs:
          env:
             CTEST_OUTPUT_ON_FAILURE: 1
             VIRTUAL_ENV: VM
-      -  name: Inspector
+      -  name: license generator
          run: |
            dir ${{ github.workspace }}\install\bin
            ${{ github.workspace }}\install\bin\lccgen.exe project list
