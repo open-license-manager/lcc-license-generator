@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
+## configuration variables
+## USE_OPENSSL: Enable/Disable OpenSSL support. If disabled, the generator will use Windows Crypto API on Windows and will fail to compile on Linux.
+## STATIC_RUNTIME: Enable/Disable static linking of the executable. If enabled, the executable will be statically linked with all libraries, including OpenSSL and Boost. If disabled, the executable will be dynamically linked with all libraries.
+## Boost_ROOT: Hint for a path to the Boost installation. If not set, CMake will try to find Boost in the system paths.
+## OpenSSL_ROOT: Hint for a path to the Openssl installation. 
+
 SET(CMAKE_DISABLE_SOURCE_CHANGES ON)
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 SET(LICENSECC_SHORT_LICENSE "BSD Software License")
@@ -10,6 +16,10 @@ set(PROJECT_DESCRIPTION "License generator for licensecc")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
+IF(POLICY CMP0144)
+	cmake_policy(SET CMP0144 NEW)
+ENDIF(POLICY CMP0144)
 
 include(utilities) #import module utilities.cmake
 
@@ -22,16 +32,17 @@ IF(NOT DEFINED STATIC_RUNTIME)
 	SET(STATIC_RUNTIME FALSE CACHE BOOL "Compile a static executable or a dynamic linked one")
 	MARK_AS_ADVANCED(STATIC_RUNTIME)
 ENDIF(NOT DEFINED STATIC_RUNTIME)
-message( STATUS "Static linking            :  ${STATIC_RUNTIME}")
+message( STATUS "Static linking            : ${STATIC_RUNTIME}")
 
-SET (OPENSSL_USE_STATIC_LIBS ${STATIC_RUNTIME})
+
+SET (OPENSSL_USE_STATIC_LIBS ${STATIC_RUNTIME})	
+
 if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
 	
 	IF(STATIC_RUNTIME)
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 		unset(CMAKE_DL_LIBS)
 		add_definitions(-DBOOST_TEST_STATIC_LINK)
-		SET (OPENSSL_USE_STATIC_LIBS TRUE)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 		set(BUILD_SHARED_LIBS OFF)
 		#set(CMAKE_HAVE_LIBC_PTHREAD TRUE) #strange hack with cmake 4.3, why it's needed with static compile
@@ -45,7 +56,10 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
   			 list(APPEND EXTERNAL_LIBS "${CMAKE_THREAD_LIBS_INIT}")
 		endif()
 	endif(THREADS_HAVE_PTHREAD_ARG)
-
+	
+	IF(DEFINED USE_OPENSSL AND NOT USE_OPENSSL) #the user has explicitly disabled openssl, but we are in linux we need to enable it.
+		message(FATAL_ERROR "USE_OPENSSL is set to OFF, but we are in linux. Please enable it.")
+	ENDIF(DEFINED USE_OPENSSL AND NOT USE_OPENSSL)
 	#openssl always required in linux
 	find_package(OpenSSL REQUIRED COMPONENTS Crypto QUIET)
 	add_definitions(-DHAS_OPENSSL)
@@ -62,21 +76,33 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 
 	set(pkg_config_dest "lib/cmake/${PROJECT_NAME}")
 else(UNIX) #windows and linux crosscompiling for windows target
-	SET ( OPENSSL_USE_STATIC_LIBS ON )
-	find_package(OpenSSL COMPONENTS Crypto QUIET)
-	IF(OPENSSL_FOUND)
+	
+	SET (OPENSSL_MSVC_STATIC_RT ${STATIC_RUNTIME})
+	IF(DEFINED USE_OPENSSL)
+		if(USE_OPENSSL)
+			MESSAGE(VERBOSE "Openssl - generator       : forced by the user")
+			find_package(OpenSSL REQUIRED COMPONENTS Crypto QUIET)
+		else(USE_OPENSSL) #defined but evaluate
+			MESSAGE(VERBOSE "Openssl - generator       : disabled by user.")
+			set(OpenSSL_FOUND FALSE)
+		endif(USE_OPENSSL)
+	else(DEFINED USE_OPENSSL)
+		SET (OPENSSL_MSVC_STATIC_RT TRUE)
+		find_package(OpenSSL COMPONENTS Crypto QUIET)
+	endif(DEFINED USE_OPENSSL)
+	IF(OpenSSL_FOUND)
 		add_definitions(-DHAS_OPENSSL)
 		include_directories(${OPENSSL_INCLUDE_DIR})
-		MESSAGE(STATUS "Found openssl version ${OPENSSL_VERSION} - generator")
-	ENDIF(OPENSSL_FOUND)
-	IF(NOT OPENSSL_FOUND)
-		MESSAGE(STATUS "Openssl not found - generator - configuring libary without it.")
-	ENDIF(NOT OPENSSL_FOUND)
+		MESSAGE(STATUS "Openssl  (generator)      : ${OPENSSL_VERSION}")
+		MESSAGE(STATUS "Openssl  (lib)            : ${OPENSSL_CRYPTO_LIBRARY}")
+	ELSE(OpenSSL_FOUND) 
+		MESSAGE(STATUS "Openssl - generator       : not found - using windows cryptography.")
+	ENDIF(OpenSSL_FOUND)
 
 	if(MSVC)
 		include(target_arch)
 		target_architecture( TARGET_ARCHITECTURE )
-		message(STATUS "architecture detected: ${TARGET_ARCHITECTURE}")
+		message(STATUS "architecture detected     : ${TARGET_ARCHITECTURE}")
 		
 		#cmake > 3.15 handle the /MD flag more nicely than this
 		if(STATIC_RUNTIME)
@@ -108,7 +134,8 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
     message(STATUS "Compiler architecture: ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
 endif()
 
-SET( Boost_USE_STATIC_LIBS ON )
+#SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) doesn't work well in Linux... 
+SET	(Boost_USE_STATIC_LIBS ON )
 find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options unit_test_framework OPTIONAL_COMPONENTS system)
 
 #set below in case of dynamic linking in debug.
