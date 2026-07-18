@@ -24,7 +24,7 @@ jobs:
          id: strings
          shell: bash
          run: |
-            echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+            echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
       #-  name: install boost boost-msvc-14.2 on Windows 2025
       #   shell: bash
       #   if: ${{ matrix.os == 'windows-2025' }}
@@ -35,12 +35,12 @@ jobs:
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          shell: pwsh
          run: |
-            ${{ github.workspace }}/scripts/windows_download_boost.ps1 ${{ matrix.boost_version }} 14.3 64
+            ${{ github.workspace }}\scripts\windows_download_boost.ps1 ${{ matrix.boost_version }} 14.3 64
       -  name: install boost
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          shell: pwsh
          run: |
-            ${{ steps.strings.outputs.build-output-dir }}/boost.exe /S /D=C:\local\boost
+            ${{ steps.strings.outputs.build-output-dir }}\boost.exe /S /D=C:\local\boost
             echo "BOOST_ROOT=C:/local/boost" >> $GITHUB_ENV        
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}

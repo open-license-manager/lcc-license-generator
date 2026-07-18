@@ -11,22 +11,23 @@ if ($args.Count -ne 3) {
 [string] $version = $args[0]
 [string] $msvc_version = $args[1]
 [string] $architecture = $args[2]
+[int]$maxRetries = 3
+[int]$retryCount = 0
+[int]$StatusCode = 200
+$response = $null
+
 $version_und = $version.Replace('.', '_')
 $uri = "https://github.com/userdocs/boost/releases/download/boost-"+$version+"/boost_" + $version_und + "-msvc-" + $msvc_version + "-" + $architecture + ".exe"
 
 if (-not (Test-Path 'C:/local/boost/libs')) {
 	echo "Boost not cached, downloading it"
-	$maxRetries = 3
-    $retryCount = 0
-    $response = $null
-
     do {
         try {
                 $response = Invoke-WebRequest -Uri $uri -UseBasicParsing -OutFile boost.exe
                 # If the request is successful, exit the loop
                 break
             } catch {
-                [int]$StatusCode = $_.Exception.Response.StatusCode
+                $StatusCode = $_.Exception.Response.StatusCode
                 $errorMessage = $_.Exception.Message
                 $retryCount++
                 echo "Attempt $retryCount failed: $StatusCode $errorMessage. Retrying $uri ..."
