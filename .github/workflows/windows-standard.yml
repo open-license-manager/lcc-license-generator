@@ -45,7 +45,7 @@ jobs:
          run: >
             cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBOOST_ROOT=${{ steps.strings.outputs.build-output-dir }}/boost
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
-            -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} -DUSE_OPENSSL=OFF
+            -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} -DUSE_OPENSSL=ON
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
