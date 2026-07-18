@@ -1,3 +1,5 @@
+#!/usr/bin/env pwsh
+
 # This script downloads boost. It must be invoked with 3 arguments
 # windows_download_boost.ps1 <boost_version> <msvc version> <architecture>
 # eg. windows_download_boost.ps1 1.91.0 14.3 64
@@ -27,15 +29,15 @@ if (-not (Test-Path 'C:/local/boost/libs')) {
                 [int]$StatusCode = $_.Exception.Response.StatusCode
                 $errorMessage = $_.Exception.Message
                 $retryCount++
-                Write-Host "Attempt $retryCount failed: $StatusCode $errorMessage. Retrying $uri ..."
+                echo "Attempt $retryCount failed: $StatusCode $errorMessage. Retrying $uri ..."
                 Start-Sleep -Seconds 2  # Wait before retrying
             }
         } until ($retryCount -ge $maxRetries)
 
         if ($response) {
-            Write-Host "Boost downloaded"
+            echo "Boost downloaded"
         } else {
-            Write-Host "Request failed after $maxRetries attempts."
+            echo "Request failed after $maxRetries attempts."
             exit 1
         }
-} else { Write-Host "Boost already installed" }
+} else { echo "Boost already installed" }
