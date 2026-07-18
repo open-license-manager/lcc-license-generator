@@ -38,14 +38,13 @@ jobs:
             ${{ github.workspace }}\scripts\windows_download_boost.ps1 ${{ matrix.boost_version }} 14.3 64 "${{ steps.strings.outputs.build-output-dir }}"
       -  name: install boost
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         shell: bash
          run: |
-            ${{ steps.strings.outputs.build-output-dir }}/boost.exe /SILENT /DIR=${{ steps.strings.outputs.build-output-dir }}/boost
+            ${{ steps.strings.outputs.build-output-dir }}\boost.exe /SILENT /DIR=${{ steps.strings.outputs.build-output-dir }}/boost
             echo "BOOST_ROOT=${{ steps.strings.outputs.build-output-dir }}\boost" >> $GITHUB_ENV        
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
-            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBOOST_ROOT=${{ env.BOOST_ROOT }}
+            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBOOST_ROOT=${{ steps.strings.outputs.build-output-dir }}/boost
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
       -  name: Compile
