@@ -31,16 +31,17 @@ jobs:
          run: |
             ${{ github.workspace }}\scripts\windows_download_boost.ps1 ${{ matrix.boost_version }} 14.3 64 "${{ steps.strings.outputs.build-output-dir }}"
       -  name: install boost
+         id: install-boost
          shell: powershell
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: |
             $Process = Start-Process -Wait -FilePath "${{ steps.strings.outputs.build-output-dir }}\boost.exe" -Argumentlist @( "/VERYSILENT" , "/DIR=${{ steps.strings.outputs.build-output-dir }}/boost") -PassThru
-            echo "boost-root=${{ steps.strings.outputs.build-output-dir }}\boost" >> $GITHUB_ENV
+            "boost-root=${{ steps.strings.outputs.build-output-dir }}/boost" >> $env:GITHUB_ENV
             exit $Process.ExitCode
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
-            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBOOST_ROOT=${{ steps.strings.outputs.boost-root }}
+            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBOOST_ROOT=${{ steps.install-boost.outputs.boost-root }}
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
       -  name: Compile
