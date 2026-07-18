@@ -10,12 +10,10 @@ jobs:
       strategy:
         fail-fast: false
         matrix:
-          #build_type: ["Debug", "Release"]
-          build_type: ["Debug"]
-          #os: ["windows-2025", "windows-2022"]
-          static: ["TRUE","FALSE"]
-          boost_version: [1.90.0]
-          os: ["windows-2022"]
+          build_type: ["Debug", "Release"]
+          os: ["windows-2025", "windows-2022"]
+          static: ["FALSE"]
+          boost_version: [1.78.0,1.90.0]
       steps:
       -  uses: actions/checkout@v6
       -  name: Set reusable strings
@@ -57,6 +55,6 @@ jobs:
       -  name: Inspector
          run: |
            dir ${{ github.workspace }}\install\bin
-           ${{ github.workspace }}\install\bin\lccinspector.exe
+           ${{ github.workspace }}\install\bin\lccgen.exe project list
 
  
