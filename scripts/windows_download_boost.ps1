@@ -20,7 +20,6 @@ $ProgressPreference = 'SilentlyContinue'
 [int]$maxRetries = 3
 [int]$retryCount = 0
 [int]$StatusCode = 200
-$response = $null
 
 
 $version_und = $version.Replace('.', '_')
@@ -34,29 +33,25 @@ if (-not (Test-Path $outputfile)) {
 	Write-Host "Boost not cached, downloading it: from $uri to $outputfile"
     do {
         try {
-                $response = Invoke-WebRequest -Uri "$uri" -OutFile "$outputfile" 
+                Invoke-WebRequest -Uri "$uri" -Verbose -OutFile "$outputfile" 
                 break
             } catch {
                 $StatusCode = $_.Exception.Response.StatusCode
                 $errorMessage = $_.Exception.Message
-                $response = $null
                 $retryCount++
                 Write-Host "Attempt $retryCount failed: $StatusCode $errorMessage. Retrying $uri ..."
                 Start-Sleep -Seconds 2  # Wait before retrying
             }
         } until ($retryCount -ge $maxRetries)
 
-        if ($response -eq $null) {
+        if ($retryCount -ge $maxRetries) {
             Write-Host "Request failed after $retryCount attempts."
             exit 1
         } else {
             Write-Host "Boost downloaded"
+            dir $output_file
         }
-} else { Write-Host "Boost already installed" }
-
-if (Test-Path './boost.exe') {
-    echo "Boost executable found."
-    dir
-} else {
-    echo "Error: Boost executable not found."
+} else { 
+    Write-Host "Boost already downloaded" 
+    dir $output_file
 }
