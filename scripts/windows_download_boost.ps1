@@ -8,6 +8,9 @@ if ($args.Count -ne 3) {
     Write-Host "Error: This script requires 3 parameters.\n windows_download_boost.ps1 <boost_version> <msvc version> <architecture>"
     exit
 }
+#set Invoke-WebRequest to not show progress bar, as it can cause issues in some CI environments
+$ProgressPreference = 'SilentlyContinue'
+
 [string] $version = $args[0]
 [string] $msvc_version = $args[1]
 [string] $architecture = $args[2]
@@ -16,6 +19,7 @@ if ($args.Count -ne 3) {
 [int]$StatusCode = 200
 $response = $null
 
+
 $version_und = $version.Replace('.', '_')
 $uri = "https://github.com/userdocs/boost/releases/download/boost-"+$version+"/boost_" + $version_und + "-msvc-" + $msvc_version + "-" + $architecture + ".exe"
 
@@ -23,8 +27,7 @@ if (-not (Test-Path 'C:/local/boost/libs')) {
 	echo "Boost not cached, downloading it: $uri"
     do {
         try {
-                $response = Invoke-WebRequest -Uri $uri -UseBasicParsing -OutFile .\boost.exe
-                echo "$response.StatusCode"
+                $response = Invoke-WebRequest -Verbose -Uri "$uri" -UseBasicParsing -OutFile .\boost.exe
                 # If the request is successful, exit the loop
                 break
             } catch {
