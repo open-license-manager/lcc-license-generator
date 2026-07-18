@@ -20,12 +20,11 @@ $version_und = $version.Replace('.', '_')
 $uri = "https://github.com/userdocs/boost/releases/download/boost-"+$version+"/boost_" + $version_und + "-msvc-" + $msvc_version + "-" + $architecture + ".exe"
 
 if (-not (Test-Path 'C:/local/boost/libs')) {
-	echo "Boost not cached, downloading it"
+	echo "Boost not cached, downloading it: $uri"
     do {
         try {
-                echo "Downloading boost from $uri ..."
-                $response = Invoke-WebRequest -Uri $uri -UseBasicParsing -OutFile boost.exe
-                echo "$_.Exception.Message"
+                $response = Invoke-WebRequest -Uri $uri -UseBasicParsing -OutFile .\boost.exe
+                echo "$response.StatusCode"
                 # If the request is successful, exit the loop
                 break
             } catch {
