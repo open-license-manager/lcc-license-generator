@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 ## configuration variables
 ## USE_OPENSSL: Enable/Disable OpenSSL support. If disabled, the generator will use Windows Crypto API on Windows and will fail to compile on Linux.
 ## STATIC_RUNTIME: Enable/Disable static linking of the executable. If enabled, the executable will be statically linked with all libraries, including OpenSSL and Boost. If disabled, the executable will be dynamically linked with all libraries.
-## BOOST_ROOT: Hint for a path to the Boost installation. If not set, CMake will try to find Boost in the system paths.
+## Boost_ROOT: Hint for a path to the Boost installation. If not set, CMake will try to find Boost in the system paths.
+## OpenSSL_ROOT: Hint for a path to the Openssl installation. 
 
 SET(CMAKE_DISABLE_SOURCE_CHANGES ON)
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -15,6 +16,7 @@ set(PROJECT_DESCRIPTION "License generator for licensecc")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+cmake_policy(SET CMP0144 NEW) 
 
 include(utilities) #import module utilities.cmake
 
@@ -30,7 +32,8 @@ ENDIF(NOT DEFINED STATIC_RUNTIME)
 message( STATUS "Static linking            : ${STATIC_RUNTIME}")
 
 
-SET (OPENSSL_USE_STATIC_LIBS ${STATIC_RUNTIME})
+SET (OPENSSL_USE_STATIC_LIBS ${STATIC_RUNTIME})	
+SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME})
 
 if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
 	
@@ -71,6 +74,8 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 
 	set(pkg_config_dest "lib/cmake/${PROJECT_NAME}")
 else(UNIX) #windows and linux crosscompiling for windows target
+	
+	SET (OPENSSL_MSVC_STATIC_RT ${STATIC_RUNTIME})
 	IF(DEFINED USE_OPENSSL)
 		if(USE_OPENSSL)
 			MESSAGE(VERBOSE "Openssl - generator       : forced by the user")
@@ -80,12 +85,14 @@ else(UNIX) #windows and linux crosscompiling for windows target
 			set(OpenSSL_FOUND FALSE)
 		endif(USE_OPENSSL)
 	else(DEFINED USE_OPENSSL)
+		SET (OPENSSL_MSVC_STATIC_RT TRUE)
 		find_package(OpenSSL COMPONENTS Crypto QUIET)
 	endif(DEFINED USE_OPENSSL)
 	IF(OpenSSL_FOUND)
 		add_definitions(-DHAS_OPENSSL)
 		include_directories(${OPENSSL_INCLUDE_DIR})
-		MESSAGE(STATUS "Openssl - generator       : ${OPENSSL_VERSION}")
+		MESSAGE(STATUS "Openssl  (generator)      : ${OPENSSL_VERSION}")
+		MESSAGE(STATUS "Openssl  (lib)            : ${OPENSSL_CRYPTO_LIBRARY}")
 	ELSE(OpenSSL_FOUND) 
 		MESSAGE(STATUS "Openssl - generator       : not found - using windows cryptography.")
 	ENDIF(OpenSSL_FOUND)
