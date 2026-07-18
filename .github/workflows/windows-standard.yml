@@ -6,16 +6,15 @@ on:
     branches: [ "develop" ]
 jobs:
    build-windows:
+      name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }} ssl: ${{ matrix.openssl_version }} boost: ${{ matrix.boost_version }}'
       runs-on: ${{ matrix.os }}
       strategy:
         fail-fast: false
         matrix:
           static: ["TRUE", "FALSE"]
-          boost_version: [1.90.0]
-          #build_type: ["Debug", "Release"]
-          build_type: ["Release"]
+          build_type: ["Debug", "Release"]
           os: ["windows-2025", "windows-2022"]
-          #boost_version: [1.78.0,1.90.0]
+          boost_version: [1.78.0, 1.90.0]
           openssl_version: ["None", "1.1.1.2100", "3.1.1", "4.0.1"]
       steps:
       -  uses: actions/checkout@v6
@@ -56,7 +55,7 @@ jobs:
             cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBoost_ROOT=${{ steps.strings.outputs.build-output-dir }}/boost
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
-            -DUSE_OPENSSL=${{ steps.strings.outputs.use-openssl }} -DOpenSSL_ROOT_DIR=C:/Program Files/OpenSSL-Win64
+            -DUSE_OPENSSL=${{ steps.strings.outputs.use-openssl }} -DOpenSSL_ROOT_DIR="C:/Program Files/OpenSSL-Win64
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
