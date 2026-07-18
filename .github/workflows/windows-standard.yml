@@ -49,16 +49,16 @@ jobs:
          run: >
             cmake --build ${{ steps.strings.outputs.build-output-dir }} --target install --config ${{ matrix.build_type }}
       -  name: Test
+         working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: |
-            ctest -C ${{ matrix.build_type }}
+            ctest -C ${{ matrix.build_type }} --test-dir ${{ steps.strings.outputs.build-output-dir }} --output-on-failure
          env:
             CTEST_OUTPUT_ON_FAILURE: 1
             VIRTUAL_ENV: VM
       -  name: Inspector
-         run: ${{ github.workspace }}/install/lccinspector.exe
-      -  name: On Failure print logs
-         if: ${{ failure() }}
          run: |
-           type $env:temp/open-license.log
+           dir ${{ github.workspace }}\install
+           dir ${{ github.workspace }}\install
+           ${{ github.workspace }}\install\lccinspector.exe
 
  

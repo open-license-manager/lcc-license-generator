@@ -29,5 +29,5 @@ build/*
 !build/.gitkeep 
 /CMakeSettings.json
 out
-
+/install
 /scripts/boost.exe
