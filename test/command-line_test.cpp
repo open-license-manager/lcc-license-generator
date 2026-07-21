@@ -47,7 +47,7 @@ static void create_project(const fs::path& projects_folder, const fs::path& expe
 						   mock_source.c_str()};
 	// initialize_project
 	int result = CommandLineParser::parseCommandLine(argc, argv1);
-	BOOST_CHECK_EQUAL(result, 0);
+	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
 	BOOST_REQUIRE_MESSAGE(fs::exists(expectedPrivateKey), "Private key " + expectedPrivateKey.string() + " created.");
 	BOOST_CHECK_MESSAGE(fs::exists(expected_public_key), "Public key " + expected_public_key.string() + " created.");
 }
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
 						   "--" PARAM_PROJECT_FOLDER,
 						   project_folder_str.c_str()};
 	int result = CommandLineParser::parseCommandLine(argc, argv2);
-	BOOST_CHECK_EQUAL(result, 0);
+	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
 	fs::path expected_license("my_license.lic");
 	BOOST_REQUIRE_MESSAGE(fs::exists(expected_license), "License " + expected_license.string() + " created.");
 	// load a license, check the project name corresponds and there are no extra elements.
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license_multi_feature) {
 						   "-f",
 						   "TEST,feature1"};
 	int result = CommandLineParser::parseCommandLine(argc, argv2);
-	BOOST_CHECK_EQUAL(result, 0);
+	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
 	fs::path expected_license("my_license_multi.lic");
 	BOOST_REQUIRE_MESSAGE(fs::exists(expected_license), "License " + expected_license.string() + " created.");
 	// load a license, check the project name corresponds and there are no extra elements.
@@ -164,10 +164,44 @@ BOOST_AUTO_TEST_CASE(init_project_name_wrong) {
 		result = CommandLineParser::parseCommandLine(argc, argv1);
 	}
 	string stdout_str = output.str();
-	BOOST_CHECK_EQUAL(result, 1);
+	BOOST_CHECK_EQUAL(result, FUNC_RET_ERROR);
 	BOOST_CHECK_MESSAGE(stdout_str.find("rror") != string::npos && stdout_str.find("project name") != string::npos,
 						"error was print out " + stdout_str);
 }
 
+/**
+ * Test wrong key size for project init. Valid values are 1024, 2048, or 4096.
+ */
+BOOST_AUTO_TEST_CASE(init_project_key_size_wrong) {
+	const string project_name("TEST");
+	const fs::path mock_source_folder(fs::path(PROJECT_TEST_SRC_DIR) / "data" / "src");
+	const fs::path projects_folder(fs::path(PROJECT_TEST_TEMP_DIR) / "lcc_projects_wa");
+	const string mock_source = mock_source_folder.string();
+	const string projects_str = projects_folder.string();
+
+	int argc = 11;
+	const char* argv1[] = {"lcc",
+						   "project",
+						   "init",
+						   "-n",
+						   project_name.c_str(),
+						   "--projects-folder",
+						   projects_str.c_str(),
+						   "--templates",
+						   mock_source.c_str(),
+						   "--key-size",
+						   "42"
+						};
+	int result;
+	boost::test_tools::output_test_stream output;
+	{
+		cout_redirect guard(output.rdbuf());
+		result = CommandLineParser::parseCommandLine(argc, argv1);
+	}
+	string stdout_str = output.str();
+	BOOST_CHECK_EQUAL(result, FUNC_RET_ERROR);
+	BOOST_CHECK_MESSAGE(stdout_str.find("rror") != string::npos && stdout_str.find("key size") != string::npos,
+						"error was print out " + stdout_str);
+}
 }  // namespace test
 }  // namespace license

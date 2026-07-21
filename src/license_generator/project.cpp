@@ -88,7 +88,7 @@ void Project::exportPublicKey(const std::string &include_folder, const std::uniq
 	env.write(temp, data, PUBLIC_KEY_INC_FNAME);
 }
 
-FUNCTION_RETURN Project::initialize() {
+FUNCTION_RETURN Project::initialize(unsigned int key_size) {
 	const fs::path destinationDir(fs::path(m_project_folder) / m_name);
 	const fs::path include_folder(publicKeyFolder(destinationDir, m_name));
 	const fs::path publicKeyFile(include_folder / PUBLIC_KEY_INC_FNAME);
@@ -120,7 +120,7 @@ FUNCTION_RETURN Project::initialize() {
 		}
 	} else {
 		ofstream ofs;
-		cryptoHelper->generateKeyPair();
+		cryptoHelper->generateKeyPair(key_size);
 		const std::string privateKey = cryptoHelper->exportPrivateKey();
 		const string private_key_file_str = privateKeyFile.string();
 		ofs.open(private_key_file_str.c_str(), std::fstream::trunc | std::fstream::binary);

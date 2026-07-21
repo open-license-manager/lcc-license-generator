@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <string>
 #include <vector>
+#include "build_properties.h"
 
 namespace license {
 
@@ -17,8 +18,10 @@ namespace license {
  * subclasses are chosen in the factory method #getInstance(). This is to avoid
  * to clutter the code with many "ifdef". (extreme performance is not an issue here)</p>
  *
- * <p>Private keys are 1024 bits openssl format. Public keys are in binary format (for security reasons).
+ * <p>Private keys are 2048 bits openssl format by default. Public keys are in binary format (for security reasons).
  * Signatures are in base64</p>
+ * 
+ * <p>If using OpenSSL 3.0 or later 2024 and 4096 bits keys are available.</p>
  */
 
 class CryptoHelper {
@@ -26,7 +29,7 @@ protected:
 	inline CryptoHelper() {}
 
 public:
-	virtual void generateKeyPair() = 0;
+	virtual void generateKeyPair(int keyBits = DEFAULT_RSA_KEY_SIZE) = 0;
 	const virtual std::string exportPrivateKey() const = 0;
 	const virtual std::vector<unsigned char> exportPublicKey() const = 0;
 

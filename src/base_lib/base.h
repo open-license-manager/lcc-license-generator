@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#ifdef __unix__
+#if defined(__unix__) || defined(__APPLE__)
 #include <limits.h>
 #define DllExport
 #ifndef MAX_PATH
@@ -34,7 +34,8 @@ typedef int bool;
 /**
  * Version at the beginning of license file.
  */
-#define LICENSE_FILE_VERSION 200
+#define LICENSE_FILE_VERSION 200 //old keys 1024 bit
+#define LICENSE_FILE_VERSION_210 210 //keys > 1024 bit
 
 /*
  * command line parameters

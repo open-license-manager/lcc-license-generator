@@ -10,12 +10,13 @@
 
 #include <string>
 #include <boost/optional.hpp>
+#include "../base_lib/base.h"
 
 namespace license {
 
 class CommandLineParser {
 private:
-	int project_init(const std::string &project_name,  //
+	FUNCTION_RETURN project_init(const std::string &project_name,  //
 					 const boost::optional<std::string> &primary_key,  //
 					 const boost::optional<std::string> &public_key,  //
 					 const boost::optional<std::string> &project_folder,  //
@@ -36,7 +37,7 @@ public:
 	 * @param argv
 	 * @return
 	 */
-	static int parseCommandLine(int argc, const char **argv);
+	static FUNCTION_RETURN parseCommandLine(int argc, const char **argv);
 };
 
 } /* namespace license */
