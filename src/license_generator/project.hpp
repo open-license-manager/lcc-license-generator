@@ -30,7 +30,7 @@ private:
 public:
 	Project(const std::string &name, const std::string &project_folder, const std::string &source_folder,
 			const bool force_overwrite = false);
-	FUNCTION_RETURN initialize(unsigned int key_size = DEFAULT_RSA_KEY_SIZE);
+	FUNCTION_RETURN initialize(unsigned int key_size = DEFAULT_RSA_KEY_BITS);
 	~Project();
 };
 

@@ -3,6 +3,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <iterator>
@@ -41,19 +42,26 @@ const std::string loadPrivateKey() {
 	return pk_str;
 }
 
-BOOST_AUTO_TEST_CASE(test_generate_and_sign) {
+BOOST_AUTO_TEST_CASE(test_generate_and_sign_1024_bit) {
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
-	crypto->generateKeyPair();
+	crypto->generateKeyPair(1024);
 	const string privateK = crypto->exportPrivateKey();
 	BOOST_CHECK_MESSAGE(boost::starts_with(privateK, "-----BEGIN RSA PRIVATE KEY-----"),
 						"Private key is in openssl pkcs#1 format");
 	const std::string signature = crypto->signString("testString");
 	BOOST_CHECK_MESSAGE(signature.size() == 172, "signature is the right size");
 	crypto.release();
-	/*
-	 ofstream myfile("private_key-linux.rsa");
-	 myfile << privateK;
-	 myfile.close();*/
+}
+
+BOOST_AUTO_TEST_CASE(test_generate_and_sign_4096_bit) {
+	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
+	crypto->generateKeyPair(4096);
+	const string privateK = crypto->exportPrivateKey();
+	BOOST_CHECK_MESSAGE(boost::starts_with(privateK, "-----BEGIN RSA PRIVATE KEY-----"),
+						"Private key is in openssl pkcs#1 format");
+	const std::string signature = crypto->signString("testString");
+	BOOST_CHECK_MESSAGE(signature.size() == 684, "signature is the right size (b64 encoding of 512 bytes)");
+	crypto.release();
 }
 
 /**
@@ -97,20 +105,27 @@ BOOST_AUTO_TEST_CASE(test_load_and_sign) {
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
 	const std::string pk_str = loadPrivateKey();
 	crypto->loadPrivateKey(pk_str);
+
 	const std::string signature = crypto->signString("testString");
+	unsigned int keySize = crypto->privateKeyBits();
+	BOOST_CHECK_MESSAGE(keySize == 1024, "Using old 1024 bit " + std::to_string(keySize));
 	BOOST_CHECK_MESSAGE(signature.size() == 172, "signature is the right size");
 	BOOST_CHECK_MESSAGE(signature == SIGNATURE, "signature is repeatable");
 	crypto.release();
 }
 
 BOOST_AUTO_TEST_CASE(test_generate_export_import_and_sign) {
-	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
-	crypto->generateKeyPair();
-	const string pk = crypto->exportPrivateKey();
-	crypto->loadPrivateKey(pk);
-	const string signature = crypto->signString("testString");
-	//(1024/8)*(4/3)+4 (base64)
-	BOOST_CHECK_MESSAGE(signature.size() == 172, "signature is the right size");
-	crypto.release();
+	const std::vector<int> keySizes = {1024, 2048, 4096};
+	for (const auto& keySize : keySizes) {
+		unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
+		crypto->generateKeyPair(keySize);
+		const string pk = crypto->exportPrivateKey();
+		crypto->loadPrivateKey(pk);
+		const string signature = crypto->signString("testString");
+		int exp_size= ((keySize/8)+2)/3*4; // base64 encoding of keySize/8 bytes
+		BOOST_CHECK_MESSAGE(signature.size() == exp_size, "signature lenght [" + std::to_string(signature.size()) + "] is different from the expected size [" + std::to_string(exp_size) + "] for key size " + std::to_string(keySize));	
+		crypto.release();
+	}
 }
+
 }  // namespace test

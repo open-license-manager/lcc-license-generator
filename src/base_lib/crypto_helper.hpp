@@ -29,7 +29,7 @@ protected:
 	inline CryptoHelper() {}
 
 public:
-	virtual void generateKeyPair(int keyBits = DEFAULT_RSA_KEY_SIZE) = 0;
+	virtual void generateKeyPair(int keyBits = DEFAULT_RSA_KEY_BITS) = 0;
 	const virtual std::string exportPrivateKey() const = 0;
 	const virtual std::vector<unsigned char> exportPublicKey() const = 0;
 
@@ -46,6 +46,11 @@ public:
 	 * string containing the private key representation
 	 */
 	virtual void loadPrivateKey(const std::string &privateKey) = 0;
+	/**
+	 * Get the size of the private key.
+	 * @return
+	 */
+	virtual unsigned int privateKeyBits() const = 0;
 	/**
 	 * signature algorithm SHA256withRSA
 	 * @param license

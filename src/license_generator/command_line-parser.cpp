@@ -96,7 +96,7 @@ static FUNCTION_RETURN initializeProject(const po::parsed_options &parsed, po::v
 	boost::optional<std::string> public_key;
 	std::string project_folder;
 	std::string templates_folder;
-	unsigned int key_size = DEFAULT_RSA_KEY_SIZE; 
+	unsigned int key_size = DEFAULT_RSA_KEY_BITS; 
 	project_desc.add_options()  //
 		("project-name,n", po::value<std::string>(&project_name)->required(), "New project name (required).")  //
 		(PARAM_PRIMARY_KEY, po::value<boost::optional<std::string>>(&primary_key),
@@ -107,7 +107,7 @@ static FUNCTION_RETURN initializeProject(const po::parsed_options &parsed, po::v
 		 "path to where all the projects configurations are stored.")  //
 		("templates,t", po::value<std::string>(&templates_folder)->default_value("."),
 		 "path to the templates folder.")  //
-		("key-size,k", po::value<unsigned int>(&key_size)->default_value(DEFAULT_RSA_KEY_SIZE),
+		("key-size,k", po::value<unsigned int>(&key_size)->default_value(DEFAULT_RSA_KEY_BITS),
 		 "Size of the RSA key in bits (1024, 2048, or 4096). Default is 2048.")  //
 		("help", "Print this help.");  //
 	FUNCTION_RETURN result = FUNC_RET_ERROR;

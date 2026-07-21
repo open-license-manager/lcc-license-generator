@@ -173,6 +173,16 @@ const string CryptoHelperLinux::Opensslb64Encode(const size_t slen, const unsign
 	return signatureStr;
 }
 
+unsigned int CryptoHelperLinux::privateKeyBits() const {
+    if (!m_pktmp) {
+        throw logic_error("Private key not initialized. Call generate or load first.");
+    }
+    
+    int bits = EVP_PKEY_get_bits(m_pktmp);
+    
+    return static_cast<unsigned int>(bits);
+}
+
 CryptoHelperLinux::~CryptoHelperLinux() {
 	if (m_pktmp != nullptr) {
 		EVP_PKEY_free(m_pktmp);

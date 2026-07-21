@@ -34,8 +34,8 @@ typedef int bool;
 /**
  * Version at the beginning of license file.
  */
-#define LICENSE_FILE_VERSION 200 //old keys 1024 bit
-#define LICENSE_FILE_VERSION_210 210 //keys > 1024 bit
+#define LICENSE_VERSION_200 200 //old keys 1024 bit
+#define LICENSE_VERSION_210 210 //keys > 1024 bit
 
 /*
  * command line parameters

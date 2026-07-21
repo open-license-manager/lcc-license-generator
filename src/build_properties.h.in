@@ -5,7 +5,7 @@ Template properties eventually configured by CMake. This template file is substi
 */
 //Internal data structures limits
 #define MAX_LICENSE_LENGTH 256*1024
-#define DEFAULT_RSA_KEY_SIZE 2048
+#define DEFAULT_RSA_KEY_BITS 2048
 
 //Build locations and parameters
 #define PROJECT_INT_VERSION @lccgen_INT_VERSION@

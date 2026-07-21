@@ -29,11 +29,12 @@ public:
 	// disable copy constructor
 	CryptoHelperLinux(const CryptoHelperLinux &) = delete;
 
-	virtual void generateKeyPair(int keyBits = DEFAULT_RSA_KEY_SIZE);
+	virtual void generateKeyPair(int keyBits = DEFAULT_RSA_KEY_BITS);
 	const virtual string exportPrivateKey() const;
 	const virtual std::vector<unsigned char> exportPublicKey() const;
 	virtual void loadPrivateKey(const std::string &privateKey);
 	const virtual string signString(const string &stringToBeSigned) const;
+	virtual unsigned int privateKeyBits() const;
 	virtual ~CryptoHelperLinux();
 };
 

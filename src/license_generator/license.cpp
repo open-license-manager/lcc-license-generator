@@ -131,9 +131,10 @@ void License::write_license() {
 	boost::algorithm::split(feature_v, features, boost::is_any_of(","));
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
 	crypto->loadPrivateKey_file(m_private_key);
-
+	unsigned int private_key_bits = crypto->privateKeyBits();
+	long license_file_version = (private_key_bits > 1024) ? LICENSE_VERSION_210 : LICENSE_VERSION_200;
 	for (const string feature : feature_v) {
-		ini.SetLongValue(feature.c_str(), "lic_ver", LICENSE_FILE_VERSION);
+		ini.SetLongValue(feature.c_str(), "lic_ver", license_file_version);
 		for (auto it : values_map) {
 			ini.SetValue(feature.c_str(), it.first.c_str(), it.second.c_str());
 		}
