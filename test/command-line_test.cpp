@@ -35,6 +35,7 @@ static void create_project(const fs::path& projects_folder, const fs::path& expe
 						"Public key " + expected_public_key.string() + " can't be deleted.");
 	const string mock_source = mock_source_folder.string();
 	const string projects_str = projects_folder.string();
+	string key_bits_str = to_string(key_bits);
 	int argc = 11;
 	const char* argv1[] = {"lcc",
 						   "project",
@@ -46,7 +47,7 @@ static void create_project(const fs::path& projects_folder, const fs::path& expe
 						   "--templates",
 						   mock_source.c_str(),
 						   "-k",
-						   to_string(key_bits).c_str()};
+						   key_bits_str.c_str()};
 	// initialize_project
 	int result = CommandLineParser::parseCommandLine(argc, argv1);
 	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
@@ -85,7 +86,7 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
 	CSimpleIniA ini;
 	ini.LoadFile(expected_license.c_str());
 	BOOST_CHECK_MESSAGE(ini.GetSectionSize(project_name.c_str()) == 2, "Section [" + project_name + "] has 2 elements");
-	ini.GetLongValue(project_name.c_str(), "lic_ver", LICENSE_VERSION_210); //new license version for 2048 keys 
+	ini.GetLongValue(project_name.c_str(), "lic_ver", LICENSE_VERSION_210);	 // new license version for 2048 keys
 }
 
 #if BOOST_VERSION > 106500
@@ -147,8 +148,7 @@ BOOST_AUTO_TEST_CASE(product_initialize_1024_bit_issue_license) {
 						   "--" PARAM_LICENSE_OUTPUT,
 						   "my_license_1024bit.lic",
 						   "--" PARAM_PROJECT_FOLDER,
-						   project_folder_str.c_str()
-						};
+						   project_folder_str.c_str()};
 	int result = CommandLineParser::parseCommandLine(argc, argv2);
 	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
 	fs::path expected_license("my_license_1024bit.lic");
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(product_initialize_1024_bit_issue_license) {
 	CSimpleIniA ini;
 	ini.LoadFile(expected_license.c_str());
 	BOOST_CHECK_MESSAGE(ini.GetSectionSize(project_name.c_str()) == 2, "Section [" + project_name + "] has 2 elements");
-	ini.GetLongValue(project_name.c_str(), "lic_ver", LICENSE_VERSION_200); //old license version for 1024 keys 
+	ini.GetLongValue(project_name.c_str(), "lic_ver", LICENSE_VERSION_200);	 // old license version for 1024 keys
 }
 #endif
 
@@ -227,9 +227,8 @@ BOOST_AUTO_TEST_CASE(init_project_key_size_wrong) {
 						   projects_str.c_str(),
 						   "--templates",
 						   mock_source.c_str(),
-						   "--key-size",
-						   "42"
-						};
+						   "--key-bits",
+						   "42"};
 	int result;
 	boost::test_tools::output_test_stream output;
 	{
@@ -238,7 +237,7 @@ BOOST_AUTO_TEST_CASE(init_project_key_size_wrong) {
 	}
 	string stdout_str = output.str();
 	BOOST_CHECK_EQUAL(result, FUNC_RET_ERROR);
-	BOOST_CHECK_MESSAGE(stdout_str.find("rror") != string::npos && stdout_str.find("key size") != string::npos,
+	BOOST_CHECK_MESSAGE(stdout_str.find("rror") != string::npos && stdout_str.find("key") != string::npos,
 						"error was print out " + stdout_str);
 }
 }  // namespace test

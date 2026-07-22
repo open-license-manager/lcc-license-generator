@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <locale>
+//#include <locale>
 
 #include <windows.h>
 #include <windef.h>

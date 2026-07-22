@@ -107,14 +107,15 @@ static FUNCTION_RETURN initializeProject(const po::parsed_options &parsed, po::v
 		 "path to where all the projects configurations are stored.")  //
 		("templates,t", po::value<std::string>(&templates_folder)->default_value("."),
 		 "path to the templates folder.")  //
-		("key-size,k", po::value<unsigned int>(&key_size)->default_value(DEFAULT_RSA_KEY_BITS),
+		("key-bits,k", po::value<unsigned int>(&key_size)->default_value(DEFAULT_RSA_KEY_BITS),
 		 "Size of the RSA key in bits (1024, 2048, or 4096). Default is 2048.")  //
 		("help", "Print this help.");  //
 	FUNCTION_RETURN result = FUNC_RET_ERROR;
 	if (rerunBoostPO(parsed, project_desc, vm, argv, "project init", global)) {
 		// Validate key size
 		if (key_size != 1024 && key_size != 2048 && key_size != 4096) {
-			throw std::invalid_argument("Invalid key size [" + std::to_string(key_size) + "]. Valid values are 1024, 2048, or 4096.");
+			cerr << "Error: Invalid --key-bits parameter [" << std::to_string(key_size) << "]. Valid values are 1024, 2048, or 4096.";
+			return result;
 		}
 		
 		// cout << templates_folder.is_initialized() << endl;
