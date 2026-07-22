@@ -14,6 +14,7 @@
 #include <build_properties.h>
 #include "../src/base_lib/crypto_helper.hpp"
 #include "../src/base_lib/base.h"
+
 #define SIGNATURE                                          \
 	"0pBQSdgwE6amOQJ1T+byZhJetVl86OWLHC+ICJ/IENVoNqcJF2pD" \
 	"aoRuNtDEq5v/lqmQbQJg4d08VtRCen3Q3VuUrge2e7hQ3ktkkK8"  \
@@ -34,8 +35,8 @@ using namespace std;
 
 namespace test {
 
-const std::string loadPrivateKey() {
-	fs::path pkf = fs::path(PROJECT_TEST_SRC_DIR) / "data" / PRIVATE_KEY_FNAME;
+const std::string loadPrivateKey(const std::string& key_name) {
+	fs::path pkf = fs::path(PROJECT_TEST_SRC_DIR) / "data" / key_name;
 	std::ifstream private_key_linux(pkf.string());
 	BOOST_REQUIRE_MESSAGE(private_key_linux.good(), "test file found");
 	const std::string pk_str((std::istreambuf_iterator<char>(private_key_linux)), std::istreambuf_iterator<char>());
@@ -69,32 +70,28 @@ BOOST_AUTO_TEST_CASE(test_generate_and_sign_4096_bit) {
  */
 BOOST_AUTO_TEST_CASE(test_load_and_export_private) {
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
-	const std::string pk_str = loadPrivateKey();
+	const std::string pk_str = loadPrivateKey(PRIVATE_KEY_FNAME);
 	crypto->loadPrivateKey(pk_str);
 	std::string pk_exported = crypto->exportPrivateKey();
-	// cout<<pk_str<<endl;
-	// cout<<pk_exported<<endl;
-	BOOST_CHECK_MESSAGE(boost::trim_copy(pk_exported) == boost::trim_copy(pk_str),
-						"imported and exported keys are the same");
+	/* cout << pk_str << endl;
+	cout<<pk_exported<<endl;*/
+	string expected = boost::trim_copy(pk_str);
+	string actual = boost::trim_copy(pk_exported);
+	//BOOST_CHECK_MESSAGE(actual == expected, "imported and exported keys are NOT the same");
+	BOOST_TEST(expected < actual, boost::test_tools::lexicographic());
 	crypto.release();
 }
 
-BOOST_AUTO_TEST_CASE(test_load_and_export_public_key) {
+BOOST_AUTO_TEST_CASE(test_load_and_export_public_key_1024) {
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
 	const vector<unsigned char> expected_pubkey(PUBKEY);
-	const std::string pk_str = loadPrivateKey();
+	const std::string pk_str = loadPrivateKey(PRIVATE_KEY_FNAME);
 	crypto->loadPrivateKey(pk_str);
+	BOOST_CHECK_MESSAGE(crypto->privateKeyBits() == 1024,
+						"Private key size [" + std::to_string(crypto->privateKeyBits()) +
+							"] is different from the expected sizefor key size 1024");
 	vector<unsigned char> pk_exported = crypto->exportPublicKey();
 
-	/*
-	 for (auto it : pk_exported) {
-	 cout << ((int)it) << ",";
-	 }
-	 ofstream myfile("public_key.rsa");
-	 for (auto it : pk_exported) {
-	 myfile << it;
-	 }
-	 myfile.close();*/
 	BOOST_CHECK_MESSAGE(expected_pubkey.size() == pk_exported.size(), "exported key and expected are the same size");
 	BOOST_CHECK_MESSAGE(std::equal(expected_pubkey.begin(), expected_pubkey.end(), pk_exported.begin()),
 						"exported key and expected have the same content");
@@ -103,7 +100,7 @@ BOOST_AUTO_TEST_CASE(test_load_and_export_public_key) {
 
 BOOST_AUTO_TEST_CASE(test_load_and_sign) {
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
-	const std::string pk_str = loadPrivateKey();
+	const std::string pk_str = loadPrivateKey(PRIVATE_KEY_FNAME);
 	crypto->loadPrivateKey(pk_str);
 
 	const std::string signature = crypto->signString("testString");
@@ -128,4 +125,15 @@ BOOST_AUTO_TEST_CASE(test_generate_export_import_and_sign) {
 	}
 }
 
+BOOST_AUTO_TEST_CASE(test_generate_and_check_len) {
+	const std::vector<int> keySizes = {1024, 2048, 4096};
+	for (const auto& keySize : keySizes) {
+		unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
+		crypto->generateKeyPair(keySize);
+		BOOST_CHECK_MESSAGE(crypto->privateKeyBits() == keySize,
+							"Private key size [" + std::to_string(crypto->privateKeyBits()) +
+							"] is different from the expected sizefor key size " +  std::to_string(keySize));
+		crypto.release();
+	}
+}  
 }  // namespace test

@@ -27,7 +27,7 @@ public:
 	CryptoHelperWindows();
 	CryptoHelperWindows(const CryptoHelperWindows &) = delete;
 
-	virtual void generateKeyPair();
+	virtual void generateKeyPair(int keyBits = DEFAULT_RSA_KEY_BITS);
 	/*
 	 * exports the private key in openssl pkcs#1 PEM encoded format.
 	 */
@@ -37,6 +37,7 @@ public:
 	 * loads a private key in openssl pkcs#1 PEM encoded format.
 	 */
 	virtual void loadPrivateKey(const std::string &privateKey);
+	virtual unsigned int privateKeyBits() const;
 	const virtual string signString(const string &license) const;
 
 	virtual ~CryptoHelperWindows();

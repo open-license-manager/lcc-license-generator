@@ -18,7 +18,8 @@ namespace license {
  * subclasses are chosen in the factory method #getInstance(). This is to avoid
  * to clutter the code with many "ifdef". (extreme performance is not an issue here)</p>
  *
- * <p>Private keys are 2048 bits openssl format by default. Public keys are in binary format (for security reasons).
+ * <p>Private keys are 2048 bits openssl format by default. 
+Public keys are in binary format (for security reasons).
  * Signatures are in base64</p>
  * 
  * <p>If using OpenSSL 3.0 or later 2024 and 4096 bits keys are available.</p>
