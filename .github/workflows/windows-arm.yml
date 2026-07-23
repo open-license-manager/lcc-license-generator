@@ -30,7 +30,7 @@ jobs:
             boost_version: 1.89.0
             platform_version: 2025
             toolset: msvc
-            arch: arm
+            arch: aarch64
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
