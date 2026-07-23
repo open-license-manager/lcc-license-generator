@@ -94,7 +94,7 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		add_definitions(-DHAS_OPENSSL)
 		include_directories(${OPENSSL_INCLUDE_DIR})
 		MESSAGE(STATUS "Openssl  (generator)      : ${OPENSSL_VERSION}")
-		MESSAGE(STATUS "Openssl  (lib)            : ${OPENSSL_CRYPTO_LIBRARY}")
+		MESSAGE(VERBOSE "Openssl  (lib)            : ${OPENSSL_CRYPTO_LIBRARY}")
 	ELSE(OpenSSL_FOUND) 
 		MESSAGE(STATUS "Openssl - generator       : not found - using windows cryptography.")
 	ENDIF(OpenSSL_FOUND)
@@ -134,7 +134,7 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
     message(STATUS "Compiler architecture: ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
 endif()
 
-SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) #doesn't work well in Linux... 
+#SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) #doesn't work well in Linux... 
 SET	(Boost_USE_STATIC_LIBS ON )
 find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options unit_test_framework OPTIONAL_COMPONENTS system)
 
@@ -160,7 +160,7 @@ message( STATUS "Install prefix            : " ${CMAKE_INSTALL_PREFIX})
 #include (build directory)/include to find build_properties.h
 message( STATUS "External libs             : " ${EXTERNAL_LIBS})
 message( STATUS "Boost libs                : " ${Boost_LIBRARIES})
-message( STATUS "Boost dirs                : " ${Boost_LIBRARY_DIRS})
+message( VERBOSE "Boost dirs                : " ${Boost_LIBRARY_DIRS})
 
 
 include_directories(${CMAKE_BINARY_DIR}/include)
