@@ -36,6 +36,8 @@ jobs:
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/lib
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/lib/manual-link
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/Debug/bin
+           get-content ${{ github.workspace }}/vcpkg/installed/arm64-windows/share/boost/BoostConfig.cmake
+           del ${{ github.workspace }}/vcpkg/installed/arm64-windows/share/boost/BoostConfig.cmake
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
