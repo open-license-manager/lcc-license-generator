@@ -141,7 +141,7 @@ find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options unit
 #set below in case of dynamic linking in debug.
 #set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:BOOST_TEST_DYN_LINK>)
 add_definitions(-DBOOST_ALL_NO_LIB) #Disable Boost Microsoft magic, all dependencies are handled by cmake
-add_definitions(-DBOOST_LIB_DIAGNOSTIC) #Check it is really disabled
+#add_definitions(-DBOOST_LIB_DIAGNOSTIC) #Check it is really disabled
 include_directories(${Boost_INCLUDE_DIRS}) 
 
 configure_file (

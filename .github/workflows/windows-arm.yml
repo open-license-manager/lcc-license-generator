@@ -12,7 +12,7 @@ jobs:
         fail-fast: true
         matrix:
           static: ["TRUE"]
-          build_type: ["Debug"]
+          build_type: ["Release"]
           os: ["windows-11-arm"]
       steps:
       -  uses: actions/checkout@v6
@@ -34,6 +34,7 @@ jobs:
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/bin
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/lib
+           dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/lib/manual-link
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/Debug/bin
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
@@ -43,7 +44,8 @@ jobs:
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
             -DUSE_OPENSSL=FALSE -DBoost_ROOT=${{ github.workspace }}/vcpkg/installed/arm64-windows 
             -DBOOST_LIBRARYDIR=${{ github.workspace }}/vcpkg/installed/arm64-windows/lib -DBoost_USE_STATIC_LIBS=ON
-            #-DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="arm64-windows"
+            -DBoost_USE_MULTITHREADED=ON -DBoost_ARCHITECTURE=a64
+      #-DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="arm64-windows"
             
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
