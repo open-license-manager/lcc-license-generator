@@ -100,9 +100,9 @@ else(UNIX) #windows and linux crosscompiling for windows target
 	ENDIF(OpenSSL_FOUND)
 
 	if(MSVC)
-		include(target_arch)
-		target_architecture( TARGET_ARCHITECTURE )
-		message(STATUS "architecture detected     : ${TARGET_ARCHITECTURE}")
+		#include(target_arch)
+		#target_architecture( TARGET_ARCHITECTURE )
+		#message(STATUS "architecture detected     : ${TARGET_ARCHITECTURE}")
 		
 		#cmake > 3.15 handle the /MD flag more nicely than this
 		if(STATIC_RUNTIME)
@@ -110,7 +110,7 @@ else(UNIX) #windows and linux crosscompiling for windows target
 			string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 			string(REPLACE "/MDd" "/MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 			string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-			SET(Boost_USE_STATIC_RUNTIME ON)
+			#SET(Boost_USE_STATIC_RUNTIME ON)
 		endif(STATIC_RUNTIME)
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
 		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi")
@@ -160,7 +160,7 @@ message( STATUS "Install prefix            : " ${CMAKE_INSTALL_PREFIX})
 #include (build directory)/include to find build_properties.h
 message( STATUS "External libs             : " ${EXTERNAL_LIBS})
 message( STATUS "Boost libs                : " ${Boost_LIBRARIES})
-message( VERBOSE "Boost dirs                : " ${Boost_LIBRARY_DIRS})
+message( STATUS "Boost dirs                : " ${Boost_LIBRARY_DIRS})
 
 
 include_directories(${CMAKE_BINARY_DIR}/include)
