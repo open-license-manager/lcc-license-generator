@@ -33,6 +33,7 @@ jobs:
          run: |
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/bin
+           dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/lib
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/Debug/bin
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
