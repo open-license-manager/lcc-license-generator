@@ -41,7 +41,8 @@ jobs:
             cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
-            -DUSE_OPENSSL=FALSE -DBoost_ROOT=${{ github.workspace }}/vcpkg/installed/arm64-windows
+            -DUSE_OPENSSL=FALSE -DBoost_ROOT=${{ github.workspace }}/vcpkg/installed/arm64-windows 
+            -DBOOST_LIBRARYDIR=${{ github.workspace }}/vcpkg/installed/arm64-windows/lib -DBoost_USE_STATIC_LIBS=ON
             #-DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="arm64-windows"
             
       -  name: Compile
