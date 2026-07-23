@@ -5,7 +5,7 @@
 # eg. windows_download_boost.ps1 1.91.0 14.3 64 C:\local\boost
 
 if ($args.Count -ne 4) {
-    Write-Host "Error: This script requires 4 parameters.\n windows_download_boost.ps1 <boost_version> <msvc version> <architecture> <output_dir>"
+    Write-Output "Error: This script requires 4 parameters.\n windows_download_boost.ps1 <boost_version> <msvc version> <architecture> <output_dir>"
     exit
 }
 #set Invoke-WebRequest to not show progress bar, as it can cause issues in some CI environments
@@ -30,7 +30,7 @@ if (-not (Test-Path $output_dir)) {
 }
 
 if (-not (Test-Path $outputfile)) {
-	Write-Host "Boost not cached, downloading it: from $uri to $outputfile"
+	Write-Output "Boost not cached, downloading it: from $uri to $outputfile"
     do {
         try {
                 Invoke-WebRequest -Uri "$uri" -Verbose -OutFile "$outputfile" 
@@ -39,19 +39,19 @@ if (-not (Test-Path $outputfile)) {
                 $StatusCode = $_.Exception.Response.StatusCode
                 $errorMessage = $_.Exception.Message
                 $retryCount++
-                Write-Host "Attempt $retryCount failed: $StatusCode $errorMessage. Retrying $uri ..."
+                Write-Output "Attempt $retryCount failed: $StatusCode $errorMessage. Retrying $uri ..."
                 Start-Sleep -Seconds 2  # Wait before retrying
             }
         } until ($retryCount -ge $maxRetries)
 
         if ($retryCount -ge $maxRetries) {
-            Write-Host "Request failed after $retryCount attempts."
+            Write-Output "Request failed after $retryCount attempts."
             exit 1
         } else {
-            Write-Host "Boost downloaded"
+            Write-Output "Boost downloaded"
             dir $output_file
         }
 } else { 
-    Write-Host "Boost already downloaded" 
+    Write-Output "Boost already downloaded" 
     dir $output_file
 }

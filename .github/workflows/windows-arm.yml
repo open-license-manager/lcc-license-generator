@@ -1,0 +1,57 @@
+name: Windows arm
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+jobs:
+   build-windows:
+      name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }} ssl: ${{ matrix.openssl_version }} boost: ${{ matrix.boost_version }}'
+      runs-on: ${{ matrix.os }}
+      strategy:
+        fail-fast: true
+        matrix:
+          static: ["TRUE"]
+          #build_type: ["Debug", "Release"]
+          build_type: ["Debug"]
+          os: ["windows-11-arm"]
+      steps:
+      -  uses: actions/checkout@v6
+      -  name: Set reusable strings
+         # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+         id: strings
+         shell: bash
+         run: |
+            echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
+      -  name: Install boost
+         uses: MarkusJx/install-boost@v2
+         id: install-boost
+         with:
+            boost_version: 1.89.0
+            platform_version: 2025
+            toolset: msvc
+            arch: arm
+      -  name: Configure
+         working-directory: ${{ steps.strings.outputs.build-output-dir }}
+         run: >
+            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBoost_ROOT=${{ steps.strings.outputs.build-output-dir }}/boost
+            -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
+            -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
+            -DUSE_OPENSSL=FALSE
+      -  name: Compile
+         working-directory: ${{ steps.strings.outputs.build-output-dir }}
+         run: >
+            cmake --build ${{ steps.strings.outputs.build-output-dir }} --target install --config ${{ matrix.build_type }}
+      -  name: Test
+         working-directory: ${{ steps.strings.outputs.build-output-dir }}
+         run: |
+            ctest -C ${{ matrix.build_type }} --test-dir ${{ steps.strings.outputs.build-output-dir }} --output-on-failure
+         env:
+            CTEST_OUTPUT_ON_FAILURE: 1
+            BOOST_TEST_LOG_LEVEL: message
+      -  name: license generator
+         run: |
+           dir ${{ github.workspace }}\install\bin
+           ${{ github.workspace }}\install\bin\lccgen.exe project list
+
+ 

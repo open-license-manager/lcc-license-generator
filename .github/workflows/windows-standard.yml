@@ -11,14 +11,14 @@ jobs:
       strategy:
         fail-fast: true
         matrix:
-          static: ["TRUE", "FALSE"]
+          static: ["TRUE"] #just stick to static for lccgen.
           #build_type: ["Debug", "Release"]
           build_type: ["Debug"]
           os: ["windows-2025", "windows-2022"]
           boost_version: [1.90.0]
           boost_msvc_version: [14.3]
           #openssl_version: ["None", "1.1.1.2100", "3.1.1", "4.0.1"]
-          openssl_version: ["None", "1.1.1.2100", "4.0.1"]
+          openssl_version: ["None", "3.1.1", "4.0.1"]
           
           include:
           - os: windows-2025

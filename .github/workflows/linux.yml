@@ -15,8 +15,11 @@ jobs:
         os: [ubuntu-24.04, ubuntu-22.04, ubuntu-26.04]
         build_type: [Debug,Release]
         cpp_compiler: [g++, clang++]
-        static: ["true","false"]
-
+        static: ["true"] #just stick to static for lccgen.
+        include:
+        - os: ubuntu-24.04-arm
+          build_type: "Debug"
+          static: "TRUE"
     steps:
     - uses: actions/checkout@v6
     - name: Set reusable strings
