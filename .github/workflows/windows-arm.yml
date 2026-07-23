@@ -27,7 +27,7 @@ jobs:
          with:
           pkgs: boost-program-options boost-test boost-filesystem boost-date-time
           #manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
-          triplet: arm-windows-static
+          triplet: arm64-windows
           token: ${{ github.token }}
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
@@ -36,7 +36,7 @@ jobs:
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
             -DUSE_OPENSSL=FALSE -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" 
-            -DVCPKG_TARGET_TRIPLET="arm-windows-static"
+            -DVCPKG_TARGET_TRIPLET="arm64-windows"
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >

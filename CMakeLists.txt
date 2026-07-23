@@ -134,7 +134,7 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
     message(STATUS "Compiler architecture: ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
 endif()
 
-#SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) doesn't work well in Linux... 
+SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) #doesn't work well in Linux... 
 SET	(Boost_USE_STATIC_LIBS ON )
 find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options unit_test_framework OPTIONAL_COMPONENTS system)
 
