@@ -17,16 +17,14 @@ jobs:
       steps:
       -  uses: actions/checkout@v6
       -  name: Set reusable strings
-         # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+         #Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
          id: strings
          shell: bash
          run: |
             echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
-      # Setup vcpkg and leverage automatic GitHub Actions Binary Cache
-      - name: Run vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: 'latest' # Or fix to a specific vcpkg commit
+      #Setup vcpkg and leverage automatic GitHub Actions Binary Cache
+      -  name: Run vcpkg
+         uses: lukka/run-vcpkg@v11
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
@@ -50,4 +48,3 @@ jobs:
            dir ${{ github.workspace }}\install\bin
            ${{ github.workspace }}\install\bin\lccgen.exe project list
 
- 

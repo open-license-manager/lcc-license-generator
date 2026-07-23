@@ -1,29 +1,14 @@
 {
-    "name": "lcc-license-generator",
-    "version": "2.1.0",
-    "description": "C/C++ license generator for the licensecc project",
-    "homepage": "https://github.com/yourusername/lcc-license-generator",
-    "supports": "windows & linux",
-    "dependencies": [
-        {
-            "name": "boost-program-options",
-            "version>=": "1.73.0",
-            "version<": "1.91.0"
-        },
-        {
-            "name": "boost-test",
-            "version>=": "1.73.0",
-            "version<": "1.91.0"
-        },
-        {
-            "name": "boost-filesystem",
-            "version>=": "1.73.0",
-            "version<": "1.91.0"
-        },
-        {
-            "name": "boost-date-time",
-            "version>=": "1.73.0",
-            "version<": "1.91.0"
-        }
-    ]
+  "name": "lcc-license-generator",
+  "version": "2.1.0",
+  "description": "C/C++ license generator for the licensecc project",
+  "homepage": "https://github.com/yourusername/lcc-license-generator",
+  "supports": "windows & linux",
+  "dependencies": [
+    "boost-program-options",
+    "boost-test",
+    "boost-filesystem",
+    "boost-date-time"
+  ],
+  "builtin-baseline": "2475cc332a47b3a63bb3de58293bdab7726613ca"
 }
