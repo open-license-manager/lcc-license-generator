@@ -43,6 +43,8 @@ public:
 	virtual ~CryptoHelperWindows();
 };
 
+static void pkcs1EncodePrivateKey(const std::vector<uint8_t>& legacyBlob, std::vector<uint8_t>& pk1_encoded);
+
 } /* namespace license */
 
 #endif /* CRYPTOHELPERWINDOWS_H_ */

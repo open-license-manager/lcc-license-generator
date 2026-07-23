@@ -8,9 +8,9 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-
+    name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }}'
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [ubuntu-24.04, ubuntu-22.04, ubuntu-26.04]
         build_type: [Debug,Release]

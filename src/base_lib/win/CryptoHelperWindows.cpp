@@ -10,6 +10,7 @@
 #include <string>
 #include <iostream>
 //#include <locale>
+#include <regex>
 
 #include <windows.h>
 #include <windef.h>
@@ -105,12 +106,9 @@ static vector<uint8_t> export_privateKey_blob(const BCRYPT_KEY_HANDLE& m_hTmpKey
 	return result;
 }
 
-static string private_key_to_B64(const vector<uint8_t>& legacyBlob) {
-	DWORD cbPem = 0;
+
+void pkcs1EncodePrivateKey(const std::vector<uint8_t>& legacyBlob, std::vector<uint8_t>& pk1_encoded) {
 	DWORD cbDer = 0;
-
-	vector<BYTE> pk1_encoded;
-
 	// 4. Query length for PKCS#1 DER encoding
 	if (!CryptEncodeObjectEx(X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, PKCS_RSA_PRIVATE_KEY, legacyBlob.data(), 0, NULL,
 							 NULL, &cbDer)) {
@@ -123,6 +121,14 @@ static string private_key_to_B64(const vector<uint8_t>& legacyBlob) {
 							 pk1_encoded.data(), &cbDer)) {
 		throw logic_error(string("CryptEncodeObjectEx failed: " + formatError(GetLastError())));
 	}
+}
+
+static string private_key_to_B64(const vector<uint8_t>& legacyBlob) {
+	DWORD cbPem = 0;
+
+	vector<BYTE> pk1_encoded;
+
+	pkcs1EncodePrivateKey(legacyBlob, pk1_encoded);
 
 	// Query size for Base64 PEM encoding
 	if (!CryptBinaryToStringA(pk1_encoded.data(), static_cast<DWORD>(pk1_encoded.size()), CRYPT_STRING_BASE64, NULL,
@@ -141,8 +147,8 @@ static string private_key_to_B64(const vector<uint8_t>& legacyBlob) {
 	if (!pemString.empty() && pemString.back() == '\0') {
 		pemString.pop_back();
 	}
-
-	return pemString;
+	std::string exported_norm = std::regex_replace(pemString, std::regex("\r\n|\r"), "\n"); //normalize CR, consistent with OpenSSL
+	return exported_norm;
 }
 
 /*******************************
@@ -216,8 +222,8 @@ const string CryptoHelperWindows::exportPrivateKey() const {
 	stringstream ss;
 	vector<uint8_t> pbKeyBlob = export_privateKey_blob(m_hTmpKey);
 	string b64String = private_key_to_B64(pbKeyBlob);
-	string pemString = "-----BEGIN RSA PRIVATE KEY-----\n" + b64String + "-----END RSA PRIVATE KEY-----\n";
 
+	string pemString = "-----BEGIN RSA PRIVATE KEY-----\n" + b64String + "-----END RSA PRIVATE KEY-----";
 	/* ofstream mystream;
 	mystream.open("C:\\Users\\gabencoded.bin", fstream::binary | fstream::trunc);
 		//for (const auto& e : encoded) mystream << e;
