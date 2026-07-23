@@ -178,7 +178,7 @@ unsigned int CryptoHelperLinux::privateKeyBits() const {
         throw logic_error("Private key not initialized. Call generate or load first.");
     }
     
-    int bits = EVP_PKEY_get_bits(m_pktmp);
+    int bits = EVP_PKEY_bits(m_pktmp);
     
     return static_cast<unsigned int>(bits);
 }
