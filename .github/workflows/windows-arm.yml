@@ -25,7 +25,8 @@ jobs:
       #Setup vcpkg and leverage automatic GitHub Actions Binary Cache
       -  uses: johnwason/vcpkg-action@v8
          with:
-          manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
+          pkgs: boost-program-options boost-test boost-filesystem boost-date-time
+          #manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
           triplet: arm64-windows
           token: ${{ github.token }}
       -  name: Configure
