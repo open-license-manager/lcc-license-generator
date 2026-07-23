@@ -12,7 +12,6 @@ jobs:
         fail-fast: true
         matrix:
           static: ["TRUE"]
-          #build_type: ["Debug", "Release"]
           build_type: ["Debug"]
           os: ["windows-11-arm"]
       steps:
@@ -23,14 +22,11 @@ jobs:
          shell: bash
          run: |
             echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
-      -  name: Install boost
-         uses: MarkusJx/install-boost@v2
-         id: install-boost
-         with:
-            boost_version: 1.89.0
-            platform_version: 2025
-            toolset: msvc
-            arch: aarch64
+      # Setup vcpkg and leverage automatic GitHub Actions Binary Cache
+      - name: Run vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: 'latest' # Or fix to a specific vcpkg commit
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
