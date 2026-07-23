@@ -160,6 +160,8 @@ message( STATUS "Install prefix            : " ${CMAKE_INSTALL_PREFIX})
 #include (build directory)/include to find build_properties.h
 message( STATUS "External libs             : " ${EXTERNAL_LIBS})
 message( STATUS "Boost libs                : " ${Boost_LIBRARIES})
+message( STATUS "Boost dirs                : " ${Boost_LIBRARY_DIRS})
+
 
 include_directories(${CMAKE_BINARY_DIR}/include)
 add_subdirectory("src/base_lib")
