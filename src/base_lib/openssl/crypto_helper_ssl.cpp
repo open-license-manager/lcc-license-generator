@@ -177,9 +177,13 @@ unsigned int CryptoHelperLinux::privateKeyBits() const {
     if (!m_pktmp) {
         throw logic_error("Private key not initialized. Call generate or load first.");
     }
-    
-    int bits = EVP_PKEY_size(m_pktmp);
-    
+//#if OPENSSL_VERSION_NUMBER >= 0x030000000L
+//    int bits = EVP_PKEY_get_bits(m_pktmp);
+//#else
+    RSA *rsa = EVP_PKEY_get1_RSA(m_pktmp);
+    int bits = RSA_bits(rsa);
+    RSA_free(rsa);
+//#endif
     return static_cast<unsigned int>(bits);
 }
 
