@@ -32,7 +32,7 @@ struct MyGlobalFixture {
 		}
 		bool ok = fs::create_directories(licenses_path);
 		BOOST_REQUIRE_MESSAGE(ok, string("Error creating ") + licenses_path.string());
-		fs::path pkf = fs::path(PROJECT_TEST_SRC_DIR) / "data" / PRIVATE_KEY_FNAME;
+		fs::path pkf = fs::path(PROJECT_TEST_SRC_DIR) / "data" / "pkey2048.txt";
 		fs::copy_file(pkf, project_path / PRIVATE_KEY_FNAME);
 	}
 
@@ -42,7 +42,7 @@ struct MyGlobalFixture {
 		}*/
 	}
 
-	~MyGlobalFixture(){};
+	~MyGlobalFixture() {};
 	const static fs::path project_path;
 	const static fs::path licenses_path;
 	const static string licenses_path_str;

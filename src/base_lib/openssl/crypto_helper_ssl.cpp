@@ -31,7 +31,11 @@ CryptoHelperLinux::CryptoHelperLinux() : m_pktmp(nullptr) {
 		OpenSSL_add_all_algorithms();
 	}
 }
-void CryptoHelperLinux::generateKeyPair() {
+void CryptoHelperLinux::generateKeyPair(int keyBits) {
+	// Validate key size (OpenSSL 3.0.2 supports 1024, 2048, 3072, 4096)
+	if (keyBits != 1024 && keyBits != 2048 && keyBits != 3072 && keyBits != 4096) {
+		throw logic_error("Invalid RSA key size. Supported: 1024, 2048, 3072, 4096 bits");
+	}
 	if (m_pktmp) {
 		EVP_PKEY_free(m_pktmp);
 		m_pktmp = nullptr;
@@ -46,7 +50,7 @@ void CryptoHelperLinux::generateKeyPair() {
 	if (EVP_PKEY_keygen_init(ctx) <= 0) {
 	}
 
-	if (EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, 1024) <= 0) {
+	if (EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, keyBits) <= 0) {
 		throw logic_error("error setting key properties");
 	}
 
@@ -167,6 +171,20 @@ const string CryptoHelperLinux::Opensslb64Encode(const size_t slen, const unsign
 	signatureStr.assign(charBuf, sz);
 	BIO_free_all(bio1);
 	return signatureStr;
+}
+
+unsigned int CryptoHelperLinux::privateKeyBits() const {
+    if (!m_pktmp) {
+        throw logic_error("Private key not initialized. Call generate or load first.");
+    }
+//#if OPENSSL_VERSION_NUMBER >= 0x030000000L
+//    int bits = EVP_PKEY_get_bits(m_pktmp);
+//#else
+    RSA *rsa = EVP_PKEY_get1_RSA(m_pktmp);
+    int bits = RSA_bits(rsa);
+    RSA_free(rsa);
+//#endif
+    return static_cast<unsigned int>(bits);
 }
 
 CryptoHelperLinux::~CryptoHelperLinux() {

@@ -88,7 +88,7 @@ static bool rerunBoostPO(const po::parsed_options &parsed, const po::options_des
 	return cont;
 }
 
-static void initializeProject(const po::parsed_options &parsed, po::variables_map &vm, const char **argv,
+static FUNCTION_RETURN initializeProject(const po::parsed_options &parsed, po::variables_map &vm, const char **argv,
 							  const po::options_description &global) {
 	po::options_description project_desc("project init options");
 	std::string project_name;
@@ -96,6 +96,7 @@ static void initializeProject(const po::parsed_options &parsed, po::variables_ma
 	boost::optional<std::string> public_key;
 	std::string project_folder;
 	std::string templates_folder;
+	unsigned int key_size = DEFAULT_RSA_KEY_BITS; 
 	project_desc.add_options()  //
 		("project-name,n", po::value<std::string>(&project_name)->required(), "New project name (required).")  //
 		(PARAM_PRIMARY_KEY, po::value<boost::optional<std::string>>(&primary_key),
@@ -106,12 +107,22 @@ static void initializeProject(const po::parsed_options &parsed, po::variables_ma
 		 "path to where all the projects configurations are stored.")  //
 		("templates,t", po::value<std::string>(&templates_folder)->default_value("."),
 		 "path to the templates folder.")  //
+		("key-bits,k", po::value<unsigned int>(&key_size)->default_value(DEFAULT_RSA_KEY_BITS),
+		 "Size of the RSA key in bits (1024, 2048, or 4096). Default is 2048.")  //
 		("help", "Print this help.");  //
+	FUNCTION_RETURN result = FUNC_RET_ERROR;
 	if (rerunBoostPO(parsed, project_desc, vm, argv, "project init", global)) {
+		// Validate key size
+		if (key_size != 1024 && key_size != 2048 && key_size != 4096) {
+			cerr << "Error: Invalid --key-bits parameter [" << std::to_string(key_size) << "]. Valid values are 1024, 2048, or 4096.";
+			return result;
+		}
+		
 		// cout << templates_folder.is_initialized() << endl;
 		Project project(project_name, project_folder, templates_folder);
-		project.initialize();
-	}
+		result = project.initialize(key_size);
+	} 
+	return result;
 }
 
 static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm, const char **argv,
@@ -162,7 +173,7 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 				} else if (auto v = boost::any_cast<boost::optional<std::string>>(value)) {
 					license.add_parameter(it.first, *v);
 				} else {
-					std::cout << it.first << "not recognized value error" << endl;
+					std::cerr << it.first << "not recognized value error" << endl;
 				}
 			}
 		}
@@ -204,16 +215,16 @@ static void test_sign(const po::parsed_options &parsed, po::variables_map &vm, c
 	}
 }
 
-int CommandLineParser::parseCommandLine(int argc, const char **argv) {
+FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char **argv) {
 	if (argc == 1) {
 		printBasicHelp(argv[0]);
-		return 1;
+		return FUNC_RET_ERROR;
 	}
 	if (argc == 2 && (string("-h") == argv[1] || string("--help") == argv[1])) {
 		printBasicHelp(argv[0]);
-		return 0;
+		return FUNC_RET_OK;
 	}
-	int result = 0;
+	FUNCTION_RETURN result = FUNC_RET_OK;
 	po::options_description global("Global options");
 	global.add_options()("verbose,v", "Turn on verbose output");
 	po::options_description hidden("Hidden options");
@@ -232,13 +243,13 @@ int CommandLineParser::parseCommandLine(int argc, const char **argv) {
 	std::vector<std::string> cmds = vm["command"].as<std::vector<std::string>>();
 	if (cmds.size() == 0 || cmds.size() == 1) {
 		printBasicHelp(argv[0]);
-		return 1;
+		return FUNC_RET_ERROR;
 	}
 	bool verbose = vm.count("verbose") > 0;
 	try {
 		if (cmds[0] == "project") {
 			if (cmds[1].substr(0, 4) == "init") {
-				initializeProject(parsed, vm, argv, global);
+				result = initializeProject(parsed, vm, argv, global);
 			} else if (cmds[1] == "list") {
 				po::options_description project_desc("project " + cmds[1] + " options");
 				boost::optional<string> project_folder;
@@ -250,30 +261,30 @@ int CommandLineParser::parseCommandLine(int argc, const char **argv) {
 			} else {
 				std::cerr << endl << "command " << cmds[0] << " " << cmds[1] << " not recognized.";
 				printBasicHelp(argv[0]);
-				result = 1;
+				result = FUNC_RET_ERROR;
 			}
 		} else if (cmds[0] == "license") {
 			if (cmds[1] == "issue") {
 				issueLicense(parsed, vm, argv, global);
 			} else {
 				printBasicHelp(argv[0]);
-				result = 1;
+				result = FUNC_RET_ERROR;
 			}
 		} else if (cmds[0] == "test") {
 			po::options_description license_desc("test " + cmds[1] + " options");
 			if (cmds[1] == "sign") {
 				test_sign(parsed, vm, argv, global);
 			} else {
-				result = 1;
+				result = FUNC_RET_ERROR;
 			}
 		} else {
 			printBasicHelp(argv[0]);
-			result = 1;
+			result = FUNC_RET_ERROR;
 		}
 	} catch (const invalid_argument &e) {
 		printBasicHelp(argv[0]);
 		cout << endl << "Parameter error: " << e.what() << endl;
-		result = 1;
+		result = FUNC_RET_ERROR;
 	}
 	return result;
 }

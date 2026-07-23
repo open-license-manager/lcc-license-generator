@@ -9,6 +9,7 @@
 #define SRC_TOOLS_LICENSE_GENERATOR_PROJECT_HPP_
 
 #include "../base_lib/base.h"
+#include "build_properties.h"
 #include "../base_lib/crypto_helper.hpp"
 #include <boost/optional.hpp>
 #include <string>
@@ -29,7 +30,7 @@ private:
 public:
 	Project(const std::string &name, const std::string &project_folder, const std::string &source_folder,
 			const bool force_overwrite = false);
-	FUNCTION_RETURN initialize();
+	FUNCTION_RETURN initialize(unsigned int key_size = DEFAULT_RSA_KEY_BITS);
 	~Project();
 };
 

@@ -27,7 +27,7 @@ namespace test {
 
 static void create_project(const fs::path& projects_folder, const fs::path& expectedPrivateKey,
 						   const fs::path& expected_public_key, const fs::path& mock_source_folder,
-						   const string& project_name) {
+						   const string& project_name, int key_bits = DEFAULT_RSA_KEY_BITS) {
 	fs::remove_all(projects_folder);
 	BOOST_CHECK_MESSAGE(!fs::exists(expectedPrivateKey),
 						"Private key " + expectedPrivateKey.string() + " can't be deleted.");
@@ -35,7 +35,8 @@ static void create_project(const fs::path& projects_folder, const fs::path& expe
 						"Public key " + expected_public_key.string() + " can't be deleted.");
 	const string mock_source = mock_source_folder.string();
 	const string projects_str = projects_folder.string();
-	int argc = 9;
+	string key_bits_str = to_string(key_bits);
+	int argc = 11;
 	const char* argv1[] = {"lcc",
 						   "project",
 						   "init",
@@ -44,10 +45,12 @@ static void create_project(const fs::path& projects_folder, const fs::path& expe
 						   "--projects-folder",
 						   projects_str.c_str(),
 						   "--templates",
-						   mock_source.c_str()};
+						   mock_source.c_str(),
+						   "-k",
+						   key_bits_str.c_str()};
 	// initialize_project
 	int result = CommandLineParser::parseCommandLine(argc, argv1);
-	BOOST_CHECK_EQUAL(result, 0);
+	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
 	BOOST_REQUIRE_MESSAGE(fs::exists(expectedPrivateKey), "Private key " + expectedPrivateKey.string() + " created.");
 	BOOST_CHECK_MESSAGE(fs::exists(expected_public_key), "Public key " + expected_public_key.string() + " created.");
 }
@@ -76,13 +79,14 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
 						   "--" PARAM_PROJECT_FOLDER,
 						   project_folder_str.c_str()};
 	int result = CommandLineParser::parseCommandLine(argc, argv2);
-	BOOST_CHECK_EQUAL(result, 0);
+	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
 	fs::path expected_license("my_license.lic");
 	BOOST_REQUIRE_MESSAGE(fs::exists(expected_license), "License " + expected_license.string() + " created.");
 	// load a license, check the project name corresponds and there are no extra elements.
 	CSimpleIniA ini;
 	ini.LoadFile(expected_license.c_str());
 	BOOST_CHECK_MESSAGE(ini.GetSectionSize(project_name.c_str()) == 2, "Section [" + project_name + "] has 2 elements");
+	ini.GetLongValue(project_name.c_str(), "lic_ver", LICENSE_VERSION_210);	 // new license version for 2048 keys
 }
 
 #if BOOST_VERSION > 106500
@@ -112,7 +116,7 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license_multi_feature) {
 						   "-f",
 						   "TEST,feature1"};
 	int result = CommandLineParser::parseCommandLine(argc, argv2);
-	BOOST_CHECK_EQUAL(result, 0);
+	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
 	fs::path expected_license("my_license_multi.lic");
 	BOOST_REQUIRE_MESSAGE(fs::exists(expected_license), "License " + expected_license.string() + " created.");
 	// load a license, check the project name corresponds and there are no extra elements.
@@ -120,6 +124,40 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license_multi_feature) {
 	ini.LoadFile(expected_license.c_str());
 	BOOST_CHECK_MESSAGE(ini.GetSectionSize(project_name.c_str()) == 2, "Section [" + project_name + "] has 2 elements");
 	BOOST_CHECK_MESSAGE(ini.GetSectionSize("feature1") == 2, "Section [feature1] has 2 elements");
+}
+
+BOOST_AUTO_TEST_CASE(product_initialize_1024_bit_issue_license) {
+	const string project_name("TEST1024");
+	const fs::path mock_source_folder(fs::path(PROJECT_TEST_SRC_DIR) / "data" / "src");
+	const fs::path projects_folder(fs::path(PROJECT_TEST_TEMP_DIR) / "lcc_projects");
+	const fs::path expected_project_folder(projects_folder / project_name);
+	const fs::path expectedPrivateKey(projects_folder / project_name / PRIVATE_KEY_FNAME);
+	const fs::path expected_public_key(projects_folder / project_name / "include" / "licensecc" / project_name /
+									   PUBLIC_KEY_INC_FNAME);
+
+	create_project(projects_folder, expectedPrivateKey, expected_public_key, mock_source_folder, project_name, 1024);
+	const string private_key_str = expectedPrivateKey.string();
+	const string project_folder_str = expected_project_folder.string();
+	// issue license in standard location
+	int argc = 9;
+	const char* argv2[] = {"lcc",
+						   "license",
+						   "issue",
+						   "--" PARAM_PRIMARY_KEY,
+						   private_key_str.c_str(),
+						   "--" PARAM_LICENSE_OUTPUT,
+						   "my_license_1024bit.lic",
+						   "--" PARAM_PROJECT_FOLDER,
+						   project_folder_str.c_str()};
+	int result = CommandLineParser::parseCommandLine(argc, argv2);
+	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
+	fs::path expected_license("my_license_1024bit.lic");
+	BOOST_REQUIRE_MESSAGE(fs::exists(expected_license), "License " + expected_license.string() + " created.");
+	// load a license, check the project name corresponds and there are no extra elements.
+	CSimpleIniA ini;
+	ini.LoadFile(expected_license.c_str());
+	BOOST_CHECK_MESSAGE(ini.GetSectionSize(project_name.c_str()) == 2, "Section [" + project_name + "] has 2 elements");
+	ini.GetLongValue(project_name.c_str(), "lic_ver", LICENSE_VERSION_200);	 // old license version for 1024 keys
 }
 #endif
 
@@ -164,10 +202,43 @@ BOOST_AUTO_TEST_CASE(init_project_name_wrong) {
 		result = CommandLineParser::parseCommandLine(argc, argv1);
 	}
 	string stdout_str = output.str();
-	BOOST_CHECK_EQUAL(result, 1);
+	BOOST_CHECK_EQUAL(result, FUNC_RET_ERROR);
 	BOOST_CHECK_MESSAGE(stdout_str.find("rror") != string::npos && stdout_str.find("project name") != string::npos,
 						"error was print out " + stdout_str);
 }
 
+/**
+ * Test wrong key size for project init. Valid values are 1024, 2048, or 4096.
+ */
+BOOST_AUTO_TEST_CASE(init_project_key_size_wrong) {
+	const string project_name("TEST");
+	const fs::path mock_source_folder(fs::path(PROJECT_TEST_SRC_DIR) / "data" / "src");
+	const fs::path projects_folder(fs::path(PROJECT_TEST_TEMP_DIR) / "lcc_projects_wa");
+	const string mock_source = mock_source_folder.string();
+	const string projects_str = projects_folder.string();
+
+	int argc = 11;
+	const char* argv1[] = {"lcc",
+						   "project",
+						   "init",
+						   "-n",
+						   project_name.c_str(),
+						   "--projects-folder",
+						   projects_str.c_str(),
+						   "--templates",
+						   mock_source.c_str(),
+						   "--key-bits",
+						   "42"};
+	int result;
+	boost::test_tools::output_test_stream output;
+	{
+		cout_redirect guard(output.rdbuf());
+		result = CommandLineParser::parseCommandLine(argc, argv1);
+	}
+	string stdout_str = output.str();
+	BOOST_CHECK_EQUAL(result, FUNC_RET_ERROR);
+	BOOST_CHECK_MESSAGE(stdout_str.find("rror") != string::npos && stdout_str.find("key") != string::npos,
+						"error was print out " + stdout_str);
+}
 }  // namespace test
 }  // namespace license
