@@ -258,7 +258,7 @@ void CryptoHelperWindows::loadPrivateKey(const std::string& privateKey) {
 					m_hTmpKey = nullptr;
 				}
 				DWORD status = BCryptImportKeyPair(m_hSignAlg, NULL, LEGACY_RSAPRIVATE_BLOB, &m_hTmpKey,
-												   static_cast<PUCHAR>(pki), pkiLen, 0);
+												   reinterpret_cast<PUCHAR>(pki), pkiLen, 0);
 				if (NT_SUCCESS(status)) {
 					LocalFree(pki);
 					LocalFree(pbBuffer);
@@ -301,8 +301,8 @@ unsigned int CryptoHelperWindows::privateKeyBits() const {
 static bool hashData(BCRYPT_HASH_HANDLE& hHash, const string& data, string& error, PBYTE pbHash, DWORD hashDataLenght) {
 	DWORD status;
 	bool success = false;
-	if (NT_SUCCESS(status = BCryptHashData(hHash, static_cast<BYTE*>(const_cast<char*>(data.c_str())),
-										   static_cast<ULONG>(data.length()), 0))) {
+	if (NT_SUCCESS(status = BCryptHashData(hHash, reinterpret_cast<PUCHAR>(const_cast<char*>(data.c_str())),
+										   ULONG(data.length()), 0))) {
 		success = NT_SUCCESS(status = BCryptFinishHash(hHash, pbHash, hashDataLenght, 0));
 	}
 	if (!success) {
