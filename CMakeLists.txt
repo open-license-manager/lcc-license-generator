@@ -33,7 +33,7 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT
 ENDIF()
 
 option(STATIC_RUNTIME "Compile a static executable or a dynamic linked one" ON)
-message( STATUS "Static   runtime            : ${STATIC_RUNTIME}")
+message( STATUS "Static   runtime          : ${STATIC_RUNTIME}")
 
 #always prefer static linked version of the libraries.
 SET (OPENSSL_USE_STATIC_LIBS ON)
@@ -171,12 +171,49 @@ IF(BUILD_TESTING)
 	add_subdirectory("test")
 ENDIF(BUILD_TESTING)
 
-set(CPACK_GENERATOR "DEB;TBZ2;RPM")
-set(CPACK_PACKAGE_NAME "lcc-generator")
+# Configure CPack for different package formats
+set(CPACK_PACKAGE_NAME "lcc-license-generator")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_CONTACT "open license manager Team")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "LCC License Generator")
+set(CPACK_PACKAGE_VENDOR "open license manager Team")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "open license manager Team")
 set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}.${CMAKE_SYSTEM_PROCESSOR}")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_PROCESSOR}")
 set(CPACK_OUTPUT_FILE_PREFIX dist)
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+
+# Windows-specific settings
+if(WIN32)
+    set(CPACK_GENERATOR "NSIS")
+    set(CPACK_NSIS_EXECUTABLES_DIRECTORY ".")
+    set(CPACK_NSIS_MODIFY_PATH ON)
+    set(CPACK_NSIS_MENU_LINKS "bin/lccgen.exe" "LCC License Generator")
+    set(CPACK_NSIS_DISPLAY_NAME "LCC License Generator")
+    set(CPACK_NSIS_HELP_LINK "https://github.com/your-repo/lcc-license-generator")
+    set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/your-repo/lcc-license-generator")
+else(WIN32)
+    set(CPACK_GENERATOR "DEB;RPM;TGZ")
+endif(WIN32)
+
+# Source package settings
+set(CPACK_SOURCE_GENERATOR "TGZ")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-source")
+set(CPACK_SOURCE_IGNORE_FILES
+    "/\\\\.git/"
+    "/\\\\.gitignore"
+    "/\\\\.DS_Store"
+    "/\\\\.swp"
+    "/\\\\.tmp"
+	"/Testing/"
+	"/out/"
+    "/build/"
+    "/dist/"
+    "~$"
+    "\\\\.(o|a)$"
+    "\\\\.(so|dylib)$"
+    "\\\\.(exe|dll)$"
+)
+
 include(CPack)
 
