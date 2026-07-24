@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 ## configuration variables
-## USE_OPENSSL: Enable/Disable OpenSSL support. If disabled, the generator will use Windows Crypto API on Windows and will fail to compile on Linux.
-## STATIC_RUNTIME: Enable/Disable static linking of the executable. If enabled, the executable will be statically linked with all libraries, including OpenSSL and Boost. If disabled, the executable will be dynamically linked with all libraries.
-## Boost_ROOT: Hint for a path to the Boost installation. If not set, CMake will try to find Boost in the system paths.
-## OpenSSL_ROOT: Hint for a path to the Openssl installation. 
+#- USE_OPENSSL: Enable/Disable OpenSSL support. If disabled, the generator will use Windows Crypto API on Windows and will fail to compile on Linux.
+#- STATIC_RUNTIME: Enable/Disable static linking of the executable. If enabled, the executable will be statically linked with all libraries, including OpenSSL and Boost. If disabled, the executable will be dynamically linked with all libraries.
+#- Boost_ROOT: Hint for a path to the Boost installation. If not set, CMake will try to find Boost in the system paths.
+#- OpenSSL_ROOT: Hint for a path to the Openssl installation. 
+#- BUILD_TESTING : enable or disable testing
 
 SET(CMAKE_DISABLE_SOURCE_CHANGES ON)
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -17,6 +18,9 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
+IF(POLICY CMP0091)
+	cmake_policy(SET CMP0091 NEW)
+ENDIF(POLICY CMP0091)
 IF(POLICY CMP0144)
 	cmake_policy(SET CMP0144 NEW)
 ENDIF(POLICY CMP0144)
@@ -28,11 +32,12 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT
 	SET(CMAKE_CROSSCOMPILING_EMULATOR "wine")	
 ENDIF()
 
-option(STATIC_RUNTIME "ompile a static executable or a dynamic linked one" ON)
+option(STATIC_RUNTIME "Compile a static executable or a dynamic linked one" ON)
 message( STATUS "Static linking            : ${STATIC_RUNTIME}")
 
-
-SET (OPENSSL_USE_STATIC_LIBS ${STATIC_RUNTIME})	
+#always prefer static linked version of the libraries.
+SET (OPENSSL_USE_STATIC_LIBS ON)
+SET (Boost_USE_STATIC_LIBS ON)
 
 if(UNIX) #this is true for all the linux systems but not for cross compiling "linux->windows"
 	
@@ -42,7 +47,6 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 		add_definitions(-DBOOST_TEST_STATIC_LINK)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 		set(BUILD_SHARED_LIBS OFF)
-		#set(CMAKE_HAVE_LIBC_PTHREAD TRUE) #strange hack with cmake 4.3, why it's needed with static compile
 	ENDIF(STATIC_RUNTIME)
 	
 	find_package(Threads)
@@ -94,6 +98,7 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		MESSAGE(STATUS "Openssl  (lib)            : ${OPENSSL_CRYPTO_LIBRARY}")
 	ELSE(OpenSSL_FOUND) 
 		MESSAGE(STATUS "Openssl - generator       : not found - using windows cryptography.")
+		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi")
 	ENDIF(OpenSSL_FOUND)
 
 	if(MSVC)
@@ -110,16 +115,18 @@ else(UNIX) #windows and linux crosscompiling for windows target
 			SET(Boost_USE_STATIC_RUNTIME ON)
 
 			message( STATUS "Option set")
-		    add_compile_options(
-        		$<$<CONFIG:>:/MT> #---------|
-        		$<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
-       	 		$<$<CONFIG:Release>:/MT> #--|
-    		)
+		    #add_compile_options(
+        	#	$<$<CONFIG:>:/MT> #---------|
+        	#	$<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
+       	 	#	$<$<CONFIG:Release>:/MT> #--|
+    		#)
 			unset(CMAKE_DL_LIBS)
 			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
+		ELSE()
+			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE INTERNAL "")
 		endif(${STATIC_RUNTIME})
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
-		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi")
+		
 	else(MSVC)
 	    if(MINGW)
 	        list(APPEND EXTERNAL_LIBS "-lcrypt32 -lbcrypt -lws2_32 -liphlpapi")
@@ -139,15 +146,14 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
     endif()
     message(STATUS "Compiler architecture: ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
 endif()
+
 #SET (Boost_NO_BOOST_CMAKE ON)
 #SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) #doesn't work well in Linux... 
-SET (Boost_USE_STATIC_LIBS ${STATIC_RUNTIME} )
 find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options unit_test_framework OPTIONAL_COMPONENTS system)
 
 #set below in case of dynamic linking in debug.
-#set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:BOOST_TEST_DYN_LINK>)
 add_definitions(-DBOOST_ALL_NO_LIB) #Disable Boost Microsoft magic, all dependencies are handled by cmake
-add_definitions(-DBOOST_LIB_DIAGNOSTIC) #Check it is really disabled
+#add_definitions(-DBOOST_LIB_DIAGNOSTIC) #Check it is really disabled
 include_directories(${Boost_INCLUDE_DIRS}) 
 
 configure_file (

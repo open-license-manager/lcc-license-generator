@@ -6,14 +6,15 @@ on:
     branches: [ "develop" ]
 jobs:
    windows-arm:
-      name: '${{ matrix.os }}, build: ${{ matrix.build_type }} STATIC ${{ matrix.target_triple }}'
+      name: '${{ matrix.os }}, build: ${{ matrix.build_type }} STATIC ${{ matrix.static_runtime }} ${{ matrix.target_triple }}'
       runs-on: ${{ matrix.os }}
       strategy:
         fail-fast: false
         matrix:
           build_type: ["Debug","Release"]
+          static_runtime: [TRUE, FALSE]
           os: ["windows-11-arm"]
-          target_triple: ["arm64-windows-static-md", "arm64-windows", "arm64-windows-static-release", "arm64-windows-static"]
+          target_triple: ["arm64-windows-static-md", "arm64-windows-static-release", "arm64-windows-static"]
       steps:
       -  uses: actions/checkout@v6
       -  name: Set reusable strings
@@ -35,7 +36,6 @@ jobs:
            dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}
            dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/lib
            dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/Debug/bin
-           get-content ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/share/boost/BoostConfig.cmake
            dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/share/boost
            dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/bin
            dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/lib/manual-link
@@ -43,7 +43,7 @@ jobs:
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
             cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-            -DSTATIC_RUNTIME:BOOL=TRUE -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
+            -DSTATIC_RUNTIME:BOOL=${{ matrix.static_runtime }} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
             -DUSE_OPENSSL=FALSE -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" 
             -DVCPKG_TARGET_TRIPLET=${{ matrix.target_triple }}
