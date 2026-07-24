@@ -1996,6 +1996,8 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::SetLongValue(const 
 	// convert to output text
 	SI_CHAR szOutput[64];
 	SI_CONVERTER c(m_bStoreIsUtf8);
+	size_t input_size = min(strlen(szInput), sizeof(szOutput) / sizeof(SI_CHAR) - 1);
+
 	c.ConvertFromStore(szInput, strlen(szInput) + 1, szOutput, sizeof(szOutput) / sizeof(SI_CHAR));
 
 	// actually add it
@@ -2675,6 +2677,7 @@ public:
 	 */
 	bool ConvertToStore(const SI_CHAR* a_pInputData, char* a_pOutputData, size_t a_uOutputDataSize) {
 		// calc input string length (SI_CHAR type and size independent)
+		// strlen is safe here because the input is guaranteed to be null-terminated
 		size_t uInputLen = strlen((const char*)a_pInputData) + 1;
 		if (uInputLen > a_uOutputDataSize) {
 			return false;

@@ -15,9 +15,9 @@ namespace fs = boost::filesystem;
 
 unique_ptr<CryptoHelper> CryptoHelper::getInstance() {
 #ifdef HAS_OPENSSL
-	unique_ptr<CryptoHelper> ptr((CryptoHelper *)new CryptoHelperLinux());
+	unique_ptr<CryptoHelper> ptr(static_cast<CryptoHelper *>(new CryptoHelperLinux()));
 #else
-	unique_ptr<CryptoHelper> ptr((CryptoHelper *)new CryptoHelperWindows());
+	unique_ptr<CryptoHelper> ptr(static_cast<CryptoHelper *>(new CryptoHelperWindows()));
 #endif
 	return ptr;
 }

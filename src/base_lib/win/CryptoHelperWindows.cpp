@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-//#include <locale>
+// #include <locale>
 #include <regex>
 
 #include <windows.h>
@@ -44,13 +44,13 @@ static const string formatError(DWORD status) {
 
 	// Ask Windows to allocate the buffer and fetch the system error text
 	DWORD size = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-									FORMAT_MESSAGE_IGNORE_INSERTS,	// Safe: ignores embedded %1, %2 placeholders
-								NULL,  // No external module needed for system errors
-								status,	 // The error code (e.g., from GetLastError())
-								MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),	// Default language
-								reinterpret_cast<LPSTR>(&messageBuffer),  // Polymorphic pointer trick
-								0,	// Minimum size to allocate
-								NULL  // No arguments needed due to IGNORE_INSERTS
+								   FORMAT_MESSAGE_IGNORE_INSERTS,  // Safe: ignores embedded %1, %2 placeholders
+							   NULL,  // No external module needed for system errors
+							   status,	// The error code (e.g., from GetLastError())
+							   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),  // Default language
+							   reinterpret_cast<LPSTR>(&messageBuffer),	 // Polymorphic pointer trick
+							   0,  // Minimum size to allocate
+							   NULL	 // No arguments needed due to IGNORE_INSERTS
 	);
 
 	if (size == 0) {
@@ -106,7 +106,6 @@ static vector<uint8_t> export_privateKey_blob(const BCRYPT_KEY_HANDLE& m_hTmpKey
 	return result;
 }
 
-
 void pkcs1EncodePrivateKey(const std::vector<uint8_t>& legacyBlob, std::vector<uint8_t>& pk1_encoded) {
 	DWORD cbDer = 0;
 	// 4. Query length for PKCS#1 DER encoding
@@ -147,7 +146,8 @@ static string private_key_to_B64(const vector<uint8_t>& legacyBlob) {
 	if (!pemString.empty() && pemString.back() == '\0') {
 		pemString.pop_back();
 	}
-	std::string exported_norm = std::regex_replace(pemString, std::regex("\r\n|\r"), "\n"); //normalize CR, consistent with OpenSSL
+	std::string exported_norm =
+		std::regex_replace(pemString, std::regex("\r\n|\r"), "\n");	 // normalize CR, consistent with OpenSSL
 	return exported_norm;
 }
 
@@ -167,7 +167,7 @@ void CryptoHelperWindows::generateKeyPair(int keyBits) {
 		BCryptDestroyKey(m_hTmpKey);
 		m_hTmpKey = nullptr;
 	}
-	if (!NT_SUCCESS(status = BCryptGenerateKeyPair(m_hSignAlg, &m_hTmpKey, (ULONG)keyBits, 0))) {
+	if (!NT_SUCCESS(status = BCryptGenerateKeyPair(m_hSignAlg, &m_hTmpKey, static_cast<ULONG>(keyBits), 0))) {
 		const string err("error generating keypair" + formatError(status));
 		throw logic_error(err);
 	} else if (!NT_SUCCESS(status = BCryptFinalizeKeyPair(m_hTmpKey, 0))) {
@@ -248,7 +248,7 @@ void CryptoHelperWindows::loadPrivateKey(const std::string& privateKey) {
 		throw logic_error("Private Key is not in the right format. It must be pkcs#1 encoded PEM.");
 	}
 	if (CryptStringToBinaryA(privateKey.c_str(), 0, CRYPT_STRING_BASE64HEADER, NULL, &dwBufferLen, NULL, NULL)) {
-		pbBuffer = (LPBYTE)LocalAlloc(0, dwBufferLen);
+		pbBuffer = static_cast<LPBYTE>(LocalAlloc(0, dwBufferLen));
 		if (CryptStringToBinaryA(privateKey.c_str(), 0, CRYPT_STRING_BASE64HEADER, pbBuffer, &dwBufferLen, NULL,
 								 NULL)) {
 			if (CryptDecodeObjectEx(X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, PKCS_RSA_PRIVATE_KEY, pbBuffer,
@@ -257,8 +257,8 @@ void CryptoHelperWindows::loadPrivateKey(const std::string& privateKey) {
 					BCryptDestroyKey(m_hTmpKey);
 					m_hTmpKey = nullptr;
 				}
-				DWORD status =
-					BCryptImportKeyPair(m_hSignAlg, NULL, LEGACY_RSAPRIVATE_BLOB, &m_hTmpKey, (PUCHAR)pki, pkiLen, 0);
+				DWORD status = BCryptImportKeyPair(m_hSignAlg, NULL, LEGACY_RSAPRIVATE_BLOB, &m_hTmpKey,
+												   static_cast<PUCHAR>(pki), pkiLen, 0);
 				if (NT_SUCCESS(status)) {
 					LocalFree(pki);
 					LocalFree(pbBuffer);
@@ -301,7 +301,8 @@ unsigned int CryptoHelperWindows::privateKeyBits() const {
 static bool hashData(BCRYPT_HASH_HANDLE& hHash, const string& data, string& error, PBYTE pbHash, DWORD hashDataLenght) {
 	DWORD status;
 	bool success = false;
-	if (NT_SUCCESS(status = BCryptHashData(hHash, (BYTE*)data.c_str(), (ULONG)data.length(), 0))) {
+	if (NT_SUCCESS(status = BCryptHashData(hHash, static_cast<BYTE*>(const_cast<char*>(data.c_str())),
+										   static_cast<ULONG>(data.length()), 0))) {
 		success = NT_SUCCESS(status = BCryptFinishHash(hHash, pbHash, hashDataLenght, 0));
 	}
 	if (!success) {

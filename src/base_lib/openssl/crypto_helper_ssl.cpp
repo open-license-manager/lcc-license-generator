@@ -41,7 +41,7 @@ void CryptoHelperLinux::generateKeyPair(int keyBits) {
 		m_pktmp = nullptr;
 	}
 
-	EVP_PKEY_CTX *ctx;
+	EVP_PKEY_CTX* ctx;
 
 	ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL);
 	if (!ctx) {
@@ -64,15 +64,15 @@ const string CryptoHelperLinux::exportPrivateKey() const {
 	if (m_pktmp == NULL) {
 		throw logic_error(string("Export not initialized.Call generateKeyPair first."));
 	}
-	BIO *bio_private = BIO_new(BIO_s_mem());
-	RSA *rsa = EVP_PKEY_get1_RSA(m_pktmp);
+	BIO* bio_private = BIO_new(BIO_s_mem());
+	RSA* rsa = EVP_PKEY_get1_RSA(m_pktmp);
 	// EVP_PKEY_assign_RSA(m_pktmp, rsa);
 	PEM_write_bio_RSAPrivateKey(bio_private, rsa, NULL, NULL, 0, NULL, NULL);
 	// RSA_free(rsa);
 	/*PEM_write_bio_PrivateKey(bio_private, m_pktmp, nullptr, nullptr, 0,
 	 nullptr, nullptr);*/
 	int keylen = BIO_pending(bio_private);
-	char *pem_key = (char *)(calloc(keylen + 1, 1)); /* Null-terminate */
+	char* pem_key = (char*)(calloc(keylen + 1, 1)); /* Null-terminate */
 	BIO_read(bio_private, pem_key, keylen);
 	BIO_free(bio_private);
 	string dest(pem_key);
@@ -84,8 +84,8 @@ const vector<unsigned char> CryptoHelperLinux::exportPublicKey() const {
 	if (m_pktmp == NULL) {
 		throw logic_error(string("Export not initialized.Call generateKeyPair first."));
 	}
-	BIO *bio_public = BIO_new(BIO_s_mem());
-	RSA *rsa = EVP_PKEY_get1_RSA(m_pktmp);
+	BIO* bio_public = BIO_new(BIO_s_mem());
+	RSA* rsa = EVP_PKEY_get1_RSA(m_pktmp);
 	// PEM_write_bio_RSAPublicKey(bio_public, rsa);
 	i2d_RSAPublicKey_bio(bio_public, rsa);
 	int keylen = BIO_pending(bio_public);
@@ -96,15 +96,15 @@ const vector<unsigned char> CryptoHelperLinux::exportPublicKey() const {
 	return buffer;
 }
 
-const string CryptoHelperLinux::signString(const string &license) const {
+const string CryptoHelperLinux::signString(const string& license) const {
 	if (!m_pktmp) {
 		throw logic_error("private key not initialized. Call generate or load first.");
 	}
 
 	size_t slen;
-	unsigned char *signature = nullptr;
+	unsigned char* signature = nullptr;
 	/* Create the Message Digest Context */
-	EVP_MD_CTX *mdctx = EVP_MD_CTX_create();
+	EVP_MD_CTX* mdctx = EVP_MD_CTX_create();
 	if (!mdctx) {
 		throw logic_error("Message digest creation context");
 	}
@@ -115,7 +115,7 @@ const string CryptoHelperLinux::signString(const string &license) const {
 		EVP_MD_CTX_destroy(mdctx);
 	}
 	/* Call update with the message */
-	if (EVP_DigestSignUpdate(mdctx, (const void *)license.c_str(), (size_t)license.length()) != 1) {
+	if (EVP_DigestSignUpdate(mdctx, (const void*)license.c_str(), (size_t)license.length()) != 1) {
 		EVP_MD_CTX_destroy(mdctx);
 		throw logic_error("Message signing exception");
 	}
@@ -127,7 +127,7 @@ const string CryptoHelperLinux::signString(const string &license) const {
 		throw logic_error("Message signature finalization exception");
 	}
 	/* Allocate memory for the signature based on size in slen */
-	if (!(signature = (unsigned char *)OPENSSL_malloc(sizeof(unsigned char) * slen))) {
+	if (!(signature = static_cast<unsigned char*>(OPENSSL_malloc(sizeof(unsigned char) * slen)))) {
 		EVP_MD_CTX_destroy(mdctx);
 		throw logic_error("Message signature memory allocation exception");
 	}
@@ -144,13 +144,13 @@ const string CryptoHelperLinux::signString(const string &license) const {
 	EVP_MD_CTX_destroy(mdctx);
 	return signatureStr;
 }
-void CryptoHelperLinux::loadPrivateKey(const std::string &privateKey) {
+void CryptoHelperLinux::loadPrivateKey(const std::string& privateKey) {
 	if (m_pktmp) {
 		EVP_PKEY_free(m_pktmp);
 	}
 
 	m_pktmp = nullptr;
-	BIO *bio = BIO_new_mem_buf((void *)(privateKey.c_str()), privateKey.size());
+	BIO* bio = BIO_new_mem_buf((void*)(privateKey.c_str()), privateKey.size());
 	m_pktmp = PEM_read_bio_PrivateKey(bio, &m_pktmp, NULL, NULL);
 	if (!m_pktmp) {
 		throw logic_error("Private key [" + privateKey + "] can't be loaded");
@@ -158,14 +158,14 @@ void CryptoHelperLinux::loadPrivateKey(const std::string &privateKey) {
 	BIO_free(bio);
 }
 
-const string CryptoHelperLinux::Opensslb64Encode(const size_t slen, const unsigned char *signature) const {
-	BIO *mem_bio = BIO_new(BIO_s_mem());
-	BIO *b64 = BIO_new(BIO_f_base64());
-	BIO *bio1 = BIO_push(b64, mem_bio);
+const string CryptoHelperLinux::Opensslb64Encode(const size_t slen, const unsigned char* signature) const {
+	BIO* mem_bio = BIO_new(BIO_s_mem());
+	BIO* b64 = BIO_new(BIO_f_base64());
+	BIO* bio1 = BIO_push(b64, mem_bio);
 	BIO_set_flags(bio1, BIO_FLAGS_BASE64_NO_NL);
 	BIO_write(bio1, signature, slen);
 	BIO_flush(bio1);
-	char *charBuf;
+	char* charBuf;
 	int sz = BIO_get_mem_data(mem_bio, &charBuf);
 	string signatureStr;
 	signatureStr.assign(charBuf, sz);
@@ -174,17 +174,17 @@ const string CryptoHelperLinux::Opensslb64Encode(const size_t slen, const unsign
 }
 
 unsigned int CryptoHelperLinux::privateKeyBits() const {
-    if (!m_pktmp) {
-        throw logic_error("Private key not initialized. Call generate or load first.");
-    }
-//#if OPENSSL_VERSION_NUMBER >= 0x030000000L
-//    int bits = EVP_PKEY_get_bits(m_pktmp);
-//#else
-    RSA *rsa = EVP_PKEY_get1_RSA(m_pktmp);
-    int bits = RSA_bits(rsa);
-    RSA_free(rsa);
-//#endif
-    return static_cast<unsigned int>(bits);
+	if (!m_pktmp) {
+		throw logic_error("Private key not initialized. Call generate or load first.");
+	}
+	// #if OPENSSL_VERSION_NUMBER >= 0x030000000L
+	//     int bits = EVP_PKEY_get_bits(m_pktmp);
+	// #else
+	RSA* rsa = EVP_PKEY_get1_RSA(m_pktmp);
+	int bits = RSA_bits(rsa);
+	RSA_free(rsa);
+	// #endif
+	return static_cast<unsigned int>(bits);
 }
 
 CryptoHelperLinux::~CryptoHelperLinux() {
