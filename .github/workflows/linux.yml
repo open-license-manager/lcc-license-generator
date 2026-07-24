@@ -58,7 +58,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
         -DSTATIC_RUNTIME:BOOL=${{matrix.static}} --install-prefix /usr/bin
-        -DCODE_COVERAGE={{ matrix.code_coverage }}
+        -DCODE_COVERAGE=${{ matrix.code_coverage }}
     - name: Build
       # Build your program with the given configuration. 
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
@@ -66,7 +66,7 @@ jobs:
            /usr/bin/cmake --build ${{ steps.strings.outputs.build-output-dir }} -j $(nproc)
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
+      run: ctest . --build-config ${{ matrix.build_type }} --output-on-failure
       env:
          CTEST_OUTPUT_ON_FAILURE: 1
          BOOST_TEST_LOG_LEVEL: message
@@ -75,10 +75,6 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-26.04' && matrix.static == 'false' }}
       run: >
           ctest -T memcheck --output-on-failure
-#          - name: On_Failure_print_logs
-#            if: ${{ failure() }}
-#            run: |
-#                 type $env:temp/open-license.log
     - name: Package
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       if: ${{ (matrix.os == 'ubuntu-26.04' || matrix.os == 'ubuntu-24.04-arm' ) && matrix.static == 'true' }}
