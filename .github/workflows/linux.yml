@@ -16,13 +16,13 @@ jobs:
         build_type: [Debug,Release]
         cpp_compiler: [g++, clang++]
         static: ["true","false"] #after just stick to static for lccgen.
-        code_coverage: [OFF]
+        code_coverage: ["OFF"]
         include:
         - os: ubuntu-24.04-arm
           build_type: "Release"
           static: "TRUE"
           cpp_compiler: g++
-          code_coverage: OFF
+          code_coverage: "OFF"
         - os: ubuntu-24.04
           build_type: "Debug"
           static: "FALSE"
@@ -58,7 +58,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
         -DSTATIC_RUNTIME:BOOL=${{matrix.static}} --install-prefix /usr/bin
-        -DCODE_COVERAGE={{ matrix.code_coverage}}
+        -DCODE_COVERAGE={{ matrix.code_coverage }}
     - name: Build
       # Build your program with the given configuration. 
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
