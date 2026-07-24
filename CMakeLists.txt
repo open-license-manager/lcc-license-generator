@@ -13,7 +13,7 @@ SET(LICENSECC_SHORT_LICENSE "BSD Software License")
 project (lccgen VERSION 2.1.0 LANGUAGES CXX)
 set(PROJECT_DESCRIPTION "License generator for licensecc")
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
@@ -28,10 +28,7 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT
 	SET(CMAKE_CROSSCOMPILING_EMULATOR "wine")	
 ENDIF()
 
-IF(NOT DEFINED STATIC_RUNTIME)
-	SET(STATIC_RUNTIME FALSE CACHE BOOL "Compile a static executable or a dynamic linked one")
-	MARK_AS_ADVANCED(STATIC_RUNTIME)
-ENDIF(NOT DEFINED STATIC_RUNTIME)
+option(STATIC_RUNTIME "ompile a static executable or a dynamic linked one" ON)
 message( STATUS "Static linking            : ${STATIC_RUNTIME}")
 
 
@@ -106,11 +103,14 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		
 		#cmake > 3.15 handle the /MD flag more nicely than this
 		if(STATIC_RUNTIME)
-			string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-			string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-			string(REPLACE "/MDd" "/MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
-			string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-			#SET(Boost_USE_STATIC_RUNTIME ON)
+		#	string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+		#	string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+		#	string(REPLACE "/MDd" "/MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+		#	string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+		#	#SET(Boost_USE_STATIC_RUNTIME ON)
+			unset(CMAKE_DL_LIBS)
+			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
+			SET(CMAKE_EXE_LINKER_FLAGS "-static")
 		endif(STATIC_RUNTIME)
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
 		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi")
@@ -134,12 +134,13 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
     message(STATUS "Compiler architecture: ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
 endif()
 
-#SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) #doesn't work well in Linux... 
-SET	(Boost_USE_STATIC_LIBS ON )
+#SET (Boost_NO_BOOST_CMAKE ON)
+SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) #doesn't work well in Linux... 
+#SET	(Boost_USE_STATIC_LIBS ON )
 find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options unit_test_framework OPTIONAL_COMPONENTS system)
 
 #set below in case of dynamic linking in debug.
-#set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:BOOST_TEST_DYN_LINK>)
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:BOOST_TEST_DYN_LINK>)
 add_definitions(-DBOOST_ALL_NO_LIB) #Disable Boost Microsoft magic, all dependencies are handled by cmake
 #add_definitions(-DBOOST_LIB_DIAGNOSTIC) #Check it is really disabled
 include_directories(${Boost_INCLUDE_DIRS}) 

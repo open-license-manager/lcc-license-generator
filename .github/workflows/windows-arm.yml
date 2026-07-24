@@ -34,12 +34,12 @@ jobs:
          continue-on-error: true
          run: |
            dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}
-           dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/bin
            dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/lib
-           dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/lib/manual-link
            dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/Debug/bin
            get-content ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/share/boost/BoostConfig.cmake
            dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/share/boost
+           dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/bin
+           dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/lib/manual-link
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
@@ -66,17 +66,15 @@ jobs:
            dir ${{ github.workspace }}\install\bin
            ${{ github.workspace }}\install\bin\lccgen.exe project list
 
-   windows-cross-compile:
-      name: 'win_64_arm64'
-      runs-on: 'windows-2025'
+   windows-boost-build:
+      name: 'build win'
+      runs-on: ${{ matrix.os }}
       strategy:
          fail-fast: false
          matrix:
-           static: ["TRUE", "FALSE"]
-           build_type: ["Debug","Release"]
+           static: ["TRUE"]
+           build_type: ["Release"]
            os: ["windows-11-arm"]
-           target_triple: ["arm64-windows-static-md", "arm64-windows", "arm-windows-static", "arm64-windows-static-release", "arm64-windows-static"]
-
       steps:
       -  uses: actions/checkout@v6
       -  name: Set reusable strings
@@ -85,37 +83,29 @@ jobs:
          shell: bash
          run: |
             echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
-      - name: Setup MSVC Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64_arm64
-      #Setup vcpkg and leverage automatic GitHub Actions Binary Cache
-      -  uses: johnwason/vcpkg-action@v8
+      -  name: Build Boost
+         id: boost
+         uses: egor-tensin/build-boost@v2
          with:
-          pkgs: boost-program-options boost-test boost-filesystem boost-date-time
-          #manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
-          triplet: ${{ matrix.target_triple }}
-          token: ${{ github.token }}
-      -  name: boost libs
-         continue-on-error: true
+          version: 1.90.0
+          libraries: filesystem program_options system unit_test
+          platform: x64
+          configuration: Release
+          static: 1
+          static_runtime: 1
+
+      -  name: Show paths
          run: |
-           dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}
-           dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/bin
-           dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/lib
-           dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/lib/manual-link
-           dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/Debug/bin
-           get-content ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/share/boost/BoostConfig.cmake
-           dir ${{ github.workspace }}/vcpkg/installed/${{ matrix.target_triple }}/share/boost
+               printf 'Boost was installed here: %s\n' '${{ steps.boost.outputs.install_dir }}'
+               printf 'Boost was unpacked to: %s\n' '${{ steps.boost.outputs.root }}'
+         shell: bash
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
             cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
-            -DUSE_OPENSSL=FALSE 
-            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" 
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.target_triple }}
-            
+            -DUSE_OPENSSL=FALSE -DBoost_ROOT=${{ steps.boost.outputs.install_dir }}
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
@@ -131,6 +121,5 @@ jobs:
          run: |
            dir ${{ github.workspace }}\install\bin
            ${{ github.workspace }}\install\bin\lccgen.exe project list
-
 
 
