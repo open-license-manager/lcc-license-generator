@@ -11,21 +11,21 @@ jobs:
       strategy:
         fail-fast: true
         matrix:
-          static: ["TRUE", "FALSE"]
+          static: ["TRUE"] #keep just static for now
           #build_type: ["Debug", "Release"]
-          build_type: ["Debug"]
+          build_type: ["Release"]
           os: ["windows-2025", "windows-2022"]
           boost_version: [1.90.0]
           boost_msvc_version: [14.3]
           #openssl_version: ["None", "1.1.1.2100", "3.1.1", "4.0.1"]
-          openssl_version: ["None", "1.1.1.2100", "4.0.1"]
+          openssl_version: ["None", "3.1.1", "4.0.1"]
           
           include:
           - os: windows-2025
             boost_version: 1.64.0
             openssl_version: 1.1.1.2100
-            build_type: "Release"
-            static: "TRUE"
+            build_type: "Debug"
+            static: "FALSE"
             boost_msvc_version: 14.1
 
       steps:

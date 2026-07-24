@@ -31,3 +31,4 @@ build/*
 out
 /install
 /scripts/boost.exe
+/vcpkg_installed

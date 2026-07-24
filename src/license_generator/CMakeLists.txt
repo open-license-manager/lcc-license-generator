@@ -31,6 +31,7 @@ endif(CODE_COVERAGE AND UNIX)
 add_executable(lccgen open-license-main.cpp)
 add_executable(license_generator::lccgen ALIAS lccgen)
 target_link_libraries(lccgen PRIVATE license_generator_lib)
+set_target_properties(lccgen PROPERTIES VERSION ${PROJECT_VERSION})
 
 #install instructions
 install(TARGETS lccgen EXPORT license_generator RUNTIME DESTINATION bin)
