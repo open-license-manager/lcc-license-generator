@@ -16,7 +16,7 @@ else(UNIX)
 			OpenSSL::Crypto ${EXTERNAL_LIBS})
 	else(OpenSSL_FOUND)
 		target_link_libraries(license_generator_lib PUBLIC
-			     ${Boost_LIBRARIES} ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
+			    Boost::date_time Boost::filesystem Boost::program_options Boost::unit_test_framework Boost::system ${CMAKE_DL_LIBS})
 	endif(OpenSSL_FOUND)
 ENDIF(UNIX)
 
