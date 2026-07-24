@@ -108,11 +108,11 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		#	string(REPLACE "/MDd" "/MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 		#	string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 		#	#SET(Boost_USE_STATIC_RUNTIME ON)
-		#    add_compile_options(
-        #		$<$<CONFIG:>:/MT> #---------|
-        #		$<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
-       	# 		$<$<CONFIG:Release>:/MT> #--|
-    	#	)
+		    add_compile_options(
+        		$<$<CONFIG:>:/MT> #---------|
+        		$<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
+       	 		$<$<CONFIG:Release>:/MT> #--|
+    		)
 			unset(CMAKE_DL_LIBS)
 			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
 		endif(STATIC_RUNTIME)

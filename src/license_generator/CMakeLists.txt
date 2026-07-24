@@ -18,8 +18,6 @@ else(UNIX)
 		target_link_libraries(license_generator_lib PUBLIC
 			     ${Boost_LIBRARIES} ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
 	endif(OpenSSL_FOUND)
-	set_property(TARGET license_generator_lib PROPERTY
-             MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 ENDIF(UNIX)
 
 if(CODE_COVERAGE AND UNIX)
@@ -34,8 +32,7 @@ add_executable(lccgen open-license-main.cpp)
 add_executable(license_generator::lccgen ALIAS lccgen)
 target_link_libraries(lccgen PRIVATE license_generator_lib)
 set_target_properties(lccgen PROPERTIES VERSION ${PROJECT_VERSION})
-set_property(TARGET lccgen PROPERTY
-             MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 #install instructions
 install(TARGETS lccgen EXPORT license_generator RUNTIME DESTINATION bin)
 
