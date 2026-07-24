@@ -6,15 +6,14 @@ on:
     branches: [ "develop" ]
 jobs:
    windows-arm:
-      name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }} ${{ matrix.target_triple }}'
+      name: '${{ matrix.os }}, build: ${{ matrix.build_type }} STATIC ${{ matrix.target_triple }}'
       runs-on: ${{ matrix.os }}
       strategy:
         fail-fast: false
         matrix:
-          static: ["TRUE", "FALSE"]
           build_type: ["Debug","Release"]
           os: ["windows-11-arm"]
-          target_triple: ["arm64-windows-static-md", "arm64-windows", "arm-windows-static", "arm64-windows-static-release", "arm64-windows-static"]
+          target_triple: ["arm64-windows-static-md", "arm64-windows", "arm64-windows-static-release", "arm64-windows-static"]
       steps:
       -  uses: actions/checkout@v6
       -  name: Set reusable strings
@@ -44,125 +43,10 @@ jobs:
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
             cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-            -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
+            -DSTATIC_RUNTIME:BOOL=TRUE -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
             -DUSE_OPENSSL=FALSE -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" 
             -DVCPKG_TARGET_TRIPLET=${{ matrix.target_triple }}
-            
-#-DBoost_ROOT=${{ github.workspace }}/vcpkg/installed/arm64-windows -DBOOST_LIBRARYDIR=${{ github.workspace }}/vcpkg/installed/arm64-windows/lib -DBoost_USE_STATIC_LIBS=ON  -DBoost_USE_MULTITHREADED=ON -DBoost_ARCHITECTURE=a64 
-      -  name: Compile
-         working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         run: >
-            cmake --build ${{ steps.strings.outputs.build-output-dir }} --target install --config ${{ matrix.build_type }}
-      -  name: Test
-         working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         run: |
-            ctest -C ${{ matrix.build_type }} --test-dir ${{ steps.strings.outputs.build-output-dir }} --output-on-failure
-         env:
-            CTEST_OUTPUT_ON_FAILURE: 1
-            BOOST_TEST_LOG_LEVEL: message
-      -  name: license generator
-         run: |
-           dir ${{ github.workspace }}\install\bin
-           ${{ github.workspace }}\install\bin\lccgen.exe project list
-
-   windows-boost-cache:
-      name: 'build boost and cache'
-      runs-on: "windows-11-arm"
-      steps:
-      -  uses: actions/checkout@v6
-      -  name: Set reusable strings
-         #Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
-         id: strings
-         shell: bash
-         run: |
-            echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
-      
-      -  name: Cache Boost Build
-         id: cache-boost
-         uses: actions/cache@v3
-         env:
-            cache-name: cache-boost-build
-         with:
-            path: |
-               ${{ github.workspace }}/boost-install
-            key: boost-190-static-windows-arm64-v1
-            restore-keys: |
-               boost-190-static-windows-arm64-v1-
-      
-      -  name: Download and Extract Boost
-         if: ${{ steps.cache-boost.outputs.cache-hit != 'true' }}
-         shell: bash
-         run: |
-            # Download Boost source (adjust version as needed)
-            curl -L -o boost_1_90_0.zip https://github.com/boostorg/boost/releases/download/boost-1.90.0/boost-1.90.0-b2-nodocs.zip
-            mkdir -p boost-src
-            unzip boost_1_90_0.zip -d boost-src
-            mv boost-src/boost_1_90_0/* ${{ github.workspace }}/boost
-            rm -rf boost-src boost_1_90_0.zip
-      
-      -  name: Bootstrap Boost
-         if: ${{ steps.cache-boost.outputs.cache-hit != 'true' }}
-         working-directory: ${{ github.workspace }}/boost
-         run: |
-            bootstrap.bat
-         
-      -  name: Build Boost Libraries
-         if: ${{ steps.cache-boost.outputs.cache-hit != 'true' }}
-         working-directory: ${{ github.workspace }}/boost
-         run: |
-            .\b2 -j8 --toolset=msvc-14.3 --address-model=64 --runtime-link=static --link=static --with-test --with-filesystem --with-program_options --with-date_time install --prefix=${{ github.workspace }}/boost-install
-  
-      #-  name: Copy Boost Headers and Libraries
-      #   if: ${{ steps.cache-boost.outputs.cache-hit != 'true' }}
-      #   run: |
-      #      mkdir -p ${{ github.workspace }}/boost-install/include
-      #      mkdir -p ${{ github.workspace }}/boost-install/lib
-      #      cp -r ${{ github.workspace }}/boost/boost/* ${{ github.workspace }}/boost-install/include/
-      #      cp -r ${{ github.workspace }}/boost-build/lib/* ${{ github.workspace }}/boost-install/lib/
-         
-   windows-use-cache:
-      name: 'build win'
-      runs-on: ${{ matrix.os }}
-      needs: windows-boost-cache
-      strategy:
-         fail-fast: false
-         matrix:
-           static: ["TRUE"]
-           build_type: ["Release"]
-           os: ["windows-11-arm"]
-      steps:
-      -  uses: actions/checkout@v6
-      -  name: Set reusable strings
-         #Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
-         id: strings
-         shell: bash
-         run: |
-            echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
-      
-      -  name: Restore Boost Build
-         id: restore-boost
-         uses: actions/cache@v3
-         env:
-            cache-name: cache-boost-build
-         with:
-            path: |
-               ${{ github.workspace }}/boost-install
-            key: boost-190-static-windows-arm64-v1
-            restore-keys: |
-               boost-190-static-windows-arm64-v1-
-      #check that we really restored boost from cache
-      -  name: Check cache hit
-         if: ${{ steps.restore-boost.outputs.cache-hit != 'true' }}
-         run: exit 1
-
-      -  name: Configure
-         working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         run: >
-            cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-            -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
-            -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
-            -DUSE_OPENSSL=FALSE -DBoost_ROOT=${{ github.workspace }}/boost-install
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >

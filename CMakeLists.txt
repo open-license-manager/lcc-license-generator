@@ -91,7 +91,7 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		add_definitions(-DHAS_OPENSSL)
 		include_directories(${OPENSSL_INCLUDE_DIR})
 		MESSAGE(STATUS "Openssl  (generator)      : ${OPENSSL_VERSION}")
-		MESSAGE(VERBOSE "Openssl  (lib)            : ${OPENSSL_CRYPTO_LIBRARY}")
+		MESSAGE(STATUS "Openssl  (lib)            : ${OPENSSL_CRYPTO_LIBRARY}")
 	ELSE(OpenSSL_FOUND) 
 		MESSAGE(STATUS "Openssl - generator       : not found - using windows cryptography.")
 	ENDIF(OpenSSL_FOUND)
@@ -108,9 +108,13 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		#	string(REPLACE "/MDd" "/MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 		#	string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 		#	#SET(Boost_USE_STATIC_RUNTIME ON)
+		#    add_compile_options(
+        #		$<$<CONFIG:>:/MT> #---------|
+        #		$<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
+       	# 		$<$<CONFIG:Release>:/MT> #--|
+    	#	)
 			unset(CMAKE_DL_LIBS)
 			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
-			#SET(CMAKE_EXE_LINKER_FLAGS "-static")
 		endif(STATIC_RUNTIME)
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
 		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi")
@@ -133,16 +137,15 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
     endif()
     message(STATUS "Compiler architecture: ${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
 endif()
-
-SET (Boost_NO_BOOST_CMAKE ON)
+#SET (Boost_NO_BOOST_CMAKE ON)
 #SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) #doesn't work well in Linux... 
-SET	(Boost_USE_STATIC_LIBS ${STATIC_RUNTIME} )
+SET (Boost_USE_STATIC_LIBS ${STATIC_RUNTIME} )
 find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options unit_test_framework OPTIONAL_COMPONENTS system)
 
 #set below in case of dynamic linking in debug.
 #set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:BOOST_TEST_DYN_LINK>)
 add_definitions(-DBOOST_ALL_NO_LIB) #Disable Boost Microsoft magic, all dependencies are handled by cmake
-#add_definitions(-DBOOST_LIB_DIAGNOSTIC) #Check it is really disabled
+add_definitions(-DBOOST_LIB_DIAGNOSTIC) #Check it is really disabled
 include_directories(${Boost_INCLUDE_DIRS}) 
 
 configure_file (
@@ -162,7 +165,6 @@ message( STATUS "Install prefix            : " ${CMAKE_INSTALL_PREFIX})
 message( STATUS "External libs             : " ${EXTERNAL_LIBS})
 message( STATUS "Boost libs                : " ${Boost_LIBRARIES})
 message( STATUS "Boost dirs                : " ${Boost_LIBRARY_DIRS})
-
 
 include_directories(${CMAKE_BINARY_DIR}/include)
 add_subdirectory("src/base_lib")
