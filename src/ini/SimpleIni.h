@@ -1996,7 +1996,7 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::SetLongValue(const 
 	// convert to output text
 	SI_CHAR szOutput[64];
 	SI_CONVERTER c(m_bStoreIsUtf8);
-	size_t input_size = min(strlen(szInput), sizeof(szOutput) / sizeof(SI_CHAR) - 1);
+	size_t input_size = std::min(strlen(szInput), sizeof(szOutput) / sizeof(SI_CHAR) - 1);
 
 	c.ConvertFromStore(szInput, strlen(szInput) + 1, szOutput, sizeof(szOutput) / sizeof(SI_CHAR));
 
