@@ -63,7 +63,7 @@ jobs:
       # Build your program with the given configuration. 
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: |
-           /usr/bin/cmake -B ${{ steps.strings.outputs.build-output-dir }} build 
+           /usr/bin/cmake --build ${{ steps.strings.outputs.build-output-dir }} -j $(nproc)
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
