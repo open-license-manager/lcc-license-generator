@@ -23,7 +23,7 @@ jobs:
           static: "TRUE"
           cpp_compiler: g++
           code_coverage: "OFF"
-        - os: ubuntu-24.04
+        - os: ubuntu-26.04
           build_type: "Debug"
           static: "FALSE"
           cpp_compiler: g++
@@ -90,7 +90,8 @@ jobs:
           lcov --list ${{ github.workspace }}/coverage.info # Optional: prints a quick summary in the GitHub Actions logs
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
+      continue-on-error: true
       with:
           file: ${{ github.workspace }}/coverage.info
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
