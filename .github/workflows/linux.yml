@@ -16,11 +16,19 @@ jobs:
         build_type: [Debug,Release]
         cpp_compiler: [g++, clang++]
         static: ["true","false"] #after just stick to static for lccgen.
+        code_coverage: [OFF]
         include:
         - os: ubuntu-24.04-arm
-          build_type: "Debug"
+          build_type: "Release"
           static: "TRUE"
           cpp_compiler: g++
+          code_coverage: OFF
+        - os: ubuntu-24.04
+          build_type: "Debug"
+          static: "FALSE"
+          cpp_compiler: g++
+          code_coverage: "ON"
+
     steps:
     - uses: actions/checkout@v6
     - name: Set reusable strings
@@ -32,7 +40,8 @@ jobs:
     - name: Dependencies
       run: >
           sudo apt-get -y install cmake valgrind libssl-dev zlib1g-dev libboost-test-dev libboost-filesystem-dev 
-          libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libboost-date-time-dev 
+          libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libboost-date-time-dev
+          rpm
       # Install extra deps for ubuntu 26-04 (and add valgrind and coverage tests)
     - name: Extra Dependecies Ubuntu 26.04
       if: ${{ matrix.os == 'ubuntu-26.04' }}
@@ -48,12 +57,13 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
-        -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
+        -DSTATIC_RUNTIME:BOOL=${{matrix.static}} --install-prefix /usr/bin
+        -DCODE_COVERAGE={{ matrix.code_coverage}}
     - name: Build
       # Build your program with the given configuration. 
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: |
-           /usr/bin/cmake --build ${{ steps.strings.outputs.build-output-dir }} --target install --config ${{ matrix.build_type }}
+           /usr/bin/cmake --build ${{ steps.strings.outputs.build-output-dir }} --target build --config ${{ matrix.build_type }}
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
@@ -65,7 +75,26 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-26.04' && matrix.static == 'false' }}
       run: >
           ctest -T memcheck --output-on-failure
-    - name: On_Failure_print_logs
-      if: ${{ failure() }}
+#          - name: On_Failure_print_logs
+#            if: ${{ failure() }}
+#            run: |
+#                 type $env:temp/open-license.log
+    - name: Package
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      if: ${{ (matrix.os == 'ubuntu-26.04' || matrix.os == 'ubuntu-24.04-arm' ) && matrix.static == 'true' }}
       run: |
-           type $env:temp/open-license.log
+          cpack --config ${{ steps.strings.outputs.build-output-dir }}/CPackConfig.cmake
+          cpack --config ${{ steps.strings.outputs.build-output-dir }}/CPackSourceConfig.cmake
+    - name: Filter Coverage
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      if: ${{ matrix.code_coverage == 'ON' }}
+      run: | 
+          lcov --directory . --capture --output-file ${{ github.workspace }}/coverage.info
+          lcov --remove ${{ github.workspace }}/coverage.info '/usr/*' '*/ini/*' '*/test/*' '${{ github.workspace }}/build/*' --output-file coverage.info
+          lcov --list ${{ github.workspace }}/coverage.info # Optional: prints a quick summary in the GitHub Actions logs
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+          file: ${{ github.workspace }}/coverage.info
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
