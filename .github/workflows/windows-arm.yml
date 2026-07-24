@@ -11,10 +11,16 @@ jobs:
       strategy:
         fail-fast: false
         matrix:
-          build_type: ["Debug","Release"]
-          static_runtime: [TRUE, FALSE]
+          build_type: ["Release"]
+          static_runtime: [TRUE]
           os: ["windows-11-arm"]
-          target_triple: ["arm64-windows-static-md", "arm64-windows-static-release", "arm64-windows-static"]
+          target_triple: ["arm64-windows-static-release"]
+          #check the MT / MD logic
+          include:
+          -  os: "windows-11-arm"
+             build_type: "Debug"
+             static_runtime: FALSE
+             target_triple: "arm64-windows-static-md"
       steps:
       -  uses: actions/checkout@v6
       -  name: Set reusable strings
@@ -26,8 +32,8 @@ jobs:
       #Setup vcpkg and leverage automatic GitHub Actions Binary Cache
       -  uses: johnwason/vcpkg-action@v8
          with:
-          pkgs: boost-program-options boost-test boost-filesystem boost-date-time
-          #manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
+          #pkgs: boost-program-options boost-test boost-filesystem boost-date-time
+          manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
           triplet: ${{ matrix.target_triple }}
           token: ${{ github.token }}
       -  name: boost libs

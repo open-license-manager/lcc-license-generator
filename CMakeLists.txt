@@ -12,7 +12,7 @@ SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 SET(LICENSECC_SHORT_LICENSE "BSD Software License")
 
 project (lccgen VERSION 2.1.0 LANGUAGES CXX)
-set(PROJECT_DESCRIPTION "License generator for licensecc")
+set(PROJECT_DESCRIPTION )
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,7 +33,7 @@ IF( ( CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" ) AND CMAKE_CROSSCOMPILING AND NOT
 ENDIF()
 
 option(STATIC_RUNTIME "Compile a static executable or a dynamic linked one" ON)
-message( STATUS "Static linking            : ${STATIC_RUNTIME}")
+message( STATUS "Static   runtime            : ${STATIC_RUNTIME}")
 
 #always prefer static linked version of the libraries.
 SET (OPENSSL_USE_STATIC_LIBS ON)
@@ -105,24 +105,11 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		#include(target_arch)
 		#target_architecture( TARGET_ARCHITECTURE )
 		#message(STATUS "architecture detected     : ${TARGET_ARCHITECTURE}")
-		
-		#cmake > 3.15 handle the /MD flag more nicely than this
 		if(${STATIC_RUNTIME})
-		#	string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-		#	string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-		#	string(REPLACE "/MDd" "/MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
-		#	string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 			SET(Boost_USE_STATIC_RUNTIME ON)
-
-			message( STATUS "Option set")
-		    #add_compile_options(
-        	#	$<$<CONFIG:>:/MT> #---------|
-        	#	$<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
-       	 	#	$<$<CONFIG:Release>:/MT> #--|
-    		#)
 			unset(CMAKE_DL_LIBS)
 			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
-		ELSE()
+		ELSE(${STATIC_RUNTIME})
 			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE INTERNAL "")
 		endif(${STATIC_RUNTIME})
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
@@ -148,7 +135,6 @@ if(WIN32 AND "x${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "x")
 endif()
 
 #SET (Boost_NO_BOOST_CMAKE ON)
-#SET (Boost_USE_STATIC_RUNTIME ${STATIC_RUNTIME}) #doesn't work well in Linux... 
 find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options unit_test_framework OPTIONAL_COMPONENTS system)
 
 #set below in case of dynamic linking in debug.
