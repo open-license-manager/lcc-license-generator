@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 ## configuration variables
 ## USE_OPENSSL: Enable/Disable OpenSSL support. If disabled, the generator will use Windows Crypto API on Windows and will fail to compile on Linux.
@@ -102,12 +102,14 @@ else(UNIX) #windows and linux crosscompiling for windows target
 		#message(STATUS "architecture detected     : ${TARGET_ARCHITECTURE}")
 		
 		#cmake > 3.15 handle the /MD flag more nicely than this
-		if(STATIC_RUNTIME)
+		if(${STATIC_RUNTIME})
 		#	string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 		#	string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 		#	string(REPLACE "/MDd" "/MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 		#	string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-		#	#SET(Boost_USE_STATIC_RUNTIME ON)
+			SET(Boost_USE_STATIC_RUNTIME ON)
+
+			message( STATUS "Option set")
 		    add_compile_options(
         		$<$<CONFIG:>:/MT> #---------|
         		$<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
@@ -115,7 +117,7 @@ else(UNIX) #windows and linux crosscompiling for windows target
     		)
 			unset(CMAKE_DL_LIBS)
 			set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
-		endif(STATIC_RUNTIME)
+		endif(${STATIC_RUNTIME})
 		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
 		list(APPEND EXTERNAL_LIBS "bcrypt" "crypt32" "ws2_32" "iphlpapi")
 	else(MSVC)
