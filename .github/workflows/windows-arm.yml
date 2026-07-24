@@ -5,15 +5,16 @@ on:
   pull_request:
     branches: [ "develop" ]
 jobs:
-   build-windows:
-      name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }} ssl: ${{ matrix.openssl_version }} boost: ${{ matrix.boost_version }}'
+   windows-arm:
+      name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }} ${{ matrix.target_triple }}'
       runs-on: ${{ matrix.os }}
       strategy:
         fail-fast: true
         matrix:
-          static: ["TRUE"]
+          static: ["FALSE"]
           build_type: ["Release"]
           os: ["windows-11-arm"]
+          target_triple: ["arm64-windows-static", "arm64-windows-static-release", "arm64-windows-static-release-md"]
       steps:
       -  uses: actions/checkout@v6
       -  name: Set reusable strings
@@ -22,6 +23,63 @@ jobs:
          shell: bash
          run: |
             echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
+      #Setup vcpkg and leverage automatic GitHub Actions Binary Cache
+      -  uses: johnwason/vcpkg-action@v8
+         with:
+          pkgs: boost-program-options boost-test boost-filesystem boost-date-time
+          #manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
+          triplet: ${{ matrix.target_triple }}
+          token: ${{ github.token }}
+      -  name: boost libs
+         run: |
+           dir ${{ github.workspace }}/vcpkg/installed/arm64-windows
+           dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/bin
+           dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/lib
+           dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/lib/manual-link
+           dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/Debug/bin
+           get-content ${{ github.workspace }}/vcpkg/installed/arm64-windows/share/boost/BoostConfig.cmake
+           dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/share/boost
+      -  name: Configure
+         working-directory: ${{ steps.strings.outputs.build-output-dir }}
+         run: >
+            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+            -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
+            -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
+            -DUSE_OPENSSL=FALSE -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" 
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.target_triple }}
+            
+#-DBoost_ROOT=${{ github.workspace }}/vcpkg/installed/arm64-windows -DBOOST_LIBRARYDIR=${{ github.workspace }}/vcpkg/installed/arm64-windows/lib -DBoost_USE_STATIC_LIBS=ON  -DBoost_USE_MULTITHREADED=ON -DBoost_ARCHITECTURE=a64 
+      -  name: Compile
+         working-directory: ${{ steps.strings.outputs.build-output-dir }}
+         run: >
+            cmake --build ${{ steps.strings.outputs.build-output-dir }} --target install --config ${{ matrix.build_type }}
+      -  name: Test
+         working-directory: ${{ steps.strings.outputs.build-output-dir }}
+         run: |
+            ctest -C ${{ matrix.build_type }} --test-dir ${{ steps.strings.outputs.build-output-dir }} --output-on-failure
+         env:
+            CTEST_OUTPUT_ON_FAILURE: 1
+            BOOST_TEST_LOG_LEVEL: message
+      -  name: license generator
+         run: |
+           dir ${{ github.workspace }}\install\bin
+           ${{ github.workspace }}\install\bin\lccgen.exe project list
+
+   windows-cross-compile:
+      name: 'win_64_arm64'
+      runs-on: 'windows-2025'
+      steps:
+      -  uses: actions/checkout@v6
+      -  name: Set reusable strings
+         #Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+         id: strings
+         shell: bash
+         run: |
+            echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
+      - name: Setup MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64_arm64
       #Setup vcpkg and leverage automatic GitHub Actions Binary Cache
       -  uses: johnwason/vcpkg-action@v8
          with:
@@ -37,17 +95,15 @@ jobs:
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/lib/manual-link
            dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/Debug/bin
            get-content ${{ github.workspace }}/vcpkg/installed/arm64-windows/share/boost/BoostConfig.cmake
-           del ${{ github.workspace }}/vcpkg/installed/arm64-windows/share/boost/BoostConfig.cmake
+           dir ${{ github.workspace }}/vcpkg/installed/arm64-windows/share/boost
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
             cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
-            -DUSE_OPENSSL=FALSE -DBoost_ROOT=${{ github.workspace }}/vcpkg/installed/arm64-windows 
-            -DBOOST_LIBRARYDIR=${{ github.workspace }}/vcpkg/installed/arm64-windows/lib -DBoost_USE_STATIC_LIBS=ON
-            -DBoost_USE_MULTITHREADED=ON -DBoost_ARCHITECTURE=a64
-      #-DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="arm64-windows"
+            -DUSE_OPENSSL=FALSE 
+            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="arm64-windows"
             
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
@@ -64,4 +120,6 @@ jobs:
          run: |
            dir ${{ github.workspace }}\install\bin
            ${{ github.workspace }}\install\bin\lccgen.exe project list
+
+
 
