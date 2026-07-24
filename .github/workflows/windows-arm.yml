@@ -66,62 +66,6 @@ jobs:
            dir ${{ github.workspace }}\install\bin
            ${{ github.workspace }}\install\bin\lccgen.exe project list
 
-   windows-boost-build:
-      name: 'build win boost'
-      runs-on: ${{ matrix.os }}
-      strategy:
-         fail-fast: false
-         matrix:
-           static: ["TRUE"]
-           build_type: ["Release"]
-           os: ["windows-11-arm"]
-      steps:
-      -  uses: actions/checkout@v6
-      -  name: Set reusable strings
-         #Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
-         id: strings
-         shell: bash
-         run: |
-            echo "build-output-dir=${{ github.workspace }}\build" >> "$GITHUB_OUTPUT"
-      -  name: Build Boost
-         id: boost
-         uses: egor-tensin/build-boost@v2
-         with:
-          version: 1.90.0
-          libraries: filesystem program_options unit_test
-          #platform: arm64 #x64
-          configuration: Release
-          static: 1
-          static-runtime: 1
-
-      -  name: Show paths
-         run: |
-               printf 'Boost was installed here: %s\n' '${{ steps.boost.outputs.install_dir }}'
-               printf 'Boost was unpacked to: %s\n' '${{ steps.boost.outputs.root }}'
-         shell: bash
-      -  name: Configure
-         working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         run: >
-            cmake -A ARM64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-            -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
-            -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
-            -DUSE_OPENSSL=FALSE -DBoost_ROOT=${{ steps.boost.outputs.install_dir }}
-      -  name: Compile
-         working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         run: >
-            cmake --build ${{ steps.strings.outputs.build-output-dir }} --target install --config ${{ matrix.build_type }}
-      -  name: Test
-         working-directory: ${{ steps.strings.outputs.build-output-dir }}
-         run: |
-            ctest -C ${{ matrix.build_type }} --test-dir ${{ steps.strings.outputs.build-output-dir }} --output-on-failure
-         env:
-            CTEST_OUTPUT_ON_FAILURE: 1
-            BOOST_TEST_LOG_LEVEL: message
-      -  name: license generator
-         run: |
-           dir ${{ github.workspace }}\install\bin
-           ${{ github.workspace }}\install\bin\lccgen.exe project list
-
    windows-boost-cache:
       name: 'build boost and cache'
       runs-on: "windows-11-arm"
@@ -148,9 +92,10 @@ jobs:
       
       -  name: Download and Extract Boost
          if: ${{ steps.cache-boost.outputs.cache-hit != 'true' }}
+         shell: bash
          run: |
             # Download Boost source (adjust version as needed)
-            curl -L -o boost_1_90_0.zip https://boostorg.jfrog.io/artifactory/main/release/1.90.0/source/boost_1_90_0.zip
+            curl -L -o boost_1_90_0.zip https://github.com/boostorg/boost/releases/download/boost-1.90.0/boost-1.90.0-b2-nodocs.zip
             mkdir -p boost-src
             unzip boost_1_90_0.zip -d boost-src
             mv boost-src/boost_1_90_0/* ${{ github.workspace }}/boost

@@ -12,11 +12,11 @@ if(UNIX)
 			     ${Boost_LIBRARIES} OpenSSL::Crypto ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
 else(UNIX)
   	if(OpenSSL_FOUND) #windows and openssl found
-		target_link_libraries(license_generator_lib PUBLIC ${Boost_LIBRARIES} 
-			OpenSSL::Crypto ${EXTERNAL_LIBS})
+		target_link_libraries(license_generator_lib PUBLIC 
+				${Boost_LIBRARIES} OpenSSL::Crypto ${EXTERNAL_LIBS} )
 	else(OpenSSL_FOUND)
 		target_link_libraries(license_generator_lib PUBLIC
-			    Boost::date_time Boost::filesystem Boost::program_options Boost::unit_test_framework Boost::system ${CMAKE_DL_LIBS})
+			      ${Boost_LIBRARIES} ${EXTERNAL_LIBS} ${CMAKE_DL_LIBS})
 	endif(OpenSSL_FOUND)
 ENDIF(UNIX)
 
