@@ -32,7 +32,7 @@ static const unordered_set<string> NO_OUTPUT_PARAM = {
 const std::string formats[] = {"%4u-%2u-%2u", "%4u/%2u/%2u", "%4u%2u%2u"};
 const size_t formats_n = 3;
 
-static const string normalize_date(const std::string &sDate) {
+static const string normalize_date(const std::string& sDate) {
 	if (sDate.size() < 8) throw invalid_argument("Date string too small for known formats");
 	unsigned int year, month, day;
 	bool found = false;
@@ -49,7 +49,7 @@ static const string normalize_date(const std::string &sDate) {
 	return oss.str();
 }
 
-static const string normalize_project_path(const string &project_path) {
+static const string normalize_project_path(const string& project_path) {
 	const fs::path rproject_path(project_path);
 	if (!fs::exists(rproject_path) || !fs::is_directory(rproject_path)) {
 		throw logic_error("Path " + project_path + " doesn't exist or is not a directory.");
@@ -66,7 +66,7 @@ static const string normalize_project_path(const string &project_path) {
 	return normalized.string();
 }
 
-static void create_license_path(const string &license_file_name) {
+static void create_license_path(const string& license_file_name) {
 	const fs::path license_name(license_file_name);
 	fs::path parentPath = license_name.parent_path();
 	if (!parentPath.empty()) {
@@ -81,7 +81,7 @@ static void create_license_path(const string &license_file_name) {
 	}
 }
 
-static const string print_for_sign(const string &feature_name, const CSimpleIniA::TKeyVal *section) {
+static const string print_for_sign(const string& feature_name, const CSimpleIniA::TKeyVal* section) {
 	stringstream buf;
 	buf << boost::to_upper_copy(feature_name);
 	for (auto it = section->begin(); it != section->end(); it++) {
@@ -93,7 +93,7 @@ static const string print_for_sign(const string &feature_name, const CSimpleIniA
 	return buf.str();
 }
 
-License::License(const std::string *licenseName, const std::string &project_folder, bool base64)
+License::License(const std::string* licenseName, const std::string& project_folder, bool base64)
 	: m_base64(base64), m_license_fname(licenseName), m_project_folder(normalize_project_path(project_folder)) {
 	fs::path proj_folder(m_project_folder);
 	// default feature = project name
@@ -103,7 +103,7 @@ License::License(const std::string *licenseName, const std::string &project_fold
 
 void License::write_license() {
 	ofstream license_stream;
-	ostream *output_license;
+	ostream* output_license;
 	CSimpleIniA ini;
 	if (m_license_fname == nullptr) {
 		output_license = &cout;
@@ -138,7 +138,7 @@ void License::write_license() {
 		for (auto it : values_map) {
 			ini.SetValue(feature.c_str(), it.first.c_str(), it.second.c_str());
 		}
-		const CSimpleIniA::TKeyVal *section = ini.GetSection(feature.c_str());
+		const CSimpleIniA::TKeyVal* section = ini.GetSection(feature.c_str());
 		string license_for_sign = print_for_sign(feature, section);
 		const string signature = crypto->signString(license_for_sign);
 		ini.SetValue(feature.c_str(), LICENSE_SIGNATURE, signature.c_str());
@@ -148,7 +148,7 @@ void License::write_license() {
 
 // TODO better validation on the input parameters
 // TODO, split this code in multiple classes
-void License::add_parameter(const std::string &param_name, const std::string &param_value) {
+void License::add_parameter(const std::string& param_name, const std::string& param_value) {
 	if (NO_OUTPUT_PARAM.find(param_name) == NO_OUTPUT_PARAM.end()) {
 		if (param_name.find("date") != std::string::npos || param_name.find(PARAM_EXPIRY_DATE) != std::string::npos ||
 			param_name.find(PARAM_BEGIN_DATE) != std::string::npos) {

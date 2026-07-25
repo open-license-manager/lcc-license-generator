@@ -240,5 +240,49 @@ BOOST_AUTO_TEST_CASE(init_project_key_size_wrong) {
 	BOOST_CHECK_MESSAGE(stdout_str.find("rror") != string::npos && stdout_str.find("key") != string::npos,
 						"error was print out " + stdout_str);
 }
+
+BOOST_AUTO_TEST_CASE(version_command_default) {
+	int argc = 2;
+	const char* argv1[] = {"lcc", "version"};
+	boost::test_tools::output_test_stream output;
+	{
+		cout_redirect guard(output.rdbuf());
+		int result = CommandLineParser::parseCommandLine(argc, argv1);
+		BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
+	}
+	string stdout_str = output.str();
+	BOOST_CHECK_MESSAGE(stdout_str.find(PROJECT_VERSION) != string::npos,
+						"Default version command should output PROJECT_VERSION: " + stdout_str);
+}
+
+BOOST_AUTO_TEST_CASE(version_command_numeric) {
+	int argc = 3;
+	const char* argv1[] = {"lcc", "version", "--numeric"};
+	boost::test_tools::output_test_stream output;
+	{
+		cout_redirect guard(output.rdbuf());
+		int result = CommandLineParser::parseCommandLine(argc, argv1);
+		BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
+	}
+	string stdout_str = output.str();
+	// Convert PROJECT_INT_VERSION to string for comparison
+	string expected_version = std::to_string(PROJECT_INT_VERSION);
+	BOOST_CHECK_MESSAGE(stdout_str.find(expected_version) != string::npos,
+						"Numeric version command should output PROJECT_INT_VERSION: " + stdout_str);
+}
+
+BOOST_AUTO_TEST_CASE(version_command_help) {
+	int argc = 3;
+	const char* argv1[] = {"lcc", "version", "--help"};
+	boost::test_tools::output_test_stream output;
+	{
+		cout_redirect guard(output.rdbuf());
+		int result = CommandLineParser::parseCommandLine(argc, argv1);
+		BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
+	}
+	string stdout_str = output.str();
+	BOOST_CHECK_MESSAGE(stdout_str.find("numeric") != string::npos,
+						"Version help should mention the numeric option: " + stdout_str);
+}
 }  // namespace test
 }  // namespace license
