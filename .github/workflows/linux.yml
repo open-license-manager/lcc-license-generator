@@ -92,7 +92,7 @@ jobs:
       if: ${{ matrix.code_coverage == 'ON' }}
       run: | 
           lcov --ignore-errors mismatch,inconsistent --directory . --capture --output-file ${{ steps.strings.outputs.build-output-dir }}/coverage.info
-          lcov --ignore-errors mismatch,inconsistent --remove ${{ github.workspace }}/coverage.info '/usr/*' '*/ini/*' '*/test/*' '*/inja/*' --output-file '${{ steps.strings.outputs.build-output-dir }}/coverage.info'
+          lcov --ignore-errors mismatch,inconsistent --remove ${{ steps.strings.outputs.build-output-dir }}/coverage.info '/usr/*' '*/ini/*' '*/test/*' '*/inja/*' --output-file '${{ steps.strings.outputs.build-output-dir }}/coverage.info'
           lcov --list ${{ steps.strings.outputs.build-output-dir }}/coverage.info # Optional: prints a quick summary in the GitHub Actions logs
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
