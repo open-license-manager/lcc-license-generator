@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }}'
+    name: '${{ matrix.os }}, build:${{ matrix.build_type }}, static:${{ matrix.static }}, ccov:${{ matrix.code_coverage }}'
     strategy:
       fail-fast: true
       matrix:
@@ -17,6 +17,12 @@ jobs:
         cpp_compiler: [g++, clang++]
         static: ["true","false"] #after just stick to static for lccgen.
         code_coverage: ["OFF"]
+        exclude:
+        - os: ubuntu-26.04
+          build_type: "Debug"
+          static: "FALSE"
+          cpp_compiler: g++
+          code_coverage: "OFF"         
         include:
         - os: ubuntu-24.04-arm
           build_type: "Release"
@@ -85,14 +91,15 @@ jobs:
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       if: ${{ matrix.code_coverage == 'ON' }}
       run: | 
-          lcov --ignore-errors mismatch,inconsistent --directory . --capture --output-file ${{ github.workspace }}/coverage.info
-          lcov --ignore-errors mismatch,inconsistent --remove ${{ github.workspace }}/coverage.info '/usr/*' '*/ini/*' '*/test/*' --output-file '${{ github.workspace }}/coverage.info'
-          lcov --ignore-errors mismatch,inconsistent --list ${{ github.workspace }}/coverage.info # Optional: prints a quick summary in the GitHub Actions logs
+          lcov --ignore-errors mismatch,inconsistent --directory . --capture --output-file ${{ steps.strings.outputs.build-output-dir }}/coverage.info
+          lcov --ignore-errors mismatch,inconsistent --remove ${{ github.workspace }}/coverage.info '/usr/*' '*/ini/*' '*/test/*' '*/inja/*' --output-file '${{ steps.strings.outputs.build-output-dir }}/coverage.info'
+          lcov --list ${{ steps.strings.outputs.build-output-dir }}/coverage.info # Optional: prints a quick summary in the GitHub Actions logs
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
       continue-on-error: true
       if: ${{ matrix.code_coverage == 'ON' }}
       with:
-          file: ${{ github.workspace }}/coverage.info
+          file: ${{ steps.strings.outputs.build-output-dir }}/coverage.info
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+          slug: 'open-license-manager/lcc-license-generator'
