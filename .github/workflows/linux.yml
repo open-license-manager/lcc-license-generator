@@ -83,10 +83,19 @@ jobs:
           ctest -T memcheck --output-on-failure
     - name: Package
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      if: ${{ (matrix.os == 'ubuntu-26.04' || matrix.os == 'ubuntu-24.04-arm' ) && matrix.static == 'true' }}
+      if: ${{  (matrix.os == 'ubuntu-26.04' || matrix.os == 'ubuntu-24.04-arm' ) && matrix.static == 'true' && matrix.build_type == 'Release' }}
       run: |
           cpack --config ${{ steps.strings.outputs.build-output-dir }}/CPackConfig.cmake
           cpack --config ${{ steps.strings.outputs.build-output-dir }}/CPackSourceConfig.cmake
+
+    - name: Upload artifact ARM/x64
+      uses: actions/upload-artifact@v7
+      if: ${{ (matrix.os == 'ubuntu-26.04' || matrix.os == 'ubuntu-24.04-arm' ) && matrix.static == 'true' && matrix.build_type == 'Release' && matrix.cpp_compiler == 'g++' }}
+      with:
+        name: artifacts-${{ matrix.os }}
+        path: ${{ steps.strings.outputs.build-output-dir }}/dist
+        retention-days: 1
+        overwrite: true
     - name: Filter Coverage
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       if: ${{ matrix.code_coverage == 'ON' }}
