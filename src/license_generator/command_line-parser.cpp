@@ -41,15 +41,16 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 using namespace std;
 
-static void printHelpHeader(const char *prog_name) {
+static void printHelpHeader(const char* prog_name) {
 	cout << endl;
 	cout << fs::path(prog_name).filename().string() << " Version " << PROJECT_VERSION << ". Usage:" << endl;
 }
 
-static void printBasicHelp(const char *prog_name) {
+static void printBasicHelp(const char* prog_name) {
 	printHelpHeader(prog_name);
 	cout << fs::path(prog_name).filename().string() << " [command] [options]" << endl;
-	cout << " available commands: \"project initialize\", \"project list\", \"license issue\", \"license list\""
+	cout << " available commands: \"project initialize\", \"project list\", \"license issue\", \"license list\", "
+			"\"version\""
 		 << endl;
 	cout << " to see help on specific command options type: " << prog_name << " [command] --help" << endl << endl;
 }
@@ -58,9 +59,9 @@ CommandLineParser::CommandLineParser() {}
 
 CommandLineParser::~CommandLineParser() {}
 
-static bool rerunBoostPO(const po::parsed_options &parsed, const po::options_description &project_desc,
-						 po::variables_map &vm, const char **argv, const std::string &command_for_logging,
-						 const po::options_description &global) {
+static bool rerunBoostPO(const po::parsed_options& parsed, const po::options_description& project_desc,
+						 po::variables_map& vm, const char** argv, const std::string& command_for_logging,
+						 const po::options_description& global) {
 	// Collect all the unrecognized options from the first pass. This will include the
 	// (positional) command name, so we need to erase that.
 	// Parse again...
@@ -72,7 +73,7 @@ static bool rerunBoostPO(const po::parsed_options &parsed, const po::options_des
 		try {
 			po::notify(vm);
 			cont = true;
-		} catch (std::exception &e) {
+		} catch (std::exception& e) {
 			printHelpHeader(argv[0]);
 			cout << argv[0] << command_for_logging << " [options]" << endl;
 			global.print(cout);
@@ -88,48 +89,49 @@ static bool rerunBoostPO(const po::parsed_options &parsed, const po::options_des
 	return cont;
 }
 
-static FUNCTION_RETURN initializeProject(const po::parsed_options &parsed, po::variables_map &vm, const char **argv,
-							  const po::options_description &global) {
+static FUNCTION_RETURN initializeProject(const po::parsed_options& parsed, po::variables_map& vm, const char** argv,
+										 const po::options_description& global) {
 	po::options_description project_desc("project init options");
 	std::string project_name;
 	boost::optional<std::string> primary_key;
 	boost::optional<std::string> public_key;
 	std::string project_folder;
 	std::string templates_folder;
-	unsigned int key_size = DEFAULT_RSA_KEY_BITS; 
-	project_desc.add_options()  //
+	unsigned int key_size = DEFAULT_RSA_KEY_BITS;
+	project_desc.add_options()	//
 		("project-name,n", po::value<std::string>(&project_name)->required(), "New project name (required).")  //
 		(PARAM_PRIMARY_KEY, po::value<boost::optional<std::string>>(&primary_key),
 		 "use externally generated primary key, public key must also be specified.")  //
 		("public-key", po::value<boost::optional<std::string>>(&public_key),
 		 "Use externally generated public key, private key must also be specified.")  //
-		("projects-folder,p", po::value<std::string>(&project_folder)->default_value("."),  //
+		("projects-folder,p", po::value<std::string>(&project_folder)->default_value("."),	//
 		 "path to where all the projects configurations are stored.")  //
 		("templates,t", po::value<std::string>(&templates_folder)->default_value("."),
 		 "path to the templates folder.")  //
 		("key-bits,k", po::value<unsigned int>(&key_size)->default_value(DEFAULT_RSA_KEY_BITS),
-		 "Size of the RSA key in bits (1024, 2048, or 4096). Default is 2048.")  //
+		 "Size of the RSA key in bits (1024, 2048, or 4096). Default is 2048.")	 //
 		("help", "Print this help.");  //
 	FUNCTION_RETURN result = FUNC_RET_ERROR;
 	if (rerunBoostPO(parsed, project_desc, vm, argv, "project init", global)) {
 		// Validate key size
 		if (key_size != 1024 && key_size != 2048 && key_size != 4096) {
-			cerr << "Error: Invalid --key-bits parameter [" << std::to_string(key_size) << "]. Valid values are 1024, 2048, or 4096.";
+			cerr << "Error: Invalid --key-bits parameter [" << std::to_string(key_size)
+				 << "]. Valid values are 1024, 2048, or 4096.";
 			return result;
 		}
-		
+
 		// cout << templates_folder.is_initialized() << endl;
 		Project project(project_name, project_folder, templates_folder);
 		result = project.initialize(key_size);
-	} 
+	}
 	return result;
 }
 
-static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm, const char **argv,
-						 const po::options_description &global) {
+static void issueLicense(const po::parsed_options& parsed, po::variables_map& vm, const char** argv,
+						 const po::options_description& global) {
 	po::options_description license_desc("license issue options");
 	string license_name;
-	string *license_name_ptr = nullptr;
+	string* license_name_ptr = nullptr;
 	string project_folder;
 	// string output;
 	unsigned int magic_num = 0;
@@ -165,8 +167,8 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 			license_name_ptr = &license_name;
 		}
 		License license(license_name_ptr, project_folder, base64);
-		for (const auto &it : vm) {
-			auto &value = it.second.value();
+		for (const auto& it : vm) {
+			auto& value = it.second.value();
 			if (it.first != "command" && it.first != "subargs" && it.first != "base64") {
 				if (auto v = boost::any_cast<std::string>(&value)) {
 					license.add_parameter(it.first, *v);
@@ -180,7 +182,7 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 		try {
 			license.write_license();
 			cout << "License written " << endl;
-		} catch (exception &ex) {
+		} catch (exception& ex) {
 			cerr << "License writing error: " << ex.what() << endl;
 		}
 	}
@@ -188,15 +190,15 @@ static void issueLicense(const po::parsed_options &parsed, po::variables_map &vm
 
 /** method used in tests for have a quick signature of a piece of data */
 
-static void test_sign(const po::parsed_options &parsed, po::variables_map &vm, const char **argv,
-					  const po::options_description &global) {
+static void test_sign(const po::parsed_options& parsed, po::variables_map& vm, const char** argv,
+					  const po::options_description& global) {
 	po::options_description license_desc("license issue options");
 	string private_key_file;
 	string data;
 	string outputFile;
-	license_desc.add_options()  //
+	license_desc.add_options()	//
 		("data,d", po::value<string>(&data)->required(), "Data to be signed")  //
-		(PARAM_PRIMARY_KEY ",p", po::value<string>(&private_key_file)->required(), "Primary key location")  //
+		(PARAM_PRIMARY_KEY ",p", po::value<string>(&private_key_file)->required(), "Primary key location")	//
 		("output,o", po::value<string>(&outputFile)->required(), "file where to write output");
 	rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global);
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
@@ -215,7 +217,42 @@ static void test_sign(const po::parsed_options &parsed, po::variables_map &vm, c
 	}
 }
 
-FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char **argv) {
+static void showVersion(const po::parsed_options& parsed, po::variables_map& vm, const char** argv,
+						const po::options_description& global) {
+	po::options_description version_desc("version options");
+	bool numeric = false;
+	version_desc.add_options()	//
+		("numeric", po::bool_switch(&numeric), "Show numeric version (PROJECT_INT_VERSION).")  //
+		("help,h", "Print this help.");	 //
+
+	// Collect all the unrecognized options from the first pass.
+	std::vector<std::string> opts = po::collect_unrecognized(parsed.options, po::include_positional);
+	opts.erase(opts.begin());  // Remove the command name
+	po::store(po::command_line_parser(opts).options(version_desc).run(), vm);
+	if (vm.find("help") == vm.end()) {
+		try {
+			po::notify(vm);
+			if (numeric) {
+				cout << PROJECT_INT_VERSION << endl;
+			} else {
+				cout << PROJECT_VERSION << endl;
+			}
+		} catch (std::exception& e) {
+			printHelpHeader(argv[0]);
+			cout << argv[0] << " version [options]" << endl;
+			global.print(cout);
+			version_desc.print(cout);
+			std::cerr << "Error: " << e.what() << endl;
+		}
+	} else {
+		printHelpHeader(argv[0]);
+		cout << argv[0] << " version [options]" << endl;
+		global.print(cout);
+		version_desc.print(cout);
+	}
+}
+
+FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char** argv) {
 	if (argc == 1) {
 		printBasicHelp(argv[0]);
 		return FUNC_RET_ERROR;
@@ -229,7 +266,7 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char **argv)
 	global.add_options()("verbose,v", "Turn on verbose output");
 	po::options_description hidden("Hidden options");
 	hidden.add_options()("command", po::value<std::vector<std::string>>(),
-						 "command to execute: project init, project list, license list, license issue")(
+						 "command to execute: project init, project list, license list, license issue, version")(
 		"subargs", po::value<std::vector<std::string>>(), "Arguments for command, use option --help to see");
 
 	po::positional_options_description pos;
@@ -241,7 +278,19 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char **argv)
 		po::command_line_parser(argc, argv).options(global).options(hidden).positional(pos).allow_unregistered().run();
 	po::store(parsed, vm);
 	std::vector<std::string> cmds = vm["command"].as<std::vector<std::string>>();
-	if (cmds.size() == 0 || cmds.size() == 1) {
+	if (cmds.size() == 0) {
+		printBasicHelp(argv[0]);
+		return FUNC_RET_ERROR;
+	}
+
+	// Handle single command case for "version"
+	if (cmds.size() == 1 && cmds[0] == "version") {
+		// Special handling for version command
+		showVersion(parsed, vm, argv, global);
+		return FUNC_RET_OK;
+	}
+
+	if (cmds.size() == 1) {
 		printBasicHelp(argv[0]);
 		return FUNC_RET_ERROR;
 	}
@@ -253,7 +302,7 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char **argv)
 			} else if (cmds[1] == "list") {
 				po::options_description project_desc("project " + cmds[1] + " options");
 				boost::optional<string> project_folder;
-				project_desc.add_options()  //
+				project_desc.add_options()	//
 					("projects-folder,p", po::value<boost::optional<string>>(&project_folder),
 					 "path to where project configurations are stored.")  //
 					("help", "Print this help.");  //
@@ -270,6 +319,9 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char **argv)
 				printBasicHelp(argv[0]);
 				result = FUNC_RET_ERROR;
 			}
+		} else if (cmds[0] == "version") {
+			showVersion(parsed, vm, argv, global);
+			return FUNC_RET_OK;
 		} else if (cmds[0] == "test") {
 			po::options_description license_desc("test " + cmds[1] + " options");
 			if (cmds[1] == "sign") {
@@ -281,7 +333,7 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char **argv)
 			printBasicHelp(argv[0]);
 			result = FUNC_RET_ERROR;
 		}
-	} catch (const invalid_argument &e) {
+	} catch (const invalid_argument& e) {
 		printBasicHelp(argv[0]);
 		cout << endl << "Parameter error: " << e.what() << endl;
 		result = FUNC_RET_ERROR;

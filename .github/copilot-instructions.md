@@ -74,6 +74,7 @@ Code for specific versions must be protected with preprocessor directives to ens
 - Consistent naming conventions (snake_case for functions/variables)
 - Proper const-correctness
 - Memory-safe operations with smart pointers
+- Format every modified .cpp or .h file with clang-format
 
 ## Common Tasks
 
@@ -82,3 +83,11 @@ Code for specific versions must be protected with preprocessor directives to ens
 - Adding command-line options: Update CommandLineParser class
 - Creating new tests: Add to test/ directory using Boost.Test framework
 
+# Build Instructions
+
+When asked to build the project use first the configure command then the build command:
+- Configure command: "cd build && rm -rf CMakeCache.txt; cmake -S .."
+- Build command: "cd build && cmake --build -j 8"
+- Test command: "cd build && ctest ."
+
+Location of the executable build/src/license_genarator/lccgen
