@@ -104,6 +104,10 @@ string base64(const void* binaryData, size_t len, int lineLenght) {
 	return encodeBuffer;
 }
 
+string base64(const std::string& str, int lineLength) {
+    return base64(str.data(), str.size(), lineLength);
+}
+
 std::vector<uint8_t> unbase64(const std::string& base64_data) {
 	string tmp_str(base64_data);
 	tmp_str.erase(std::remove(tmp_str.begin(), tmp_str.end(), '\n'), tmp_str.end());

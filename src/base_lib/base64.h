@@ -14,6 +14,7 @@ namespace license {
 
 std::vector<uint8_t> unbase64(const std::string& base64_data);
 std::string base64(const void* binaryData, size_t len, int lineLenght = -1);
+std::string base64(const std::string& str, int lineLength = -1);
 
 }  // namespace license
 

@@ -11,6 +11,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include "../ini/SimpleIni.h"
 
 namespace license {
 class License {
@@ -24,11 +25,12 @@ private:
 	std::map<std::string, std::string> values_map;
 
 	void print_as_ini(std::istream* previous_license, std::ostream& a_ostream) const;
+	void write_license_add_keys(CSimpleIniA& ini);
 
 public:
 	License(const std::string* license_fname, const std::string& project_folder, bool base64 = false);
 	void add_parameter(const std::string& param_name, const std::string& param_value);
-	void write_license();
+	std::string write_license();
 	inline virtual ~License() {}
 };
 

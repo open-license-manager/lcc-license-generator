@@ -3,17 +3,20 @@
 #include <boost/filesystem.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/version.hpp>
+#include <boost/algorithm/string.hpp>
 #if (BOOST_VERSION > 107000)
 #include <boost/test/tools/output_test_stream.hpp>
 #else
 #include <boost/test/output_test_stream.hpp>
 #endif
 #include <iostream>
+#include <fstream>
 #include <build_properties.h>
 
 #include "../src/base_lib/base.h"
 #include "../src/ini/SimpleIni.h"
 #include "../src/license_generator/license.hpp"
+#include "../src/base_lib/base64.h"
 #include "cout_redirect.hpp"
 
 namespace license {
@@ -144,6 +147,42 @@ BOOST_AUTO_TEST_CASE(extend_license) {
 	BOOST_CHECK_MESSAGE(ini.GetValue("TEST_PROJECT", PARAM_EXPIRY_DATE) == new_date, "license extended");
 	BOOST_CHECK_MESSAGE(ini.GetValue("TEST_PROJECT", PARAM_CLIENT_SIGNATURE) == string("XXX-XXX-XXX"),
 						"license extended");
+}
+
+/**
+ * Test that the license returned by write_license() is identical to the file content
+ */
+BOOST_AUTO_TEST_CASE(test_returned_license_matches_file) {
+	for (bool b64 : {false, true}) {
+		const fs::path licFile = MyGlobalFixture::licenses_path / "compare_test.lic";
+		const string lic_location_str = licFile.string();
+		License license(&lic_location_str, MyGlobalFixture::project_path.string(), b64);
+		license.add_parameter(PARAM_FEATURE_NAMES, "COMPARE_TEST");
+		license.add_parameter(PARAM_EXPIRY_DATE, "2025-12-31");
+		std::string returned_content = boost::trim_copy(license.write_license());
+		BOOST_REQUIRE_MESSAGE(fs::exists(licFile), "license has been created");
+		std::ifstream file_stream(licFile.string());
+		std::ostringstream buffer;
+		buffer << file_stream.rdbuf();
+		std::string file_content = boost::trim_copy(buffer.str());
+		BOOST_CHECK_MESSAGE(returned_content == file_content,
+							"Returned license content matches base64 encoded content");
+	}
+}
+
+/**
+ * Test base64 parameter
+ */
+BOOST_AUTO_TEST_CASE(test_base64_param) {
+	License license(nullptr, MyGlobalFixture::project_path.string(), false);
+	license.add_parameter(PARAM_EXPIRY_DATE, "2025-12-31");
+	std::string test_license = license.write_license();
+	std::string expected_content = boost::trim_copy(license::base64(test_license));
+
+	License licenseb64(nullptr, MyGlobalFixture::project_path.string(), true);
+	licenseb64.add_parameter(PARAM_EXPIRY_DATE, "2025-12-31");
+	std::string actual_content = boost::trim_copy(licenseb64.write_license());
+	BOOST_CHECK(expected_content == actual_content);
 }
 
 #else

@@ -83,11 +83,6 @@ Code for specific versions must be protected with preprocessor directives to ens
 - Adding command-line options: Update CommandLineParser class
 - Creating new tests: Add to test/ directory using Boost.Test framework
 
-# Build Instructions
-
-When asked to build the project use first the configure command then the build command:
-- Configure command: "cd build && rm -rf CMakeCache.txt; cmake -S .."
-- Build command: "cd build && cmake --build -j 8"
-- Test command: "cd build && ctest ."
-
-Location of the executable build/src/license_genarator/lccgen
+## Interaction with the user
+- Be concise in explanations
+- Do not output a summary for small changes

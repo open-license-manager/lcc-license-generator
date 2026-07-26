@@ -18,6 +18,7 @@
 #include "../ini/SimpleIni.h"
 #include "../base_lib/crypto_helper.hpp"
 #include "../base_lib/base.h"
+#include "../base_lib/base64.h"
 #include "license.hpp"
 
 namespace license {
@@ -93,23 +94,13 @@ static const string print_for_sign(const string& feature_name, const CSimpleIniA
 	return buf.str();
 }
 
-License::License(const std::string* licenseName, const std::string& project_folder, bool base64)
-	: m_base64(base64), m_license_fname(licenseName), m_project_folder(normalize_project_path(project_folder)) {
-	fs::path proj_folder(m_project_folder);
-	// default feature = project name
-	m_feature_names = proj_folder.filename().string();
-	m_private_key = (proj_folder / PRIVATE_KEY_FNAME).string();
-}
-
-void License::write_license() {
-	ofstream license_stream;
-	ostream* output_license;
-	CSimpleIniA ini;
-	if (m_license_fname == nullptr) {
-		output_license = &cout;
-	} else {
-		ifstream previous_license(*m_license_fname);
+static void write_license_load_previous_license(const std::string* license_fname, CSimpleIniA& ini) {
+	// Check if there's an existing license file to load
+	if (license_fname != nullptr) {
+		ifstream previous_license(*license_fname);
 		if (previous_license.is_open()) {
+			// For existing files, we need to load the original content to merge with new parameters
+			// We don't decode base64 here because we're working with the INI structure
 			SI_Error error = ini.LoadData(previous_license);
 			if (error != SI_OK) {
 				throw runtime_error(
@@ -117,15 +108,12 @@ void License::write_license() {
 			}
 		} else {
 			// new license
-			create_license_path(*m_license_fname);
-		}
-		output_license = &license_stream;
-		license_stream.open(*m_license_fname, ios::trunc | ios::binary);
-		if (!license_stream.is_open()) {
-			throw runtime_error("Can not create file [" + *m_license_fname + "].");
+			create_license_path(*license_fname);
 		}
 	}
+}
 
+void License::write_license_add_keys(CSimpleIniA& license_ini) {
 	const string features = boost::to_upper_copy(m_feature_names);
 	vector<string> feature_v;
 	boost::algorithm::split(feature_v, features, boost::is_any_of(","));
@@ -134,16 +122,59 @@ void License::write_license() {
 	unsigned int private_key_bits = crypto->privateKeyBits();
 	long license_file_version = (private_key_bits > 1024) ? LICENSE_VERSION_210 : LICENSE_VERSION_200;
 	for (const string feature : feature_v) {
-		ini.SetLongValue(feature.c_str(), "lic_ver", license_file_version);
+		license_ini.SetLongValue(feature.c_str(), "lic_ver", license_file_version);
 		for (auto it : values_map) {
-			ini.SetValue(feature.c_str(), it.first.c_str(), it.second.c_str());
+			license_ini.SetValue(feature.c_str(), it.first.c_str(), it.second.c_str());
 		}
-		const CSimpleIniA::TKeyVal* section = ini.GetSection(feature.c_str());
+		const CSimpleIniA::TKeyVal* section = license_ini.GetSection(feature.c_str());
 		string license_for_sign = print_for_sign(feature, section);
 		const string signature = crypto->signString(license_for_sign);
-		ini.SetValue(feature.c_str(), LICENSE_SIGNATURE, signature.c_str());
+		license_ini.SetValue(feature.c_str(), LICENSE_SIGNATURE, signature.c_str());
 	}
-	ini.Save(*output_license, true);
+}
+
+License::License(const std::string* licenseName, const std::string& project_folder, bool base64)
+	: m_base64(base64), m_license_fname(licenseName), m_project_folder(normalize_project_path(project_folder)) {
+	fs::path proj_folder(m_project_folder);
+	// default feature = project name
+	m_feature_names = proj_folder.filename().string();
+	m_private_key = (proj_folder / PRIVATE_KEY_FNAME).string();
+}
+
+std::string License::write_license() {
+	// Load existing license if it exists
+	CSimpleIniA ini;
+	write_license_load_previous_license(m_license_fname, ini);
+
+	// Add keys from parameters
+	write_license_add_keys(ini);
+
+	// Always save the content to a string first
+	std::ostringstream output_buffer;
+	ini.Save(output_buffer, true);
+	std::string license_content = output_buffer.str();
+
+	// If base64 is enabled, encode the content
+	std::string final_content = license_content;
+	if (m_base64) {
+		final_content = license::base64(license_content);
+	}
+
+	// Write to file if file name is provided
+	if (m_license_fname != nullptr) {
+		ofstream license_stream;
+		license_stream.open(*m_license_fname, ios::trunc | ios::binary);
+		if (!license_stream.is_open()) {
+			throw runtime_error("Can not create file [" + *m_license_fname + "].");
+		}
+		license_stream << final_content;
+		license_stream.close();
+	} else {
+		// Write to cout if no file name provided
+		cout << final_content;
+	}
+
+	return final_content;
 }
 
 // TODO better validation on the input parameters
