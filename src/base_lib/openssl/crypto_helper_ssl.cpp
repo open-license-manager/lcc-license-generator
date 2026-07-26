@@ -72,7 +72,7 @@ const string CryptoHelperLinux::exportPrivateKey() const {
 	/*PEM_write_bio_PrivateKey(bio_private, m_pktmp, nullptr, nullptr, 0,
 	 nullptr, nullptr);*/
 	int keylen = BIO_pending(bio_private);
-	char* pem_key = (char*)(calloc(keylen + 1, 1)); /* Null-terminate */
+	char* pem_key = static_cast<char*>(calloc(keylen + 1, 1)); /* Null-terminate */
 	BIO_read(bio_private, pem_key, keylen);
 	BIO_free(bio_private);
 	string dest(pem_key);
@@ -115,7 +115,8 @@ const string CryptoHelperLinux::signString(const string& license) const {
 		EVP_MD_CTX_destroy(mdctx);
 	}
 	/* Call update with the message */
-	if (EVP_DigestSignUpdate(mdctx, (const void*)license.c_str(), (size_t)license.length()) != 1) {
+	if (EVP_DigestSignUpdate(mdctx, static_cast<const void*>(license.c_str()), static_cast<size_t>(license.length())) !=
+		1) {
 		EVP_MD_CTX_destroy(mdctx);
 		throw logic_error("Message signing exception");
 	}
@@ -150,7 +151,7 @@ void CryptoHelperLinux::loadPrivateKey(const std::string& privateKey) {
 	}
 
 	m_pktmp = nullptr;
-	BIO* bio = BIO_new_mem_buf((void*)(privateKey.c_str()), privateKey.size());
+	BIO* bio = BIO_new_mem_buf(static_cast<void*>(const_cast<char*>(privateKey.c_str())), privateKey.size());
 	m_pktmp = PEM_read_bio_PrivateKey(bio, &m_pktmp, NULL, NULL);
 	if (!m_pktmp) {
 		throw logic_error("Private key [" + privateKey + "] can't be loaded");

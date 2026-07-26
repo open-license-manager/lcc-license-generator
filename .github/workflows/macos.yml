@@ -9,6 +9,7 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     name: '${{ matrix.os }}'
+    strategy:
       fail-fast: false
       matrix:
         os: [macos-26-intel, macos-26] 
