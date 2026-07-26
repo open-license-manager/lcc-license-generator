@@ -63,7 +63,7 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: >
-        /usr/bin/cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
         -DSTATIC_RUNTIME:BOOL=${{ matrix.static }}
@@ -75,7 +75,7 @@ jobs:
       # Build your program with the given configuration. 
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: |
-           /usr/bin/cmake --build ${{ steps.strings.outputs.build-output-dir }} -j $(sysctl -n hw.ncpu)
+           cmake --build ${{ steps.strings.outputs.build-output-dir }} -j $(sysctl -n hw.ncpu)
            
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
