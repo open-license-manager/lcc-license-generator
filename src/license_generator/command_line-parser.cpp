@@ -136,7 +136,6 @@ static void issueLicense(const po::parsed_options& parsed, po::variables_map& vm
 						 const po::options_description& global, bool verbose = false) {
 	po::options_description license_desc("license issue options");
 	string license_name;
-	string* license_name_ptr = nullptr;
 	string project_folder;
 	// string output;
 	unsigned int magic_num = 0;
@@ -168,8 +167,7 @@ static void issueLicense(const po::parsed_options& parsed, po::variables_map& vm
 		(PARAM_EXTRA_DATA ",x", po::value<string>(), "Specify extra data to be included into the license")	//
 		("help,h", "Print this help.");	 //
 	if (rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global)) {
-		// Print verbose information
-
+		string* license_name_ptr = nullptr;
 		if (!license_name.empty()) {
 			license_name_ptr = &license_name;
 		}
