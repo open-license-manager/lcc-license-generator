@@ -20,7 +20,7 @@ private:
 					 const boost::optional<std::string> &primary_key,  //
 					 const boost::optional<std::string> &public_key,  //
 					 const boost::optional<std::string> &project_folder,  //
-					 const boost::optional<std::string> &templates_folder);
+					 const boost::optional<std::string> &templates_folder, bool verbose = false);
 	CommandLineParser();
 	virtual ~CommandLineParser();
 

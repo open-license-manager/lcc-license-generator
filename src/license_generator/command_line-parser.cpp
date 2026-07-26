@@ -90,7 +90,7 @@ static bool rerunBoostPO(const po::parsed_options& parsed, const po::options_des
 }
 
 static FUNCTION_RETURN initializeProject(const po::parsed_options& parsed, po::variables_map& vm, const char** argv,
-										 const po::options_description& global) {
+										 const po::options_description& global, bool verbose = false) {
 	po::options_description project_desc("project init options");
 	std::string project_name;
 	boost::optional<std::string> primary_key;
@@ -123,12 +123,17 @@ static FUNCTION_RETURN initializeProject(const po::parsed_options& parsed, po::v
 		// cout << templates_folder.is_initialized() << endl;
 		Project project(project_name, project_folder, templates_folder);
 		result = project.initialize(key_size);
+
+		// Print verbose information
+		if (verbose) {
+			cout << "Project initialized successfully" << endl;
+		}
 	}
 	return result;
 }
 
 static void issueLicense(const po::parsed_options& parsed, po::variables_map& vm, const char** argv,
-						 const po::options_description& global) {
+						 const po::options_description& global, bool verbose = false) {
 	po::options_description license_desc("license issue options");
 	string license_name;
 	string* license_name_ptr = nullptr;
@@ -163,9 +168,12 @@ static void issueLicense(const po::parsed_options& parsed, po::variables_map& vm
 		(PARAM_EXTRA_DATA ",x", po::value<string>(), "Specify extra data to be included into the license")	//
 		("help,h", "Print this help.");	 //
 	if (rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global)) {
+		// Print verbose information
+
 		if (!license_name.empty()) {
 			license_name_ptr = &license_name;
 		}
+
 		License license(license_name_ptr, project_folder, base64);
 		for (const auto& it : vm) {
 			auto& value = it.second.value();
@@ -180,8 +188,10 @@ static void issueLicense(const po::parsed_options& parsed, po::variables_map& vm
 			}
 		}
 		try {
-			license.write_license();
-			cout << "License written " << endl;
+			std::string license_file = license.write_license();
+
+			cout << "License written to: " << license_file << endl;
+
 		} catch (exception& ex) {
 			cerr << "License writing error: " << ex.what() << endl;
 		}
@@ -295,10 +305,13 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char** argv)
 		return FUNC_RET_ERROR;
 	}
 	bool verbose = vm.count("verbose") > 0;
+	if (verbose) {
+		cout << "Project version: " << PROJECT_VERSION << endl;
+	}
 	try {
 		if (cmds[0] == "project") {
 			if (cmds[1].substr(0, 4) == "init") {
-				result = initializeProject(parsed, vm, argv, global);
+				result = initializeProject(parsed, vm, argv, global, verbose);
 			} else if (cmds[1] == "list") {
 				po::options_description project_desc("project " + cmds[1] + " options");
 				boost::optional<string> project_folder;
@@ -314,7 +327,7 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char** argv)
 			}
 		} else if (cmds[0] == "license") {
 			if (cmds[1] == "issue") {
-				issueLicense(parsed, vm, argv, global);
+				issueLicense(parsed, vm, argv, global, verbose);
 			} else {
 				printBasicHelp(argv[0]);
 				result = FUNC_RET_ERROR;
