@@ -2,8 +2,8 @@ name: Linux build
 on:
    push:
      branches: [ "develop" ]
-#   pull_request:
-#     branches: [ "develop" ]
+   pull_request:
+     branches: [ "develop" ]
 
 jobs:
   build:
@@ -51,7 +51,7 @@ jobs:
     - name: Extra Dependecies Ubuntu 26.04
       if: ${{ matrix.os == 'ubuntu-26.04' }}
       run: >
-        sudo apt-get install -y libjitterentropy3-dev valgrind lcov
+        sudo apt-get install -y libjitterentropy3-dev valgrind lcov gcovr
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -98,16 +98,17 @@ jobs:
     - name: Filter Coverage
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       if: ${{ matrix.code_coverage == 'ON' }}
-      run: | 
-          lcov --ignore-errors mismatch,inconsistent --directory . --capture --output-file ${{ steps.strings.outputs.build-output-dir }}/coverage.info
-          lcov --ignore-errors mismatch,inconsistent --remove ${{ steps.strings.outputs.build-output-dir }}/coverage.info '/usr/*' '*/ini/*' '*/test/*' '*/inja/*' --output-file '${{ steps.strings.outputs.build-output-dir }}/coverage.info'
-          lcov --list ${{ steps.strings.outputs.build-output-dir }}/coverage.info # Optional: prints a quick summary in the GitHub Actions logs
+      run: |
+          gcovr -r ${{ github.workspace }} --exclude '${{ github.workspace }}/src/ini/.*' --exclude '${{ github.workspace }}/test/.*' -e '${{ github.workspace }}/src/inja/.*' --txt --cobertura ${{ steps.strings.outputs.build-output-dir }}/cobertura.xml 
+          # lcov --ignore-errors mismatch,inconsistent --directory . --capture --output-file ${{ steps.strings.outputs.build-output-dir }}/coverage.info
+          # lcov --ignore-errors mismatch,inconsistent --remove ${{ steps.strings.outputs.build-output-dir }}/coverage.info '/usr/*' '*/ini/*' '*/test/*' '*/inja/*' --output-file '${{ steps.strings.outputs.build-output-dir }}/coverage.info'
+          # lcov --list ${{ steps.strings.outputs.build-output-dir }}/coverage.info # Optional: prints a quick summary in the GitHub Actions logs
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
       continue-on-error: true
       if: ${{ matrix.code_coverage == 'ON' }}
       with:
-          file: ${{ steps.strings.outputs.build-output-dir }}/coverage.info
+          file: ${{ steps.strings.outputs.build-output-dir }}/coverage.xml
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: 'open-license-manager/lcc-license-generator'
