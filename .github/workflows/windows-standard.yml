@@ -1,9 +1,9 @@
 name: Windows build
 on:
-  push:
-    branches: [ "develop" ]
-  pull_request:
-    branches: [ "develop" ]
+   push:
+     branches: [ "develop" ]
+   pull_request:
+     branches: [ "develop" ]
 jobs:
    build-windows:
       name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }} ssl: ${{ matrix.openssl_version }} boost: ${{ matrix.boost_version }}'

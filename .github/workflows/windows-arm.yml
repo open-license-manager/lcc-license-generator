@@ -1,9 +1,10 @@
 name: Windows arm
 on:
-  push:
-    branches: [ "develop" ]
-  pull_request:
-    branches: [ "develop" ]
+   push:
+     branches: [ "develop" ]
+#   pull_request:
+#     branches: [ "develop" ]
+
 jobs:
    windows-arm:
       name: '${{ matrix.os }}, build: ${{ matrix.build_type }} STATIC ${{ matrix.static_runtime }} ${{ matrix.target_triple }}'

@@ -4,9 +4,8 @@
 #include <string>
 #include <cstdint>
 #include <vector>
-#ifdef __linux__
 
-#elif _WIN32
+#ifdef _WIN32
 #include <wtypes.h>
 #endif
 

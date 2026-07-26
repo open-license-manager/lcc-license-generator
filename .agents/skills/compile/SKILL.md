@@ -26,7 +26,9 @@ ${ build-dir } && && rm -rf CMakeCache.txt; cmake -S ${ workspace } -B ${ build-
 ```bash
 cd ${ build-dir } && cmake --build . -j 8
 ```
+
 ## Build Options
+
 
 ### Static Runtime Linking
 - `-DSTATIC_RUNTIME=ON` (default): Creates statically linked executable
@@ -36,7 +38,7 @@ cd ${ build-dir } && cmake --build . -j 8
 
 - On Linux: OpenSSL is mandatory and will be automatically detected
 - On Windows: OpenSSL is optional, will fall back to Windows Crypto API if not found. 
-  * If OpenSSL found but still want to compile without it use `-DUSE_OPENSSL=OFF`
+  - If OpenSSL found but still want to compile without it use `-DUSE_OPENSSL=OFF`
 
 ### Boost Configuration
 

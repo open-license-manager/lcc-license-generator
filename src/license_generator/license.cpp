@@ -57,7 +57,7 @@ static const string normalize_project_path(const string& project_path) {
 	}
 	fs::path normalized;
 	const string rproject_path_str = rproject_path.string();
-	if (rproject_path.string() == ".") {
+	if (rproject_path_str == ".") {
 		normalized = fs::current_path();
 		// sometimes is_relative fails under wine: a linux path is taken for a relative path.
 		normalized = fs::canonical(fs::current_path() / rproject_path);
@@ -152,7 +152,7 @@ std::string License::write_license() {
 	// Always save the content to a string first
 	std::ostringstream output_buffer;
 	ini.Save(output_buffer, true);
-	std::string license_content = output_buffer.str();
+	std::string license_content = boost::trim_copy(output_buffer.str());
 
 	// If base64 is enabled, encode the content
 	std::string final_content = license_content;
