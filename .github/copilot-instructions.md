@@ -1,6 +1,7 @@
 # Copilot Instructions for lcc-license-generator
 
 ## Project Overview
+
 C/C++ license generator for the licensecc project. Creates projects with public/private key pairs and generates hardware-locked licenses. Built with CMake and uses OpenSSL (or Windows Crypto API) for cryptographic operations.
 
 ## Key Components

@@ -6,5 +6,5 @@
 ## Key Classes
 
 - `License` - Handles license creation and parameter management
-- `Project` (files:[project.hpp, project.cpp])- Manages project initialization and key generation
+- `Project` (files:[project.hpp, project.cpp]) - Manages project initialization and key generation
 - `CommandLineParser` (files:[command_line-parser.hpp, command_line-parser.cpp]): Parses command-line arguments and executes commands. All the command-line options and validation for user parameters are defined in this class.

@@ -104,11 +104,12 @@ jobs:
           # lcov --ignore-errors mismatch,inconsistent --remove ${{ steps.strings.outputs.build-output-dir }}/coverage.info '/usr/*' '*/ini/*' '*/test/*' '*/inja/*' --output-file '${{ steps.strings.outputs.build-output-dir }}/coverage.info'
           # lcov --list ${{ steps.strings.outputs.build-output-dir }}/coverage.info # Optional: prints a quick summary in the GitHub Actions logs
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       continue-on-error: true
       if: ${{ matrix.code_coverage == 'ON' }}
       with:
-          file: ${{ steps.strings.outputs.build-output-dir }}/coverage.xml
+          files: ${{ steps.strings.outputs.build-output-dir }}/coverage.xml
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: 'open-license-manager/lcc-license-generator'
+          disable_search: true
