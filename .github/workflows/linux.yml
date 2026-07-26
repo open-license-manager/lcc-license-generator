@@ -36,6 +36,9 @@ jobs:
           code_coverage: "ON"
 
     steps:
+    - name: Fail
+      run: fail() #do not run useless vm while testing
+
     - uses: actions/checkout@v6
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.

@@ -22,6 +22,8 @@ jobs:
              static_runtime: FALSE
              target_triple: "arm64-windows-static-md"
       steps:
+      -  name: Fail
+         run: fail() #do not run useless vm while testing macos
       -  uses: actions/checkout@v6
       -  name: Set reusable strings
          #Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
