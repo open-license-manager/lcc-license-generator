@@ -152,12 +152,13 @@ std::string License::write_license() {
 	// Always save the content to a string first
 	std::ostringstream output_buffer;
 	ini.Save(output_buffer, true);
-	std::string license_content = output_buffer.str();
+	std::string license_content = boost::trim_copy(output_buffer.str());
 
 	// If base64 is enabled, encode the content
 	std::string final_content = license_content;
 	if (m_base64) {
 		final_content = license::base64(license_content);
+		boost::trim(final_content);
 	}
 
 	// Write to file if file name is provided

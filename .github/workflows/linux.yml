@@ -99,7 +99,7 @@ jobs:
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       if: ${{ matrix.code_coverage == 'ON' }}
       run: |
-          gcovr -r ${{ github.workspace }} --exclude '${{ github.workspace }}/src/ini/.*' --exclude '${{ github.workspace }}/test/.*' -e '${{ github.workspace }}/src/inja/.*' --txt --cobertura ${{ steps.strings.outputs.build-output-dir }}/cobertura.xml 
+          gcovr -r ${{ github.workspace }} --exclude '${{ github.workspace }}/src/ini/.*' --exclude '${{ github.workspace }}/test/.*' -e '${{ github.workspace }}/src/inja/.*' --txt --cobertura ${{ steps.strings.outputs.build-output-dir }}/coverage.xml 
           # lcov --ignore-errors mismatch,inconsistent --directory . --capture --output-file ${{ steps.strings.outputs.build-output-dir }}/coverage.info
           # lcov --ignore-errors mismatch,inconsistent --remove ${{ steps.strings.outputs.build-output-dir }}/coverage.info '/usr/*' '*/ini/*' '*/test/*' '*/inja/*' --output-file '${{ steps.strings.outputs.build-output-dir }}/coverage.info'
           # lcov --list ${{ steps.strings.outputs.build-output-dir }}/coverage.info # Optional: prints a quick summary in the GitHub Actions logs
