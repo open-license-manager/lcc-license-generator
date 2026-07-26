@@ -113,3 +113,15 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: 'open-license-manager/lcc-license-generator'
           disable_search: true
+    - name: Run codacy-coverage-reporter
+      uses: codacy/codacy-coverage-reporter-action@v1.3.0
+      continue-on-error: true
+      if: ${{ matrix.code_coverage == 'ON' }}
+      with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          # or
+          # api-token: ${{ secrets.CODACY_API_TOKEN }}
+          coverage-reports: ${{ steps.strings.outputs.build-output-dir }}/coverage.xml
+          language: 'C++'
+          # or a comma-separated list for multiple reports
+          # coverage-reports: <PATH_TO_REPORT>, <PATH_TO_REPORT>
