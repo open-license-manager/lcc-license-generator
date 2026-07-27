@@ -13,18 +13,18 @@ namespace license {
 using namespace std;
 namespace fs = boost::filesystem;
 
-unique_ptr<CryptoHelper> CryptoHelper::getInstance() {
+std::unique_ptr<CryptoHelper> CryptoHelper::getInstance() {
 #ifdef HAS_OPENSSL
-	unique_ptr<CryptoHelper> ptr(static_cast<CryptoHelper*>(new CryptoHelperLinux()));
+	std::unique_ptr<CryptoHelper> ptr(static_cast<CryptoHelper*>(new CryptoHelperLinux()));
 #else
-	unique_ptr<CryptoHelper> ptr(static_cast<CryptoHelper*>(new CryptoHelperWindows()));
+	std::unique_ptr<CryptoHelper> ptr(static_cast<CryptoHelper*>(new CryptoHelperWindows()));
 #endif
 	return ptr;
 }
 
 void CryptoHelper::loadPrivateKey_file(const std::string& privateKey_file_name) {
 	if (!fs::exists(privateKey_file_name)) {
-		throw logic_error("Private key file [" + privateKey_file_name + "] does not exists");
+		throw std::logic_error("Private key file [" + privateKey_file_name + "] does not exists");
 	}
 	std::ifstream private_key(privateKey_file_name);
 	std::string pk_string((std::istreambuf_iterator<char>(private_key)), std::istreambuf_iterator<char>());

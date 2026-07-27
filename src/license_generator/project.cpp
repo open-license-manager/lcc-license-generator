@@ -21,25 +21,25 @@ using json = nlohmann::json;
 using namespace inja;
 using namespace std;
 
-static const constexpr char *const TEMPLATE = "public_key.inja";
+static const constexpr char* const TEMPLATE = "public_key.inja";
 
-/*static FUNCTION_RETURN check_templates(const string &source_folder) {
+/*static FUNCTION_RETURN check_templates(const std::string &source_folder) {
 	const fs::path templates_path(source_folder);
 	if (!fs::exists(templates_path) || !fs::is_directory(templates_path)) {
-		throw std::runtime_error(string("Templates directory [") + templates_path.string() +
+		throw std::runtime_error(std::string("Templates directory [") + templates_path.string() +
 								 "] does not exist or is not a directory");
 	}
 	const fs::path template_fname(templates_path / TEMPLATE);
 	if (!fs::exists(template_fname) || !fs::is_regular_file(template_fname)) {
-		throw std::runtime_error(string("Templates file [") + template_fname.string() + "] does not exist");
+		throw std::runtime_error(std::string("Templates file [") + template_fname.string() + "] does not exist");
 	}
 	return FUNC_RET_OK;
 }*/
 
-static const string guess_templates_folder(const string &source_folder) {
+static const std::string guess_templates_folder(const std::string& source_folder) {
 	fs::path templates_path(source_folder);
 	if (!fs::exists(templates_path) || !fs::is_directory(templates_path)) {
-		throw std::runtime_error(string("Templates directory [") + templates_path.string() +
+		throw std::runtime_error(std::string("Templates directory [") + templates_path.string() +
 								 "] does not exist or is not a directory");
 	}
 	fs::path template_fname(templates_path / TEMPLATE);
@@ -48,7 +48,7 @@ static const string guess_templates_folder(const string &source_folder) {
 		templates_path = templates_path / "templates";
 		fs::path template_fname2(templates_path / TEMPLATE);
 		if (!fs::exists(template_fname2) || !fs::is_regular_file(template_fname2)) {
-			throw std::runtime_error(string("Templates file [") + template_fname2.string() +
+			throw std::runtime_error(std::string("Templates file [") + template_fname2.string() +
 									 "] does not exist. tried also [" + template_fname.string() + "]");
 		}
 	}
@@ -60,11 +60,11 @@ static const string guess_templates_folder(const string &source_folder) {
 
 	return normalized.string();
 }
-static const fs::path publicKeyFolder(const fs::path &product_folder, const string &product_name) {
+static const fs::path publicKeyFolder(const fs::path& product_folder, const std::string& product_name) {
 	return product_folder / "include" / "licensecc" / product_name;
 }
 
-Project::Project(const std::string &name, const std::string &project_folder, const std::string &source_folder,
+Project::Project(const std::string& name, const std::string& project_folder, const std::string& source_folder,
 				 bool force_overwrite)
 	: m_name(name),
 	  m_project_folder(project_folder),
@@ -72,16 +72,16 @@ Project::Project(const std::string &name, const std::string &project_folder, con
 	  m_force_overwrite(force_overwrite) {
 	if (name.find('[') != std::string::npos || name.find(']') != std::string::npos ||
 		name.find('/') != std::string::npos || name.find('\\') != std::string::npos) {
-		throw invalid_argument("project name should not contain any of '[ ] / \' characters.");
+		throw std::invalid_argument("project name should not contain any of '[ ] / \' characters.");
 	}
 }
 
-void Project::exportPublicKey(const std::string &include_folder, const std::unique_ptr<CryptoHelper> &cryptoHelper) {
+void Project::exportPublicKey(const std::string& include_folder, const std::unique_ptr<CryptoHelper>& cryptoHelper) {
 	const fs::path templates_path(m_templates_folder);
 	Environment env(templates_path.string() + "/", include_folder + "/");
 	Template temp = env.parse_template(TEMPLATE);
 	json data;
-	const vector<unsigned char> pkey = cryptoHelper->exportPublicKey();
+	const std::vector<unsigned char> pkey = cryptoHelper->exportPublicKey();
 	data["public_key"] = pkey;
 	data["public_key_len"] = pkey.size();
 	data["product_name"] = m_name;
@@ -110,7 +110,7 @@ FUNCTION_RETURN Project::initialize(unsigned int key_size) {
 		throw std::runtime_error("Cannot create destination directory [" + destinationDir.string() + "]");
 	}
 	FUNCTION_RETURN result = FUNC_RET_OK;
-	unique_ptr<CryptoHelper> cryptoHelper(CryptoHelper::getInstance());
+	std::unique_ptr<CryptoHelper> cryptoHelper(CryptoHelper::getInstance());
 	if (keyFilesExist) {
 		if (!fs::exists(publicKeyFile)) {
 			// how strange, private key was found, but public key is not.
@@ -119,10 +119,10 @@ FUNCTION_RETURN Project::initialize(unsigned int key_size) {
 			exportPublicKey(include_folder.string(), cryptoHelper);
 		}
 	} else {
-		ofstream ofs;
+		std::ofstream ofs;
 		cryptoHelper->generateKeyPair(key_size);
 		const std::string privateKey = cryptoHelper->exportPrivateKey();
-		const string private_key_file_str = privateKeyFile.string();
+		const std::string private_key_file_str = privateKeyFile.string();
 		ofs.open(private_key_file_str.c_str(), std::fstream::trunc | std::fstream::binary);
 		ofs << privateKey;
 		ofs.close();

@@ -5,8 +5,8 @@
  *      Author: Gabriele Contini
  */
 
-#include <stddef.h>
-#include <stdlib.h>
+#include <cstddef>
+#include <cstdlib>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -39,20 +39,20 @@
 namespace license {
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-using namespace std;
 
 static void printHelpHeader(const char* prog_name) {
-	cout << endl;
-	cout << fs::path(prog_name).filename().string() << " Version " << PROJECT_VERSION << ". Usage:" << endl;
+	std::cout << std::endl;
+	std::cout << fs::path(prog_name).filename().string() << " Version " << PROJECT_VERSION << ". Usage:" << std::endl;
 }
 
 static void printBasicHelp(const char* prog_name) {
 	printHelpHeader(prog_name);
-	cout << fs::path(prog_name).filename().string() << " [command] [options]" << endl;
-	cout << " available commands: \"project initialize\", \"project list\", \"license issue\", \"license list\", "
-			"\"version\""
-		 << endl;
-	cout << " to see help on specific command options type: " << prog_name << " [command] --help" << endl << endl;
+	std::cout << fs::path(prog_name).filename().string() << " [command] [options]" << std::endl;
+	std::cout << " available commands: \"project initialize\", \"project list\", \"license issue\", \"license list\", "
+				 "\"version\""
+			  << std::endl;
+	std::cout << " to see help on specific command options type: " << prog_name << " [command] --help" << std::endl
+			  << std::endl;
 }
 
 CommandLineParser::CommandLineParser() {}
@@ -75,16 +75,16 @@ static bool rerunBoostPO(const po::parsed_options& parsed, const po::options_des
 			cont = true;
 		} catch (std::exception& e) {
 			printHelpHeader(argv[0]);
-			cout << argv[0] << command_for_logging << " [options]" << endl;
-			global.print(cout);
-			project_desc.print(cout);
-			std::cerr << "Error: " << e.what() << endl;
+			std::cout << argv[0] << command_for_logging << " [options]" << std::endl;
+			global.print(std::cout);
+			project_desc.print(std::cout);
+			std::cerr << "Error: " << e.what() << std::endl;
 		}
 	} else {
 		printHelpHeader(argv[0]);
-		cout << argv[0] << command_for_logging << " [options]" << endl;
-		global.print(cout);
-		project_desc.print(cout);
+		std::cout << argv[0] << command_for_logging << " [options]" << std::endl;
+		global.print(std::cout);
+		project_desc.print(std::cout);
 	}
 	return cont;
 }
@@ -115,18 +115,17 @@ static FUNCTION_RETURN initializeProject(const po::parsed_options& parsed, po::v
 	if (rerunBoostPO(parsed, project_desc, vm, argv, "project init", global)) {
 		// Validate key size
 		if (key_size != 1024 && key_size != 2048 && key_size != 4096) {
-			cerr << "Error: Invalid --key-bits parameter [" << std::to_string(key_size)
-				 << "]. Valid values are 1024, 2048, or 4096.";
+			std::cerr << "Error: Invalid --key-bits parameter [" << std::to_string(key_size)
+					  << "]. Valid values are 1024, 2048, or 4096.";
 			return result;
 		}
 
-		// cout << templates_folder.is_initialized() << endl;
 		Project project(project_name, project_folder, templates_folder);
 		result = project.initialize(key_size);
 
 		// Print verbose information
 		if (verbose) {
-			cout << "Project initialized successfully" << endl;
+			std::cout << "Project initialized successfully" << std::endl;
 		}
 	}
 	return result;
@@ -137,9 +136,9 @@ static FUNCTION_RETURN initializeProject(const po::parsed_options& parsed, po::v
  */
 static FUNCTION_RETURN processCustomValueParameters(const boost::any& value, License& license) {
 	FUNCTION_RETURN result = FUNC_RET_OK;
-	const vector<string> values = boost::any_cast<vector<string>>(value);
+	const std::vector<std::string> values = boost::any_cast<std::vector<std::string>>(value);
 	// Process custom-value parameters
-	for (const string& custom_pair : values) {
+	for (const std::string& custom_pair : values) {
 		// Split key=value format
 		size_t pos = custom_pair.find('=');
 		if (pos != std::string::npos) {
@@ -147,7 +146,7 @@ static FUNCTION_RETURN processCustomValueParameters(const boost::any& value, Lic
 			std::string value = custom_pair.substr(pos + 1);
 			license.add_parameter(key, value);
 		} else {
-			std::cerr << "Invalid custom-value format: " << custom_pair << " (should be key=value)" << endl;
+			std::cerr << "Invalid custom-value format: " << custom_pair << " (should be key=value)" << std::endl;
 			result = FUNC_RET_ERROR;
 		}
 	}
@@ -157,42 +156,42 @@ static FUNCTION_RETURN processCustomValueParameters(const boost::any& value, Lic
 static FUNCTION_RETURN issueLicense(const po::parsed_options& parsed, po::variables_map& vm, const char** argv,
 									const po::options_description& global, bool verbose = false) {
 	po::options_description license_desc("license issue options");
-	string license_name;
-	string project_folder;
+	std::string license_name;
+	std::string project_folder;
 	// string output;
 	unsigned int magic_num = 0;
 	bool base64 = false;
 	license_desc.add_options()	//
 		(PARAM_BASE64 ",b", po::bool_switch(&base64),
 		 "Encode license as base64 for inclusion in environment variables.")  //
-		(PARAM_BEGIN_DATE, po::value<string>(),
+		(PARAM_BEGIN_DATE, po::value<std::string>(),
 		 "Specify the start of the validity for this license. "
 		 " Format YYYYMMDD. If not specified defaults to today")  //
-		(PARAM_EXPIRY_DATE ",e", po::value<string>(),
+		(PARAM_EXPIRY_DATE ",e", po::value<std::string>(),
 		 "Specify the expire date for this license. "
 		 " Format YYYYMMDD. If not specified the license won't expire")	 //
-		(PARAM_CLIENT_SIGNATURE ",s", po::value<string>(),
+		(PARAM_CLIENT_SIGNATURE ",s", po::value<std::string>(),
 		 "The signature of the hardware that requires the license. It should be in the format XXXX-XXXX-XXXX."
 		 " If not specified the license won't be linked to a specific hardware (eg. demo license).")  //
-		(PARAM_LICENSE_OUTPUT ",o", po::value<string>(&license_name),
+		(PARAM_LICENSE_OUTPUT ",o", po::value<std::string>(&license_name),
 		 "License output file name. May contain / that will be interpreded as subfolders.")	 //
 		(PARAM_FEATURE_NAMES ",f", po::value<boost::optional<std::string>>(),
 		 "Feature names: comma separate list of project features to enable. if not specified will be taken as project "
 		 "name.")  //
-		(PARAM_PRIMARY_KEY, po::value<string>(), "Primary key location, in case it is not in default folder")  //
-		(PARAM_PROJECT_FOLDER ",p", po::value<string>(&project_folder)->default_value("."),
+		(PARAM_PRIMARY_KEY, po::value<std::string>(), "Primary key location, in case it is not in default folder")	//
+		(PARAM_PROJECT_FOLDER ",p", po::value<std::string>(&project_folder)->default_value("."),
 		 "path to where project configurations and licenses are stored.")  //
-		(PARAM_VERSION_FROM, po::value<string>()->default_value("0", "All Versions"),
+		(PARAM_VERSION_FROM, po::value<std::string>()->default_value("0", "All Versions"),
 		 "Specify the first version of the software this license apply to.")  //
-		(PARAM_VERSION_TO, po::value<string>()->default_value("0", "All Versions"),	 //
+		(PARAM_VERSION_TO, po::value<std::string>()->default_value("0", "All Versions"),  //
 		 "Specify the last version of the software this license apply to.")	 //
-		(PARAM_EXTRA_DATA ",x", po::value<string>(),
+		(PARAM_EXTRA_DATA ",x", po::value<std::string>(),
 		 "Specify extra data to be included into the license (a string of max 64 characters)")	//
 		("custom-value", po::value<std::vector<std::string>>(), "Custom key=value pair to be added to the license")	 //
 		("help,h", "Print this help.");	 //
 	FUNCTION_RETURN result = FUNC_RET_OK;
 	if (rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global)) {
-		string* license_name_ptr = nullptr;
+		std::string* license_name_ptr = nullptr;
 		if (!license_name.empty()) {
 			license_name_ptr = &license_name;
 		}
@@ -209,7 +208,7 @@ static FUNCTION_RETURN issueLicense(const po::parsed_options& parsed, po::variab
 			} else if (auto v = boost::any_cast<boost::optional<std::string>>(value)) {
 				license.add_parameter(it.first, *v);
 			} else {
-				std::cerr << it.first << "not recognized value error" << endl;
+				std::cerr << it.first << "not recognized value error" << std::endl;
 				result = FUNC_RET_ERROR;
 				break;
 			}
@@ -218,10 +217,11 @@ static FUNCTION_RETURN issueLicense(const po::parsed_options& parsed, po::variab
 			try {
 				license.write_license();
 				if (verbose) {
-					cout << "License written to: " << (license_name.empty() ? "stdout" : license_name) << endl;
+					std::cout << "License written to: " << (license_name.empty() ? "stdout" : license_name)
+							  << std::endl;
 				}
-			} catch (exception& ex) {
-				cerr << "License writing error: " << ex.what() << endl;
+			} catch (std::exception& ex) {
+				std::cerr << "License writing error: " << ex.what() << std::endl;
 				result = FUNC_RET_ERROR;
 			}
 		}
@@ -234,27 +234,27 @@ static FUNCTION_RETURN issueLicense(const po::parsed_options& parsed, po::variab
 static void test_sign(const po::parsed_options& parsed, po::variables_map& vm, const char** argv,
 					  const po::options_description& global) {
 	po::options_description license_desc("license issue options");
-	string private_key_file;
-	string data;
-	string outputFile;
+	std::string private_key_file;
+	std::string data;
+	std::string outputFile;
 	license_desc.add_options()	//
-		("data,d", po::value<string>(&data)->required(), "Data to be signed")  //
-		(PARAM_PRIMARY_KEY ",p", po::value<string>(&private_key_file)->required(), "Primary key location")	//
-		("output,o", po::value<string>(&outputFile)->required(), "file where to write output");
+		("data,d", po::value<std::string>(&data)->required(), "Data to be signed")	//
+		(PARAM_PRIMARY_KEY ",p", po::value<std::string>(&private_key_file)->required(), "Primary key location")	 //
+		("output,o", po::value<std::string>(&outputFile)->required(), "file where to write output");
 	rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global);
-	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
+	std::unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
 	crypto->loadPrivateKey_file(private_key_file);
-	string signedData(crypto->signString(data));
+	std::string signedData(crypto->signString(data));
 	if (outputFile != "cout") {
-		ofstream ofile;
-		ofile.open(outputFile, ios::trunc);
+		std::ofstream ofile;
+		ofile.open(outputFile, std::ios::trunc);
 		if (!ofile.is_open()) {
-			throw logic_error("can't create [" + outputFile + "]");
+			throw std::logic_error("can't create [" + outputFile + "]");
 		}
 		ofile << signedData;
 		ofile.close();
 	} else {
-		cout << signedData << endl;
+		std::cout << signedData << std::endl;
 	}
 }
 
@@ -274,22 +274,22 @@ static void showVersion(const po::parsed_options& parsed, po::variables_map& vm,
 		try {
 			po::notify(vm);
 			if (numeric) {
-				cout << PROJECT_INT_VERSION << endl;
+				std::cout << PROJECT_INT_VERSION << std::endl;
 			} else {
-				cout << PROJECT_VERSION << endl;
+				std::cout << PROJECT_VERSION << std::endl;
 			}
 		} catch (std::exception& e) {
 			printHelpHeader(argv[0]);
-			cout << argv[0] << " version [options]" << endl;
-			global.print(cout);
-			version_desc.print(cout);
-			std::cerr << "Error: " << e.what() << endl;
+			std::cout << argv[0] << " version [options]" << std::endl;
+			global.print(std::cout);
+			version_desc.print(std::cout);
+			std::cerr << "Error: " << e.what() << std::endl;
 		}
 	} else {
 		printHelpHeader(argv[0]);
-		cout << argv[0] << " version [options]" << endl;
-		global.print(cout);
-		version_desc.print(cout);
+		std::cout << argv[0] << " version [options]" << std::endl;
+		global.print(std::cout);
+		version_desc.print(std::cout);
 	}
 }
 
@@ -298,7 +298,7 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char** argv)
 		printBasicHelp(argv[0]);
 		return FUNC_RET_ERROR;
 	}
-	if (argc == 2 && (string("-h") == argv[1] || string("--help") == argv[1])) {
+	if (argc == 2 && (std::string("-h") == argv[1] || std::string("--help") == argv[1])) {
 		printBasicHelp(argv[0]);
 		return FUNC_RET_OK;
 	}
@@ -337,7 +337,7 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char** argv)
 	}
 	bool verbose = vm.count("verbose") > 0;
 	if (verbose) {
-		cout << "Project version: " << PROJECT_VERSION << endl;
+		std::cout << "Project version: " << PROJECT_VERSION << std::endl;
 	}
 	try {
 		if (cmds[0] == "project") {
@@ -345,14 +345,14 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char** argv)
 				result = initializeProject(parsed, vm, argv, global, verbose);
 			} else if (cmds[1] == "list") {
 				po::options_description project_desc("project " + cmds[1] + " options");
-				boost::optional<string> project_folder;
+				boost::optional<std::string> project_folder;
 				project_desc.add_options()	//
-					("projects-folder,p", po::value<boost::optional<string>>(&project_folder),
+					("projects-folder,p", po::value<boost::optional<std::string>>(&project_folder),
 					 "path to where project configurations are stored.")  //
 					("help", "Print this help.");  //
 
 			} else {
-				std::cerr << endl << "command " << cmds[0] << " " << cmds[1] << " not recognized.";
+				std::cerr << std::endl << "command " << cmds[0] << " " << cmds[1] << " not recognized.";
 				printBasicHelp(argv[0]);
 				result = FUNC_RET_ERROR;
 			}
@@ -377,9 +377,9 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char** argv)
 			printBasicHelp(argv[0]);
 			result = FUNC_RET_ERROR;
 		}
-	} catch (const invalid_argument& e) {
+	} catch (const std::invalid_argument& e) {
 		printBasicHelp(argv[0]);
-		cout << endl << "Parameter error: " << e.what() << endl;
+		std::cout << std::endl << "Parameter error: " << e.what() << std::endl;
 		result = FUNC_RET_ERROR;
 	}
 	return result;

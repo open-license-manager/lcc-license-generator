@@ -18,7 +18,7 @@
 #include <ncrypt.h>
 #include <wincrypt.h>
 #include <fstream>
-#include <math.h>
+#include <cmath>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "../base64.h"
@@ -27,18 +27,18 @@
 // #pragma comment(lib, "bcrypt.lib")
 // #pragma comment(lib, "crypt32.lib")
 
-#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
+#define NT_SUCCESS(Status) (reinterpret_cast<NTSTATUS>(Status) >= 0)
 
 namespace license {
 using namespace std;
 
-static const string formatError(DWORD status) {
+static std::string formatError(DWORD status) {
 	std::ostringstream ss;
 	ss << std::hex << status;
 	/* vector<char> msgBuffer(256);
-	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, status, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), &msgBuffer[0],
-				  sizeof(msgBuffer) - 1, nullptr);
-	return string(&msgBuffer[0]) + ss.str();*/
+	  FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, status, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), &msgBuffer[0],
+					sizeof(msgBuffer) - 1, nullptr);
+	  return string(&msgBuffer[0]) + ss.str();*/
 
 	LPSTR messageBuffer = nullptr;
 
@@ -54,11 +54,11 @@ static const string formatError(DWORD status) {
 	);
 
 	if (size == 0) {
-		return string("Unknown error code: ") + ss.str();
+		return std::string("Unknown error code: ") + ss.str();
 	}
 
 	// Copy to a modern safe string container
-	string errorMessage(messageBuffer, size);
+	std::string errorMessage(messageBuffer, size);
 	LocalFree(messageBuffer);
 	return errorMessage + ", error (0x" + ss.str() + ")";
 }
@@ -67,8 +67,8 @@ static BCRYPT_ALG_HANDLE openSignatureProvider() {
 	DWORD status;
 	BCRYPT_ALG_HANDLE hSignAlg = nullptr;
 	if (!NT_SUCCESS(status = BCryptOpenAlgorithmProvider(&hSignAlg, BCRYPT_RSA_ALGORITHM, NULL, 0))) {
-		cerr << "**** Error returned by BCryptOpenAlgorithmProvider" << formatError(status) << endl;
-		throw logic_error("Error opening signature provider");
+		std::cerr << "**** Error returned by BCryptOpenAlgorithmProvider" << formatError(status) << std::endl;
+		throw std::logic_error("Error opening signature provider");
 	}
 	return hSignAlg;
 }
@@ -77,8 +77,8 @@ static BCRYPT_ALG_HANDLE openHashProvider() {
 	DWORD status;
 	BCRYPT_ALG_HANDLE hHashAlg = nullptr;
 	if (!NT_SUCCESS(status = BCryptOpenAlgorithmProvider(&hHashAlg, BCRYPT_SHA256_ALGORITHM, NULL, 0))) {
-		cerr << "**** Error returned by BCryptOpenAlgorithmProvider" << formatError(status) << endl;
-		throw logic_error("Error opening hash provider");
+		std::cerr << "**** Error returned by BCryptOpenAlgorithmProvider" << formatError(status) << std::endl;
+		throw std::logic_error("Error opening hash provider");
 	}
 	return hHashAlg;
 }

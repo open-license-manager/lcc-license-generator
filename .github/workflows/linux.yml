@@ -113,7 +113,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: 'open-license-manager/lcc-license-generator'
           root_dir: ${{ github.workspace }}
-          exclude: '${{ github.workspace }}/src/ini/.*,${{ github.workspace }}/test/.*,${{ github.workspace }}/src/inja/.*,/usr/.*'
+          exclude: '${{ github.workspace }}/src/ini/.*,${{ github.workspace }}/test/.*,${{ github.workspace }}/src/inja/.*,/usr/.*,**/test/**,/usr/**,**/src/inja/**'
     - name: Run codacy-coverage-reporter
       uses: codacy/codacy-coverage-reporter-action@v1.3.0
       continue-on-error: true

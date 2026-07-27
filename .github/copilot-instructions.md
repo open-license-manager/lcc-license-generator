@@ -16,6 +16,7 @@ C/C++ license generator for the licensecc project. Creates projects with public/
 - `src/base_lib/` - Core cryptographic functionality and base utilities
 - `src/license_generator/` - Main application logic for license generation
 - `src/inja/` - Inja template engine (third party library): <https://github.com/pantor/inja/blob/main/README.md> . Do not modify this folder.
+- `src/ini/` - Ini files reading library (third party library). Do not modify this folder.
 - `test/` - Unit tests using Boost.Test framework
 - `cmake/` - CMake modules and build configurations
 
@@ -36,7 +37,7 @@ C/C++ license generator for the licensecc project. Creates projects with public/
 
 ## Cryptographic Features
 
-- RSA key pairs (default 1024-bit, configurable)
+- RSA key pairs (default 2048-bit, configurable)
 - SHA256withRSA signature algorithm
 - Base64 encoding for signatures
 - Support for both OpenSSL and Windows Crypto API
@@ -44,7 +45,7 @@ C/C++ license generator for the licensecc project. Creates projects with public/
 
 ## Command-Line Interface
 - `lcc project init` - Initialize a new licensing project
-- `lcc license generate` - Generate a license file
+- `lcc license issue` - Generate a license file
 - Parameters passed via command-line options
 
 ## Testing
@@ -54,8 +55,8 @@ C/C++ license generator for the licensecc project. Creates projects with public/
 
 ## Platform Support
 
-- Linux (primary development platform)
-- Windows (with cross-compilation support)
+- Linux
+- Windows
 - Cross-platform abstractions for crypto operations
 - Mac OS
 
@@ -64,7 +65,7 @@ C/C++ license generator for the licensecc project. Creates projects with public/
 Compatible with the following versions:
 - OpenSSL from 1.1.1 to 4.0 (mandatory on Linux and Mac OS, optional on Windows)
 - Boost 1.69 to 1.90 (for various utilities and testing)
-- CMake 3.10 to 4.0 for build configuration
+- CMake 3.16 to 4.0 for build configuration
 Code for specific versions must be protected with preprocessor directives to ensure compatibility across different environments.
 
 ## Coding Standards
@@ -76,6 +77,7 @@ Code for specific versions must be protected with preprocessor directives to ens
 - Proper const-correctness
 - Memory-safe operations with smart pointers
 - Format every modified .cpp or .h file with clang-format
+- Temporary objects must not be passed as parameters, they must be assigned to local variables.
 
 ## Common Tasks
 
@@ -84,6 +86,20 @@ Code for specific versions must be protected with preprocessor directives to ens
 - Adding command-line options: Update CommandLineParser class
 - Creating new tests: Add to test/ directory using Boost.Test framework
 
+## Key Constants and Definitions
+
+- Default RSA key size: 2048 bits (`DEFAULT_RSA_KEY_BITS`)
+- License version constants:
+  - `LICENSE_VERSION_200` (200) - for 1024-bit keys
+  - `LICENSE_VERSION_210` (210) - for 2048-bit+ keys
+- File naming conventions:
+  - Private key: `private_key.rsa`
+  - Public key: `public_key.h`
+
+## Compilation instruction
+
+- See .agents/skills/compile/SKILL.md
+
 ## Interaction with the user
-- Be concise in explanations
-- Do not output a summary for small changes
+- Be very concise in explanations
+- Do not output a summary changes

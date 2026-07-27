@@ -33,3 +33,5 @@ out
 /install
 /vcpkg_installed
 *.info
+.vscode/launch.json
+.vscode/settings.json

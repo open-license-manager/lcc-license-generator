@@ -1,5 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <algorithm>
 
@@ -40,13 +40,13 @@ const static unsigned char unb64[] = {
 };	// This array has 255 elements
 
 // review api
-static void add_CR_if_needed(string& encodeBuffer, int lineLenght) {
+static void add_CR_if_needed(std::string& encodeBuffer, int lineLenght) {
 	if (lineLenght > 0 && ((encodeBuffer.size() + 1) % lineLenght) == 0) {
 		encodeBuffer += '\n';
 	}
 }
 
-string base64(const void* binaryData, size_t len, int lineLenght) {
+std::string base64(const void* binaryData, size_t len, int lineLenght) {
 	const unsigned char* bin = static_cast<const unsigned char*>(binaryData);
 
 	int rc = 0;	 // result counter
@@ -61,7 +61,7 @@ string base64(const void* binaryData, size_t len, int lineLenght) {
 		totalLength += ((int)flen / lineLenght) + 3;
 	}
 
-	string encodeBuffer;
+	std::string encodeBuffer;
 	encodeBuffer.reserve(totalLength);
 
 	for (byteNo = 0; byteNo <= len - 3; byteNo += 3) {
@@ -98,18 +98,17 @@ string base64(const void* binaryData, size_t len, int lineLenght) {
 		add_CR_if_needed(encodeBuffer, lineLenght);
 		encodeBuffer += '=';
 	}
+
 	if (lineLenght && encodeBuffer[encodeBuffer.length() - 1] != '\n') {
 		encodeBuffer += '\n';
 	}
 	return encodeBuffer;
 }
 
-string base64(const std::string& str, int lineLength) {
-    return base64(str.data(), str.size(), lineLength);
-}
+std::string base64(const std::string& str, int lineLength) { return base64(str.data(), str.size(), lineLength); }
 
 std::vector<uint8_t> unbase64(const std::string& base64_data) {
-	string tmp_str(base64_data);
+	std::string tmp_str(base64_data);
 	tmp_str.erase(std::remove(tmp_str.begin(), tmp_str.end(), '\n'), tmp_str.end());
 	const unsigned char* safeAsciiPtr = (const unsigned char*)tmp_str.c_str();
 	std::vector<uint8_t> bin;
