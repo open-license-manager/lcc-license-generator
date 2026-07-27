@@ -111,21 +111,18 @@ static FUNCTION_RETURN initializeProject(const po::parsed_options& parsed, po::v
 		("key-bits,k", po::value<unsigned int>(&key_size)->default_value(DEFAULT_RSA_KEY_BITS),
 		 "Size of the RSA key in bits (1024, 2048, or 4096). Default is 2048.")	 //
 		("help", "Print this help.");  //
-	FUNCTION_RETURN result = FUNC_RET_ERROR;
+	FUNCTION_RETURN result = FUNC_RET_OK;
 	if (rerunBoostPO(parsed, project_desc, vm, argv, "project init", global)) {
-		// Validate key size
-		if (key_size != 1024 && key_size != 2048 && key_size != 4096) {
-			std::cerr << "Error: Invalid --key-bits parameter [" << std::to_string(key_size)
-					  << "]. Valid values are 1024, 2048, or 4096.";
-			return result;
-		}
 
-		Project project(project_name, project_folder, templates_folder);
-		result = project.initialize(key_size);
-
-		// Print verbose information
-		if (verbose) {
-			std::cout << "Project initialized successfully" << std::endl;
+		try {
+			Project project(project_name, project_folder, templates_folder);
+			result = project.initialize(key_size);
+			if (verbose) {
+				std::cout << "Project initialized successfully" << std::endl;
+			}
+		} catch (std::exception& ex) {
+			std::cerr << "Project initialization error: " << ex.what() << std::endl;
+			result = FUNC_RET_ERROR;
 		}
 	}
 	return result;

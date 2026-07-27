@@ -72,7 +72,7 @@ Project::Project(const std::string& name, const std::string& project_folder, con
 	  m_force_overwrite(force_overwrite) {
 	if (name.find('[') != std::string::npos || name.find(']') != std::string::npos ||
 		name.find('/') != std::string::npos || name.find('\\') != std::string::npos) {
-		throw std::invalid_argument("project name should not contain any of '[ ] / \' characters.");
+		throw std::invalid_argument("project name should not contain any of '[ ] / \\' characters.");
 	}
 }
 
@@ -89,6 +89,11 @@ void Project::exportPublicKey(const std::string& include_folder, const std::uniq
 }
 
 FUNCTION_RETURN Project::initialize(unsigned int key_size) {
+	// Validate key size
+	if (key_size != 1024 && key_size != 2048 && key_size != 4096) {
+		throw std::invalid_argument("Error: Invalid --key-bits parameter [" + std::to_string(key_size) +
+								 "]. Valid values are 1024, 2048, or 4096.");
+	}
 	const fs::path destinationDir(fs::path(m_project_folder) / m_name);
 	const fs::path include_folder(publicKeyFolder(destinationDir, m_name));
 	const fs::path publicKeyFile(include_folder / PUBLIC_KEY_INC_FNAME);
