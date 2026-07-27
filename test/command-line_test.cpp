@@ -33,21 +33,18 @@ static void create_project(const fs::path& projects_folder, const fs::path& expe
 						"Private key " + expectedPrivateKey.string() + " can't be deleted.");
 	BOOST_CHECK_MESSAGE(!fs::exists(expected_public_key),
 						"Public key " + expected_public_key.string() + " can't be deleted.");
-	const string mock_source = mock_source_folder.string();
-	const string projects_str = projects_folder.string();
-	string key_bits_str = to_string(key_bits);
-	int argc = 11;
 	const char* argv1[] = {"lcc",
 						   "project",
 						   "init",
 						   "-n",
 						   project_name.c_str(),
 						   "--projects-folder",
-						   projects_str.c_str(),
+						   projects_folder.c_str(),
 						   "--templates",
-						   mock_source.c_str(),
+						   mock_source_folder.c_str(),
 						   "-k",
-						   key_bits_str.c_str()};
+						   to_string(key_bits).c_str()};
+	int argc = sizeof(argv1) / sizeof(argv1[0]);
 	// initialize_project
 	int result = CommandLineParser::parseCommandLine(argc, argv1);
 	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
@@ -55,29 +52,36 @@ static void create_project(const fs::path& projects_folder, const fs::path& expe
 	BOOST_CHECK_MESSAGE(fs::exists(expected_public_key), "Public key " + expected_public_key.string() + " created.");
 }
 
-BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
-	const string project_name("TEST");
+static fs::path create_project(const string& project_name, int key_bits = DEFAULT_RSA_KEY_BITS) {
+	// check here! it is creating files in the source tree?
 	const fs::path mock_source_folder(fs::path(PROJECT_TEST_SRC_DIR) / "data" / "src");
 	const fs::path projects_folder(fs::path(PROJECT_TEST_TEMP_DIR) / "lcc_projects");
 	const fs::path expected_project_folder(projects_folder / project_name);
-	const fs::path expectedPrivateKey(projects_folder / project_name / PRIVATE_KEY_FNAME);
-	const fs::path expected_public_key(projects_folder / project_name / "include" / "licensecc" / project_name /
+	const fs::path expectedPrivateKey(expected_project_folder / PRIVATE_KEY_FNAME);
+	const fs::path expected_public_key(expected_project_folder / "include" / "licensecc" / project_name /
 									   PUBLIC_KEY_INC_FNAME);
 
-	create_project(projects_folder, expectedPrivateKey, expected_public_key, mock_source_folder, project_name);
-	const string private_key_str = expectedPrivateKey.string();
-	const string project_folder_str = expected_project_folder.string();
+	create_project(projects_folder, expectedPrivateKey, expected_public_key, mock_source_folder, project_name,
+				   key_bits);
+
+	return expected_project_folder;
+}
+
+BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
+	const string project_name("TEST");
+	const fs::path expected_project_folder = create_project(project_name);
 	// issue license in standard location
-	int argc = 9;
+	const fs::path private_key_path = expected_project_folder / PRIVATE_KEY_FNAME;
 	const char* argv2[] = {"lcc",
 						   "license",
 						   "issue",
 						   "--" PARAM_PRIMARY_KEY,
-						   private_key_str.c_str(),
+						   private_key_path.c_str(),
 						   "--" PARAM_LICENSE_OUTPUT,
 						   "my_license.lic",
 						   "--" PARAM_PROJECT_FOLDER,
-						   project_folder_str.c_str()};
+						   expected_project_folder.c_str()};
+	int argc = sizeof(argv2) / sizeof(argv2[0]);
 	int result = CommandLineParser::parseCommandLine(argc, argv2);
 	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
 	fs::path expected_license("my_license.lic");
@@ -92,29 +96,24 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license) {
 #if BOOST_VERSION > 106500
 BOOST_AUTO_TEST_CASE(product_initialize_issue_license_multi_feature) {
 	const string project_name("TEST");
-	const fs::path mock_source_folder(fs::path(PROJECT_TEST_SRC_DIR) / "data" / "src");
-	const fs::path projects_folder(fs::path(PROJECT_TEST_TEMP_DIR) / "lcc_projects");
-	const fs::path expected_project_folder(projects_folder / project_name);
-	const fs::path expectedPrivateKey(projects_folder / project_name / PRIVATE_KEY_FNAME);
-	const fs::path expected_public_key(projects_folder / project_name / "include" / "licensecc" / project_name /
-									   PUBLIC_KEY_INC_FNAME);
+	const fs::path project_folder = create_project(project_name);
+	const fs::path expectedPrivateKey(project_folder / PRIVATE_KEY_FNAME);
+	const fs::path expected_public_key(project_folder / "include" / "licensecc" / project_name / PUBLIC_KEY_INC_FNAME);
 
-	create_project(projects_folder, expectedPrivateKey, expected_public_key, mock_source_folder, project_name);
-	const string private_key_str = expectedPrivateKey.string();
-	const string project_folder_str = expected_project_folder.string();
 	// issue license in standard location
-	int argc = 11;
+	const fs::path private_key_path = project_folder / PRIVATE_KEY_FNAME;
 	const char* argv2[] = {"lcc",
 						   "license",
 						   "issue",
 						   "--" PARAM_PRIMARY_KEY,
-						   private_key_str.c_str(),
+						   private_key_path.c_str(),
 						   "--" PARAM_LICENSE_OUTPUT,
 						   "my_license_multi.lic",
 						   "--" PARAM_PROJECT_FOLDER,
-						   project_folder_str.c_str(),
+						   project_folder.c_str(),
 						   "-f",
 						   "TEST,feature1"};
+	int argc = sizeof(argv2) / sizeof(argv2[0]);
 	int result = CommandLineParser::parseCommandLine(argc, argv2);
 	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
 	fs::path expected_license("my_license_multi.lic");
@@ -128,27 +127,22 @@ BOOST_AUTO_TEST_CASE(product_initialize_issue_license_multi_feature) {
 
 BOOST_AUTO_TEST_CASE(product_initialize_1024_bit_issue_license) {
 	const string project_name("TEST1024");
-	const fs::path mock_source_folder(fs::path(PROJECT_TEST_SRC_DIR) / "data" / "src");
-	const fs::path projects_folder(fs::path(PROJECT_TEST_TEMP_DIR) / "lcc_projects");
-	const fs::path expected_project_folder(projects_folder / project_name);
-	const fs::path expectedPrivateKey(projects_folder / project_name / PRIVATE_KEY_FNAME);
-	const fs::path expected_public_key(projects_folder / project_name / "include" / "licensecc" / project_name /
-									   PUBLIC_KEY_INC_FNAME);
+	const fs::path project_folder = create_project(project_name, 1024);
+	const fs::path expectedPrivateKey(project_folder / PRIVATE_KEY_FNAME);
+	const fs::path expected_public_key(project_folder / "include" / "licensecc" / project_name / PUBLIC_KEY_INC_FNAME);
 
-	create_project(projects_folder, expectedPrivateKey, expected_public_key, mock_source_folder, project_name, 1024);
-	const string private_key_str = expectedPrivateKey.string();
-	const string project_folder_str = expected_project_folder.string();
 	// issue license in standard location
-	int argc = 9;
+	const fs::path private_key_path = project_folder / PRIVATE_KEY_FNAME;
 	const char* argv2[] = {"lcc",
 						   "license",
 						   "issue",
 						   "--" PARAM_PRIMARY_KEY,
-						   private_key_str.c_str(),
+						   private_key_path.c_str(),
 						   "--" PARAM_LICENSE_OUTPUT,
 						   "my_license_1024bit.lic",
 						   "--" PARAM_PROJECT_FOLDER,
-						   project_folder_str.c_str()};
+						   project_folder.c_str()};
+	int argc = sizeof(argv2) / sizeof(argv2[0]);
 	int result = CommandLineParser::parseCommandLine(argc, argv2);
 	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
 	fs::path expected_license("my_license_1024bit.lic");
@@ -162,8 +156,8 @@ BOOST_AUTO_TEST_CASE(product_initialize_1024_bit_issue_license) {
 #endif
 
 BOOST_AUTO_TEST_CASE(issue_license_help) {
-	int argc = 4;
 	const char* argv1[] = {"lcc", "license", "issue", "-h"};
+	int argc = sizeof(argv1) / sizeof(argv1[0]);
 	// initialize_project
 	boost::test_tools::output_test_stream output;
 	{
@@ -176,25 +170,82 @@ BOOST_AUTO_TEST_CASE(issue_license_help) {
 }
 
 /**
+ * Test custom-value command line option
+ */
+BOOST_AUTO_TEST_CASE(issue_license_custom_value) {
+	const string project_name("TEST1024");
+	const fs::path project_folder = create_project(project_name, 1024);
+	const fs::path licLocation = fs::path(PROJECT_TEST_TEMP_DIR) / "test_custom_2.lic";
+
+	// Test with custom-value parameters
+	const char* argv1[] = {"lcc",
+						   "license",
+						   "issue",
+						   "--custom-value",
+						   "custom_key1=custom_value1",
+						   "--custom-value",
+						   "custom_key2=custom_value2",
+						   "--custom-value",
+						   "another_custom=some_value",
+						   "--output-file-name",
+						   licLocation.c_str(),
+						   "--project-folder",
+						   project_folder.c_str()};
+	int argc = sizeof(argv1) / sizeof(argv1[0]);
+	int result = CommandLineParser::parseCommandLine(argc, argv1);
+	BOOST_CHECK_EQUAL(result, FUNC_RET_OK);
+	BOOST_REQUIRE_MESSAGE(fs::exists(licLocation), "license has been created");
+	// Check that custom parameters are present in the license
+	CSimpleIniA ini;
+	ini.LoadFile(licLocation.c_str());
+
+	// Check that custom parameters are present in the license
+	BOOST_CHECK_MESSAGE(string(ini.GetValue(project_name.c_str(), "custom_key1", "X")) == "custom_value1",
+						"Custom key1 has correct value in license");
+	BOOST_CHECK_MESSAGE(string(ini.GetValue(project_name.c_str(), "custom_key2", "X")) == "custom_value2",
+						"Custom key2 has correct value in license");
+	BOOST_CHECK_MESSAGE(string(ini.GetValue(project_name.c_str(), "another_custom", "X")) == "some_value",
+						"Another custom key has correct value in license");
+}
+
+/**
+ * Test invalid custom-value format
+ */
+BOOST_AUTO_TEST_CASE(issue_license_invalid_custom_value) {
+	// Test with invalid custom-value format (missing =)
+	const char* argv1[] = {"lcc",
+						   "license",
+						   "issue",
+						   "--custom-value",
+						   "invalid_format_no_equals",
+						   "--output-file-name",
+						   "test_invalid.lic"};
+	int argc = sizeof(argv1) / sizeof(argv1[0]);
+
+	boost::test_tools::output_test_stream output;
+	int result = CommandLineParser::parseCommandLine(argc, argv1);
+
+	BOOST_CHECK_MESSAGE(result == FUNC_RET_ERROR, "The function must return an error value");
+}
+
+/**
  * The project name should not contain '\ / [ ]' charactoers
  */
 BOOST_AUTO_TEST_CASE(init_project_name_wrong) {
 	const string project_name("a/TEST");
 	const fs::path mock_source_folder(fs::path(PROJECT_TEST_SRC_DIR) / "data" / "src");
 	const fs::path projects_folder(fs::path(PROJECT_TEST_TEMP_DIR) / "lcc_projects_wa");
-	const string mock_source = mock_source_folder.string();
-	const string projects_str = projects_folder.string();
 
-	int argc = 9;
 	const char* argv1[] = {"lcc",
 						   "project",
 						   "init",
 						   "-n",
 						   project_name.c_str(),
 						   "--projects-folder",
-						   projects_str.c_str(),
+						   projects_folder.c_str(),
 						   "--templates",
-						   mock_source.c_str()};
+						   mock_source_folder.c_str()};
+	int argc = sizeof(argv1) / sizeof(argv1[0]);
 	int result;
 	boost::test_tools::output_test_stream output;
 	{
@@ -214,21 +265,19 @@ BOOST_AUTO_TEST_CASE(init_project_key_size_wrong) {
 	const string project_name("TEST");
 	const fs::path mock_source_folder(fs::path(PROJECT_TEST_SRC_DIR) / "data" / "src");
 	const fs::path projects_folder(fs::path(PROJECT_TEST_TEMP_DIR) / "lcc_projects_wa");
-	const string mock_source = mock_source_folder.string();
-	const string projects_str = projects_folder.string();
 
-	int argc = 11;
 	const char* argv1[] = {"lcc",
 						   "project",
 						   "init",
 						   "-n",
 						   project_name.c_str(),
 						   "--projects-folder",
-						   projects_str.c_str(),
+						   projects_folder.c_str(),
 						   "--templates",
-						   mock_source.c_str(),
+						   mock_source_folder.c_str(),
 						   "--key-bits",
 						   "42"};
+	int argc = sizeof(argv1) / sizeof(argv1[0]);
 	int result;
 	boost::test_tools::output_test_stream output;
 	{
@@ -242,8 +291,8 @@ BOOST_AUTO_TEST_CASE(init_project_key_size_wrong) {
 }
 
 BOOST_AUTO_TEST_CASE(version_command_default) {
-	int argc = 2;
 	const char* argv1[] = {"lcc", "version"};
+	int argc = sizeof(argv1) / sizeof(argv1[0]);
 	boost::test_tools::output_test_stream output;
 	{
 		cout_redirect guard(output.rdbuf());
@@ -256,8 +305,8 @@ BOOST_AUTO_TEST_CASE(version_command_default) {
 }
 
 BOOST_AUTO_TEST_CASE(version_command_numeric) {
-	int argc = 3;
 	const char* argv1[] = {"lcc", "version", "--numeric"};
+	int argc = sizeof(argv1) / sizeof(argv1[0]);
 	boost::test_tools::output_test_stream output;
 	{
 		cout_redirect guard(output.rdbuf());
@@ -272,8 +321,8 @@ BOOST_AUTO_TEST_CASE(version_command_numeric) {
 }
 
 BOOST_AUTO_TEST_CASE(version_command_help) {
-	int argc = 3;
 	const char* argv1[] = {"lcc", "version", "--help"};
+	int argc = sizeof(argv1) / sizeof(argv1[0]);
 	boost::test_tools::output_test_stream output;
 	{
 		cout_redirect guard(output.rdbuf());

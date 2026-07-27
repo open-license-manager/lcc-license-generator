@@ -132,8 +132,30 @@ static FUNCTION_RETURN initializeProject(const po::parsed_options& parsed, po::v
 	return result;
 }
 
-static void issueLicense(const po::parsed_options& parsed, po::variables_map& vm, const char** argv,
-						 const po::options_description& global, bool verbose = false) {
+/**
+ * Process custom-value parameters from command line
+ */
+static FUNCTION_RETURN processCustomValueParameters(const boost::any& value, License& license) {
+	FUNCTION_RETURN result = FUNC_RET_OK;
+	const vector<string> values = boost::any_cast<vector<string>>(value);
+	// Process custom-value parameters
+	for (const string& custom_pair : values) {
+		// Split key=value format
+		size_t pos = custom_pair.find('=');
+		if (pos != std::string::npos) {
+			std::string key = custom_pair.substr(0, pos);
+			std::string value = custom_pair.substr(pos + 1);
+			license.add_parameter(key, value);
+		} else {
+			std::cerr << "Invalid custom-value format: " << custom_pair << " (should be key=value)" << endl;
+			result = FUNC_RET_ERROR;
+		}
+	}
+	return result;
+}
+
+static FUNCTION_RETURN issueLicense(const po::parsed_options& parsed, po::variables_map& vm, const char** argv,
+									const po::options_description& global, bool verbose = false) {
 	po::options_description license_desc("license issue options");
 	string license_name;
 	string project_folder;
@@ -164,36 +186,47 @@ static void issueLicense(const po::parsed_options& parsed, po::variables_map& vm
 		 "Specify the first version of the software this license apply to.")  //
 		(PARAM_VERSION_TO, po::value<string>()->default_value("0", "All Versions"),	 //
 		 "Specify the last version of the software this license apply to.")	 //
-		(PARAM_EXTRA_DATA ",x", po::value<string>(), "Specify extra data to be included into the license")	//
+		(PARAM_EXTRA_DATA ",x", po::value<string>(),
+		 "Specify extra data to be included into the license (a string of max 64 characters)")	//
+		("custom-value", po::value<std::vector<std::string>>(), "Custom key=value pair to be added to the license")	 //
 		("help,h", "Print this help.");	 //
+	FUNCTION_RETURN result = FUNC_RET_OK;
 	if (rerunBoostPO(parsed, license_desc, vm, argv, "license issue", global)) {
 		string* license_name_ptr = nullptr;
 		if (!license_name.empty()) {
 			license_name_ptr = &license_name;
 		}
-
 		License license(license_name_ptr, project_folder, base64);
 		for (const auto& it : vm) {
-			auto& value = it.second.value();
-			if (it.first != "command" && it.first != "subargs" && it.first != "base64") {
-				if (auto v = boost::any_cast<std::string>(&value)) {
-					license.add_parameter(it.first, *v);
-				} else if (auto v = boost::any_cast<boost::optional<std::string>>(value)) {
-					license.add_parameter(it.first, *v);
-				} else {
-					std::cerr << it.first << "not recognized value error" << endl;
-				}
+			if (it.first == "command" || it.first == "subargs" || it.first == "base64") {
+				continue;
+			}
+			const boost::any& value = it.second.value();
+			if (it.first == "custom-value") {
+				result = processCustomValueParameters(value, license);
+			} else if (auto v = boost::any_cast<std::string>(&value)) {
+				license.add_parameter(it.first, *v);
+			} else if (auto v = boost::any_cast<boost::optional<std::string>>(value)) {
+				license.add_parameter(it.first, *v);
+			} else {
+				std::cerr << it.first << "not recognized value error" << endl;
+				result = FUNC_RET_ERROR;
+				break;
 			}
 		}
-		try {
-			std::string license_file = license.write_license();
-
-			cout << "License written to: " << license_file << endl;
-
-		} catch (exception& ex) {
-			cerr << "License writing error: " << ex.what() << endl;
+		if (result == FUNC_RET_OK) {
+			try {
+				license.write_license();
+				if (verbose) {
+					cout << "License written to: " << (license_name.empty() ? "stdout" : license_name) << endl;
+				}
+			} catch (exception& ex) {
+				cerr << "License writing error: " << ex.what() << endl;
+				result = FUNC_RET_ERROR;
+			}
 		}
 	}
+	return result;
 }
 
 /** method used in tests for have a quick signature of a piece of data */
@@ -325,7 +358,7 @@ FUNCTION_RETURN CommandLineParser::parseCommandLine(int argc, const char** argv)
 			}
 		} else if (cmds[0] == "license") {
 			if (cmds[1] == "issue") {
-				issueLicense(parsed, vm, argv, global, verbose);
+				result = issueLicense(parsed, vm, argv, global, verbose);
 			} else {
 				printBasicHelp(argv[0]);
 				result = FUNC_RET_ERROR;

@@ -15,14 +15,14 @@ namespace fs = boost::filesystem;
 
 unique_ptr<CryptoHelper> CryptoHelper::getInstance() {
 #ifdef HAS_OPENSSL
-	unique_ptr<CryptoHelper> ptr(static_cast<CryptoHelper *>(new CryptoHelperLinux()));
+	unique_ptr<CryptoHelper> ptr(static_cast<CryptoHelper*>(new CryptoHelperLinux()));
 #else
-	unique_ptr<CryptoHelper> ptr(static_cast<CryptoHelper *>(new CryptoHelperWindows()));
+	unique_ptr<CryptoHelper> ptr(static_cast<CryptoHelper*>(new CryptoHelperWindows()));
 #endif
 	return ptr;
 }
 
-void CryptoHelper::loadPrivateKey_file(const std::string &privateKey_file_name) {
+void CryptoHelper::loadPrivateKey_file(const std::string& privateKey_file_name) {
 	if (!fs::exists(privateKey_file_name)) {
 		throw logic_error("Private key file [" + privateKey_file_name + "] does not exists");
 	}

@@ -118,6 +118,7 @@ void License::write_license_add_keys(CSimpleIniA& license_ini) {
 	vector<string> feature_v;
 	boost::algorithm::split(feature_v, features, boost::is_any_of(","));
 	unique_ptr<CryptoHelper> crypto(CryptoHelper::getInstance());
+
 	crypto->loadPrivateKey_file(m_private_key);
 	unsigned int private_key_bits = crypto->privateKeyBits();
 	long license_file_version = (private_key_bits > 1024) ? LICENSE_VERSION_210 : LICENSE_VERSION_200;

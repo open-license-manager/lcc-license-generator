@@ -3,3 +3,5 @@ exclude_paths:
   - 'test/**'
   - '/usr/**'
   - 'src/inja/**'
+  - '**.hpp'
+  - '*.h'

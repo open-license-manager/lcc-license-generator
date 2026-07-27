@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE(test_returned_license_matches_file) {
 		license.add_parameter(PARAM_EXPIRY_DATE, "2025-12-31");
 		std::string returned_content = boost::trim_copy(license.write_license());
 		BOOST_REQUIRE_MESSAGE(fs::exists(licFile), "license has been created");
-		std::ifstream file_stream(licFile.string(),ios::binary);
+		std::ifstream file_stream(licFile.string(), ios::binary);
 		std::ostringstream buffer;
 		buffer << file_stream.rdbuf();
 		std::string file_content = boost::trim_copy(buffer.str());
