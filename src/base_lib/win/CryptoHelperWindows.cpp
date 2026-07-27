@@ -27,10 +27,9 @@
 // #pragma comment(lib, "bcrypt.lib")
 // #pragma comment(lib, "crypt32.lib")
 
-#define NT_SUCCESS(Status) (reinterpret_cast<NTSTATUS>(Status) >= 0)
+#define NT_SUCCESS(Status) (static_cast<NTSTATUS>(Status) >= 0)
 
 namespace license {
-using namespace std;
 
 static std::string formatError(DWORD status) {
 	std::ostringstream ss;
