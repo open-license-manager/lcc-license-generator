@@ -70,14 +70,7 @@ Code for specific versions must be protected with preprocessor directives to ens
 
 ## Coding Standards
 
-- C++11 compliant code
-- RAII principles for resource management
-- Exception handling for error conditions
-- Consistent naming conventions (snake_case for functions/variables)
-- Proper const-correctness
-- Memory-safe operations with smart pointers
-- Format every modified .cpp or .h file with clang-format
-- Temporary objects must not be passed as parameters, they must be assigned to local variables.
+See [CODING_GUIDELINES.md](CODING_GUIDELINES.md) for detailed coding standards, common pitfalls for developers coming from other languages, and specific C++ best practices.
 
 ## Common Tasks
 
