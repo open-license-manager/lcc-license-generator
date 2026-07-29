@@ -34,12 +34,14 @@ add_executable(license_generator::lccgen ALIAS lccgen)
 target_link_libraries(lccgen PRIVATE license_generator_lib)
 set_target_properties(lccgen PROPERTIES VERSION ${PROJECT_VERSION})
 
-#install instructions
+#if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}) #do like this for issue 
 install(TARGETS lccgen EXPORT license_generator 
 			RUNTIME PERMISSIONS WORLD_EXECUTE WORLD_READ GROUP_EXECUTE GROUP_READ OWNER_EXECUTE OWNER_WRITE OWNER_READ
 			COMPONENT lccgen_binaries)
 
 install(EXPORT license_generator NAMESPACE license_generator:: DESTINATION ${pkg_config_dest} COMPONENT lccgen_binaries)
+#endif()
+
 ##double check this
 #install(FILES ../../cmake/lccgen-config.cmake DESTINATION ${pkg_config_dest} COMPONENT lccgen-binaries)
 

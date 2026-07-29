@@ -165,6 +165,7 @@ add_subdirectory("src/base_lib")
 add_subdirectory("src/license_generator")
 
 INCLUDE(CTest)
+
 IF(BUILD_TESTING)
     SET(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
 	MARK_AS_ADVANCED(BUILDNAME)
@@ -199,7 +200,7 @@ IF(WIN32)
 	set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/your-repo/lcc-license-generator")
 ELSE(WIN32)
 	if(APPLE)
-		
+		set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
     	set(CPACK_GENERATOR "TGZ;productbuild")
     	set(CPACK_SYSTEM_NAME "Darwin-${CPACK_APPLE_ARCH}")
 		set(CPACK_PRODUCTBUILD_DOMAINS TRUE)
