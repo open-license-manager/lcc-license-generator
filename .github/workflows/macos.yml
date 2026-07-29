@@ -65,3 +65,60 @@ jobs:
         path: ${{ steps.strings.outputs.build-output-dir }}/dist
         retention-days: 1
         overwrite: true
+
+  install:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    name: 'Install ${{ matrix.os }}'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26-intel, macos-26]
+    steps:
+    #- uses: actions/checkout@v6
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: artifacts-${{ matrix.os }}
+        path: ${{ github.workspace }}/dist
+        
+    - name: Install package
+      run: |
+        # Install the downloaded package
+        cd ${{ github.workspace }}/dist
+        for pkg in *.pkg; do
+          if [ -f "$pkg" ]; then
+            echo "Installing $pkg..."
+            sudo installer -pkg "$pkg" -target /
+          fi
+        done
+        
+    - name: Check installation
+      run: |
+        # Check that lccgen is properly installed
+        if [ -f "/usr/local/bin/lccgen" ]; then
+          echo "lccgen found at /usr/local/bin/lccgen"
+          ls -l /usr/local/bin/lccgen
+          if [ -x "/usr/local/bin/lccgen" ]; then
+            echo "lccgen is executable"
+          else
+            echo "Error: lccgen is not executable"
+            exit 1
+          fi
+        else
+          echo "Error: lccgen not found at /usr/local/bin/lccgen"
+          exit 1
+        fi
+        
+    - name: Launch lccgen
+      run: |
+        # Launch lccgen to verify it works correctly
+        echo "Launching lccgen --version..."
+        /usr/local/bin/lccgen --version
+        if [ $? -eq 0 ]; then
+          echo "lccgen --version executed successfully"
+        else
+          echo "Error: lccgen --version failed"
+          exit 1
+        fi
+        fi

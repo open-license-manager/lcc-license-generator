@@ -35,3 +35,5 @@ out
 *.info
 .vscode/launch.json
 .vscode/settings.json
+._.DS_Store
+.DS_Store
