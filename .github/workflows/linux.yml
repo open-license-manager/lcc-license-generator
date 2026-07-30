@@ -4,7 +4,11 @@ on:
      branches: [ "develop" ]
    pull_request:
      branches: [ "develop" ]
-
+permissions:
+   contents: read
+   actions: read
+   packages: read
+   
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -44,7 +48,7 @@ jobs:
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
     - name: Dependencies
       run: >
-          sudo apt-get -y install cmake valgrind libssl-dev zlib1g-dev libboost-test-dev libboost-filesystem-dev 
+          sudo apt-get update && sudo apt-get -y install cmake valgrind libssl-dev zlib1g-dev libboost-test-dev libboost-filesystem-dev 
           libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libboost-date-time-dev
           rpm
       # Install extra deps for ubuntu 26-04 (and add valgrind and coverage tests)
@@ -127,3 +131,58 @@ jobs:
           #language: 'C++'
           # or a comma-separated list for multiple reports
           # coverage-reports: <PATH_TO_REPORT>, <PATH_TO_REPORT>
+
+  install-linux:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    name: 'Install Linux Ubuntu ${{ matrix.os }}'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04, ubuntu-24.04-arm]
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: artifacts-${{ matrix.os }}
+        path: ${{ github.workspace }}/dist
+        
+    - name: Install package
+      run: |
+        # Install the downloaded package
+        cd ${{ github.workspace }}/dist
+        for deb in *.deb; do
+          if [ -f "$deb" ]; then
+            echo "Installing $deb..."
+            sudo dpkg -i "$deb"
+          fi
+        done
+        
+    - name: Check installation
+      run: |
+        # Check that lccgen is properly installed
+        if [ -f "/usr/local/bin/lccgen" ]; then
+          echo "lccgen found at /usr/local/bin/lccgen"
+          ls -l /usr/local/bin/lccgen
+          if [ -x "/usr/local/bin/lccgen" ]; then
+            echo "lccgen is executable"
+          else
+            echo "Error: lccgen is not executable"
+            exit 1
+          fi
+        else
+          echo "Error: lccgen not found at /usr/local/bin/lccgen"
+          exit 1
+        fi
+        
+    - name: Launch lccgen
+      run: |
+        # Launch lccgen to verify it works correctly
+        echo "Launching lccgen version..."
+        /usr/local/bin/lccgen version
+        if [ $? -eq 0 ]; then
+          echo "lccgen version executed successfully"
+        else
+          echo "Error: lccgen version failed"
+          exit 1
+        fi

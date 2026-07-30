@@ -2,8 +2,13 @@ name: Windows arm
 on:
    push:
      branches: [ "develop" ]
-#   pull_request:
-#     branches: [ "develop" ]
+   pull_request:
+     branches: [ "develop" ]
+
+permissions:
+   contents: read
+   actions: read
+   packages: read
 
 jobs:
    windows-arm:
@@ -49,11 +54,12 @@ jobs:
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
-            cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+            cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}  
             -DSTATIC_RUNTIME:BOOL=${{ matrix.static_runtime }} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
             -DUSE_OPENSSL=FALSE -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" 
             -DVCPKG_TARGET_TRIPLET=${{ matrix.target_triple }}
+#-DCMAKE_GENERATOR=Ninja
       -  name: Compile
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
@@ -69,4 +75,15 @@ jobs:
          run: |
            dir ${{ github.workspace }}\install\bin
            ${{ github.workspace }}\install\bin\lccgen.exe project list
-
+      # - name: Package  #find a way to install nsis on windows arm. maybe the one for windows works? need to test
+      #   working-directory: ${{ github.workspace }}\build
+      #   if: ${{ matrix.os == 'windows-11-arm' && matrix.static_runtime == 'TRUE' && matrix.build_type == 'Release' }}
+      #   run: |
+      #    cpack --config ${{ steps.strings.outputs.build-output-dir }}\CPackConfig.cmake
+      # - name: Upload artifact
+      #   if: ${{ matrix.os == 'windows-11-arm' && matrix.static_runtime == 'TRUE' && matrix.build_type == 'Release' }}
+      #   uses: actions/upload-artifact@v7
+      #   with:
+      #    name: artifacts-${{ matrix.os }}
+      #    path: ${{ steps.strings.outputs.build-output-dir }}\dist\lcc-license-generator-2.1.0_Windows-ARM64.exe
+      #    overwrite: true

@@ -4,6 +4,11 @@ on:
      branches: [ "develop" ]
    pull_request:
      branches: [ "develop" ]
+permissions:
+   contents: read
+   actions: read
+   packages: read
+
 jobs:
    build-windows:
       name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }} ssl: ${{ matrix.openssl_version }} boost: ${{ matrix.boost_version }}'
@@ -61,11 +66,21 @@ jobs:
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: |
             choco install -y openssl --version ${{ matrix.openssl_version }}
+      -  name: install nsis
+         id: install-nsis
+         shell: powershell
+         working-directory: ${{ steps.strings.outputs.build-output-dir }}
+         run: |
+            choco install -y nsis
+      -  name: Setup MSVC compiler
+         uses: ilammy/msvc-dev-cmd@v1
+         with:
+            arch: x64
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
-            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBoost_ROOT=${{ steps.strings.outputs.build-output-dir }}/boost
-            -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install
+            cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBoost_ROOT=${{ steps.strings.outputs.build-output-dir }}/boost
+            -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install -DCMAKE_GENERATOR=Ninja 
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
             -DUSE_OPENSSL=${{ steps.strings.outputs.use-openssl }} -DOpenSSL_ROOT_DIR="C:/Program Files/OpenSSL-Win64"
       -  name: Compile
@@ -79,9 +94,60 @@ jobs:
          env:
             CTEST_OUTPUT_ON_FAILURE: 1
             BOOST_TEST_LOG_LEVEL: message
-      -  name: license generator
+      -  name: license generator run
          run: |
            dir ${{ github.workspace }}\install\bin
-           ${{ github.workspace }}\install\bin\lccgen.exe project list
+           ${{ github.workspace }}\install\bin\lccgen.exe version
+      - name: Package
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        if: ${{ matrix.os == 'windows-2025' && matrix.static == 'TRUE' && matrix.build_type == 'Release' && matrix.openssl_version == 'None' }}
+        run: |
+         cpack --config ${{ steps.strings.outputs.build-output-dir }}\CPackConfig.cmake
+      - name: Upload artifact
+        if: ${{ matrix.os == 'windows-2025' && matrix.static == 'TRUE' && matrix.build_type == 'Release' && matrix.openssl_version == 'None' }}
+        uses: actions/upload-artifact@v7
+        with:
+         name: artifacts-${{ matrix.os }}
+         path: ${{ steps.strings.outputs.build-output-dir }}\dist\lcc-license-generator-2.1.0_Windows-AMD64.exe
+         retention-days: 1
+         overwrite: true
+
+   install:
+    needs: build-windows
+    runs-on: windows-2025
+    name: 'Install Windows Standard'
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: artifacts-windows-2025
+        path: ${{ github.workspace }}/dist
+        
+    - name: Install package
+      shell: powershell
+      run: |
+        # Install the downloaded package
+        dir ${{ github.workspace }}/dist
+        ${{ github.workspace }}/dist/lcc-license-generator-2.1.0_Windows-AMD64.exe /S
+        
+    - name: Install verification
+      run: |
+        # Check that lccgen.exe is properly installed
+        if (Test-Path "C:\Program Files\OpenLicenseManager\bin\lccgen.exe") {
+          Write-Output "lccgen.exe found at C:\Program Files\OpenLicenseManager\bin\lccgen.exe"
+          Write-Output "Testing lccgen execution..."
+          $result = & "C:\Program Files\OpenLicenseManager\bin\lccgen.exe" version
+          if ($LASTEXITCODE -eq 0) {
+            Write-Output "lccgen version executed successfully"
+          } else {
+            Write-Output "Error: lccgen version failed with exit code $LASTEXITCODE"
+            exit 1
+          }
+        } else {
+          Write-Output "Error: lccgen.exe not found at C:\Program Files\OpenLicenseManager\bin\lccgen.exe"
+          exit 1
+        }
+
+        
 
  
