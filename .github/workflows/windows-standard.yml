@@ -8,7 +8,7 @@ permissions:
    contents: read
    actions: read
    packages: read
-   
+
 jobs:
    build-windows:
       name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }} ssl: ${{ matrix.openssl_version }} boost: ${{ matrix.boost_version }}'
@@ -120,14 +120,14 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: artifacts-${{ matrix.os }}
+        name: artifacts-windows-2025
         path: ${{ github.workspace }}/dist/lcc-license-generator-2.1.0_Windows-AMD64.exe
         
     - name: Install package
       run: |
         # Install the downloaded package
         cd ${{ github.workspace }}/dist
-        lcc-license-generator-2.1.0_Windows-AMD64.exe /S
+        .\lcc-license-generator-2.1.0_Windows-AMD64.exe /S
         
     - name: Install verification
       run: |
