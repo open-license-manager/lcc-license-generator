@@ -64,7 +64,7 @@ jobs:
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >
-            cmake -A x64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBoost_ROOT=${{ steps.strings.outputs.build-output-dir }}/boost
+            cmake -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBoost_ROOT=${{ steps.strings.outputs.build-output-dir }}/boost
             -DSTATIC_RUNTIME:BOOL=${{matrix.static}} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install -DCMAKE_GENERATOR=Ninja 
             -S ${{ github.workspace }} -B ${{ steps.strings.outputs.build-output-dir }} 
             -DUSE_OPENSSL=${{ steps.strings.outputs.use-openssl }} -DOpenSSL_ROOT_DIR="C:/Program Files/OpenSSL-Win64"
