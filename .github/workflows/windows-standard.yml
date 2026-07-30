@@ -124,10 +124,10 @@ jobs:
         path: ${{ github.workspace }}/dist/lcc-license-generator-2.1.0_Windows-AMD64.exe
         
     - name: Install package
+      shell: powershell
       run: |
         # Install the downloaded package
-        cd ${{ github.workspace }}/dist
-        .\lcc-license-generator-2.1.0_Windows-AMD64.exe /S
+        ${{ github.workspace }}/dist/lcc-license-generator-2.1.0_Windows-AMD64.exe /S
         
     - name: Install verification
       run: |
