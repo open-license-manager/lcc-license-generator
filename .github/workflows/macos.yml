@@ -113,12 +113,11 @@ jobs:
     - name: Launch lccgen
       run: |
         # Launch lccgen to verify it works correctly
-        echo "Launching lccgen --version..."
-        /usr/local/bin/lccgen --version
+        echo "Launching lccgen version..."
+        /usr/local/bin/lccgen version
         if [ $? -eq 0 ]; then
-          echo "lccgen --version executed successfully"
+          echo "lccgen version executed successfully"
         else
-          echo "Error: lccgen --version failed"
+          echo "Error: lccgen version failed"
           exit 1
-        fi
         fi
