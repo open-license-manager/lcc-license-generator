@@ -61,6 +61,10 @@ jobs:
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: |
             choco install -y openssl --version ${{ matrix.openssl_version }}
+      -  name: Setup MSVC compiler
+         uses: ilammy/msvc-dev-cmd@v1
+         with:
+            arch: x64
       -  name: Configure
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: >

@@ -2,8 +2,8 @@ name: Windows arm
 on:
    push:
      branches: [ "develop" ]
-#   pull_request:
-#     branches: [ "develop" ]
+   pull_request:
+     branches: [ "develop" ]
 
 jobs:
    windows-arm:

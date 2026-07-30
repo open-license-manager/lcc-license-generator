@@ -128,10 +128,10 @@ jobs:
           # or a comma-separated list for multiple reports
           # coverage-reports: <PATH_TO_REPORT>, <PATH_TO_REPORT>
 
-  install:
+  install-linux:
     needs: build
-    runs-on: ubuntu-26.04
-    name: 'Install Linux Ubuntu 26.04'
+    runs-on: ${{ matrix.os }}
+    name: 'Install Linux Ubuntu ${{ matrix.os }}'
     strategy:
       fail-fast: false
       matrix:
