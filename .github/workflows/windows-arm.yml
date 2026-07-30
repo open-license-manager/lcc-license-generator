@@ -5,6 +5,11 @@ on:
    pull_request:
      branches: [ "develop" ]
 
+permissions:
+   contents: read
+   actions: read
+   packages: read
+
 jobs:
    windows-arm:
       name: '${{ matrix.os }}, build: ${{ matrix.build_type }} STATIC ${{ matrix.static_runtime }} ${{ matrix.target_triple }}'
@@ -69,15 +74,15 @@ jobs:
          run: |
            dir ${{ github.workspace }}\install\bin
            ${{ github.workspace }}\install\bin\lccgen.exe project list
-      - name: Package
-        working-directory: ${{ github.workspace }}\build
-        if: ${{ matrix.os == 'windows-11-arm' && matrix.static_runtime == 'TRUE' && matrix.build_type == 'Release' }}
-        run: |
-         cpack --config ${{ steps.strings.outputs.build-output-dir }}\CPackConfig.cmake
-      - name: Upload artifact
-        if: ${{ matrix.os == 'windows-11-arm' && matrix.static_runtime == 'TRUE' && matrix.build_type == 'Release' }}
-        uses: actions/upload-artifact@v7
-        with:
-         name: artifacts-${{ matrix.os }}
-         path: ${{ steps.strings.outputs.build-output-dir }}\dist\lcc-license-generator-2.1.0_Windows-ARM64.exe
-         overwrite: true
+      # - name: Package  #find a way to install nsis on windows arm. maybe the one for windows works? need to test
+      #   working-directory: ${{ github.workspace }}\build
+      #   if: ${{ matrix.os == 'windows-11-arm' && matrix.static_runtime == 'TRUE' && matrix.build_type == 'Release' }}
+      #   run: |
+      #    cpack --config ${{ steps.strings.outputs.build-output-dir }}\CPackConfig.cmake
+      # - name: Upload artifact
+      #   if: ${{ matrix.os == 'windows-11-arm' && matrix.static_runtime == 'TRUE' && matrix.build_type == 'Release' }}
+      #   uses: actions/upload-artifact@v7
+      #   with:
+      #    name: artifacts-${{ matrix.os }}
+      #    path: ${{ steps.strings.outputs.build-output-dir }}\dist\lcc-license-generator-2.1.0_Windows-ARM64.exe
+      #    overwrite: true

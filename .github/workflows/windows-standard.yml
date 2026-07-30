@@ -4,6 +4,11 @@ on:
      branches: [ "develop" ]
    pull_request:
      branches: [ "develop" ]
+permissions:
+   contents: read
+   actions: read
+   packages: read
+   
 jobs:
    build-windows:
       name: '${{ matrix.os }}, build: ${{ matrix.build_type }} static ${{ matrix.static }} ssl: ${{ matrix.openssl_version }} boost: ${{ matrix.boost_version }}'
@@ -61,6 +66,12 @@ jobs:
          working-directory: ${{ steps.strings.outputs.build-output-dir }}
          run: |
             choco install -y openssl --version ${{ matrix.openssl_version }}
+      -  name: install nsis
+         id: install-nsis
+         shell: powershell
+         working-directory: ${{ steps.strings.outputs.build-output-dir }}
+         run: |
+            choco install -y nsis
       -  name: Setup MSVC compiler
          uses: ilammy/msvc-dev-cmd@v1
          with:

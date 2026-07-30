@@ -4,7 +4,11 @@ on:
      branches: [ "develop" ]
    pull_request:
      branches: [ "develop" ]
-
+permissions:
+   contents: read
+   actions: read
+   packages: read
+   
 jobs:
   build:
     runs-on: ${{ matrix.os }}
