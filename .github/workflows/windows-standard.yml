@@ -121,12 +121,13 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: artifacts-windows-2025
-        path: ${{ github.workspace }}/dist/lcc-license-generator-2.1.0_Windows-AMD64.exe
+        path: ${{ github.workspace }}/dist
         
     - name: Install package
       shell: powershell
       run: |
         # Install the downloaded package
+        dir ${{ github.workspace }}/dist
         ${{ github.workspace }}/dist/lcc-license-generator-2.1.0_Windows-AMD64.exe /S
         
     - name: Install verification
