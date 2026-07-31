@@ -1,5 +1,5 @@
 ignore:
-  - "build"          # Ignore the build folder
-  - "src/inja/**/*"   # Ignore external third-party libraries
-  - "test/**/*"      # Ignore test files themselves
+  - "build"     # Ignore the build folder
+  - "src/inja"  # Ignore external third-party libraries
+  - "test"      # Ignore test files themselves
  

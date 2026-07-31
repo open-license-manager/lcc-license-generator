@@ -30,7 +30,7 @@ if (-not (Test-Path $output_dir)) {
 }
 
 if (-not (Test-Path $outputfile)) {
-	Write-Output "Boost not cached, downloading it: from $uri to $outputfile"
+	Write-Verbose "Boost not cached, downloading it: from $uri to $outputfile"
     do {
         try {
                 Invoke-WebRequest -Uri "$uri" -Verbose -OutFile "$outputfile" 

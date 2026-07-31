@@ -9,14 +9,6 @@ cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 SET(CMAKE_DISABLE_SOURCE_CHANGES ON) 
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-SET(LICENSECC_SHORT_LICENSE "BSD Software License")
-
-project (lccgen VERSION 2.1.0 LANGUAGES CXX)
-set(PROJECT_DESCRIPTION )
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 IF(POLICY CMP0167)
 	cmake_policy(SET CMP0167 OLD)
@@ -24,6 +16,14 @@ ENDIF(POLICY CMP0167)
 IF(POLICY CMP0144)
 	cmake_policy(SET CMP0144 NEW)
 ENDIF(POLICY CMP0144)
+
+project (lccgen VERSION 2.1.0 LANGUAGES CXX DESCRIPTION "License generator for Licensecc library")
+SET(LICENSECC_SHORT_LICENSE "BSD Software License")
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
 
 include(utilities) #import module utilities.cmake
 
@@ -48,7 +48,6 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 		set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 		set(BUILD_SHARED_LIBS OFF)
 	ENDIF(STATIC_RUNTIME)
-	
 	find_package(Threads)
 	if(THREADS_HAVE_PTHREAD_ARG)
   		list(APPEND EXTERNAL_LIBS "-pthread")
@@ -58,10 +57,10 @@ if(UNIX) #this is true for all the linux systems but not for cross compiling "li
 		endif()
 	endif(THREADS_HAVE_PTHREAD_ARG)
 	
+	#openssl always required in linux
 	IF(DEFINED USE_OPENSSL AND NOT USE_OPENSSL) #the user has explicitly disabled openssl, but we are in linux we need to enable it.
 		message(FATAL_ERROR "USE_OPENSSL is set to OFF, but we are in linux. Please enable it.")
 	ENDIF(DEFINED USE_OPENSSL AND NOT USE_OPENSSL)
-	#openssl always required in linux
 	find_package(OpenSSL REQUIRED COMPONENTS Crypto QUIET)
 	add_definitions(-DHAS_OPENSSL)
 	message( STATUS "OpenSSL libraries         :  ${OPENSSL_CRYPTO_LIBRARIES}")
@@ -155,11 +154,11 @@ if(CMAKE_BUILD_TYPE)
   message( STATUS "Build type                : " ${CMAKE_BUILD_TYPE})
 endif(CMAKE_BUILD_TYPE)
 message( STATUS "Install prefix            : " ${CMAKE_INSTALL_PREFIX})
-#include (build directory)/include to find build_properties.h
 message( STATUS "External libs             : " ${EXTERNAL_LIBS})
 message( STATUS "Boost libs                : " ${Boost_LIBRARIES})
 message( STATUS "Boost dirs                : " ${Boost_LIBRARY_DIRS})
 
+#include (build directory)/include to find build_properties.h
 include_directories(${CMAKE_BINARY_DIR}/include)
 add_subdirectory("src/base_lib")
 add_subdirectory("src/license_generator")

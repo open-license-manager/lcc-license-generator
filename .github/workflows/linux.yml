@@ -56,7 +56,6 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-26.04' }}
       run: >
         sudo apt-get install -y libjitterentropy3-dev valgrind lcov gcovr
-
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -107,18 +106,6 @@ jobs:
           # lcov --ignore-errors mismatch,inconsistent --directory . --capture --output-file ${{ steps.strings.outputs.build-output-dir }}/coverage.info
           # lcov --ignore-errors mismatch,inconsistent --remove ${{ steps.strings.outputs.build-output-dir }}/coverage.info '/usr/*' '*/ini/*' '*/test/*' '*/inja/*' --output-file '${{ steps.strings.outputs.build-output-dir }}/coverage.info'
           # lcov --list ${{ steps.strings.outputs.build-output-dir }}/coverage.info # Optional: prints a quick summary in the GitHub Actions logs
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v5
-      continue-on-error: true
-      if: ${{ matrix.code_coverage == 'ON' }}
-      with:
-          files: ${{ steps.strings.outputs.build-output-dir }}/coverage.xml
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: 'open-license-manager/lcc-license-generator'
-          root_dir: ${{ github.workspace }}
-          exclude: '${{ github.workspace }}/src/ini/.*,${{ github.workspace }}/test/.*,${{ github.workspace }}/src/inja/.*,/usr/.*,**/test/**,/usr/**,**/src/inja/**'
-          gcov_ignore: 'src/ini,test'
     - name: Run codacy-coverage-reporter
       uses: codacy/codacy-coverage-reporter-action@v1.3.0
       continue-on-error: true
@@ -128,10 +115,21 @@ jobs:
           # or
           # api-token: ${{ secrets.CODACY_API_TOKEN }}
           coverage-reports: ${{ steps.strings.outputs.build-output-dir }}/coverage.xml
-          #language: 'C++'
-          # or a comma-separated list for multiple reports
-          # coverage-reports: <PATH_TO_REPORT>, <PATH_TO_REPORT>
-
+          language: 'Cpp'
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      continue-on-error: true
+      if: ${{ matrix.code_coverage == 'ON' }}
+      with:
+        files: ${{ steps.strings.outputs.build-output-dir }}/coverage.xml
+        fail_ci_if_error: false
+        disable_search: true
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: 'open-license-manager/lcc-license-generator'
+        root_dir: ${{ github.workspace }}
+        exclude: '${{ github.workspace }}/src/ini,${{ github.workspace }}/test,${{ github.workspace }}/src/inja,/usr/'
+        gcov_ignore: 'src/ini,test'
+    
   install-linux:
     needs: build
     runs-on: ${{ matrix.os }}
