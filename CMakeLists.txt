@@ -164,12 +164,12 @@ add_subdirectory("src/base_lib")
 add_subdirectory("src/license_generator")
 
 INCLUDE(CTest)
-
-IF(BUILD_TESTING)
+#do not build/run the tests if included as submodule. 
+IF(BUILD_TESTING AND "${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
     SET(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
 	MARK_AS_ADVANCED(BUILDNAME)
 	add_subdirectory("test")
-ENDIF(BUILD_TESTING)
+ENDIF(BUILD_TESTING AND "${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
 
 # Configure CPack for different package formats
 set(CPACK_PACKAGE_NAME "lcc-license-generator")
