@@ -191,6 +191,13 @@ void License::add_parameter(const std::string& param_name, const std::string& pa
 			}
 		} else {
 			values_map[param_name] = param_value;
+			if (PARAM_EXTRA_DATA == param_name && param_value.length() > 64) {
+				cout << "Maximum lenght for parameter '" << PARAM_EXTRA_DATA
+					 << "' is 64 characters by default. You can still issue a license but remember to configure "
+						"project's 'build_properties.h'>'LCC_API_PROPRIETARY_DATA_SIZE' in licensecc to support longer "
+						"extra-data.'"
+					 << endl;
+			}
 		}
 	} else if (PARAM_FEATURE_NAMES == param_name) {
 		m_feature_names = param_value;
