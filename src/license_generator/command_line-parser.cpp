@@ -107,18 +107,25 @@ static FUNCTION_RETURN initializeProject(const po::parsed_options& parsed, po::v
 		("projects-folder,p", po::value<std::string>(&project_folder)->default_value("."),	//
 		 "path to where all the projects configurations are stored.")  //
 		("templates,t", po::value<std::string>(&templates_folder)->default_value("."),
-		 "path to the templates folder.")  //
+		 "path to the templates folder (licensecc/src/tempates).")	//
 		("key-bits,k", po::value<unsigned int>(&key_size)->default_value(DEFAULT_RSA_KEY_BITS),
 		 "Size of the RSA key in bits (1024, 2048, or 4096). Default is 2048.")	 //
 		("help", "Print this help.");  //
 	FUNCTION_RETURN result = FUNC_RET_OK;
 	if (rerunBoostPO(parsed, project_desc, vm, argv, "project init", global)) {
-
 		try {
 			Project project(project_name, project_folder, templates_folder);
 			result = project.initialize(key_size);
+			std::cout << "Project '" << project_name << "' initialized in folder: '" << project_folder << "'"
+					  << std::endl;
 			if (verbose) {
-				std::cout << "Project initialized successfully" << std::endl;
+				const fs::path destinationDir(fs::path(project_name) / project_name);
+				std::cout << std::endl
+						  << "remember to add -DLCC_PROJECT_NAME='" << project_name
+						  << "' when you configure the project with cmake." << std::endl;
+				std::cout << "If you are generating the project outside the standard location (<<CMAKE_SOURCE_DIR>>"
+							 "/projects) also remember to define -DLCC_PROJECTS_BASE_DIR='"
+						  << destinationDir.string() << "'" << std::endl;
 			}
 		} catch (std::exception& ex) {
 			std::cerr << "Project initialization error: " << ex.what() << std::endl;

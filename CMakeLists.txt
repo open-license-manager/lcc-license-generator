@@ -1,11 +1,21 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-## configuration variables
-#- USE_OPENSSL: Enable/Disable OpenSSL support. If disabled, the generator will use Windows Crypto API on Windows and will fail to compile on Linux.
-#- STATIC_RUNTIME: Enable/Disable static linking of the executable. If enabled, the executable will be statically linked with all libraries, including OpenSSL and Boost. If disabled, the executable will be dynamically linked with all libraries.
-#- Boost_ROOT: Hint for a path to the Boost installation. If not set, CMake will try to find Boost in the system paths.
-#- OpenSSL_ROOT: Hint for a path to the Openssl installation. 
-#- BUILD_TESTING : enable or disable testing
+## Build options (set them with -D<OPTION>=<VALUE>):
+## BOOST_ROOT                  Hint for a path to the Boost installation. If not set, CMake
+##                             will try to find Boost in the system paths.
+## BUILD_TESTING               Enable/disable building and running the tests. Only applies
+##                             when this project is built standalone (not as a submodule).
+##                             Default ON.
+## OPENSSL_ROOT_DIR            Hint for a path to the OpenSSL installation. If not set, CMake
+##                             will try to find OpenSSL in the system paths.
+## STATIC_RUNTIME              Link statically to the C/C++ runtime libraries and to Boost
+##                             and OpenSSL (when found). If disabled, the executable is
+##                             dynamically linked to the system libraries. Default ON.
+## USE_OPENSSL                 Enable/Disable OpenSSL support. On Linux it is always
+##                             required and cannot be disabled. On Windows, when disabled,
+##                             the Windows Crypto API (BCrypt) is used instead. If not
+##                             specified on Windows, OpenSSL is searched anyway. Default OFF
+##                             on Windows only.
 
 SET(CMAKE_DISABLE_SOURCE_CHANGES ON) 
 SET(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
