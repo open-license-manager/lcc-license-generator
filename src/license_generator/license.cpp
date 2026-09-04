@@ -189,6 +189,13 @@ void License::add_parameter(const std::string& param_name, const std::string& pa
 			if (param_value != "0") {
 				values_map[param_name] = param_value;
 			}
+		} else if (PARAM_VIRTUALIZATION_TYPE == param_name) {
+			const std::string value = boost::to_upper_copy(boost::trim_copy(param_value));
+			if (value != "NONE" && value != "CONTAINER" && value != "VM") {
+				throw std::invalid_argument(PARAM_VIRTUALIZATION_TYPE " value [" + param_value +
+											"] not supported: NONE, CONTAINER, VM");
+			}
+			values_map[param_name] = value;
 		} else {
 			values_map[param_name] = param_value;
 			if (PARAM_EXTRA_DATA == param_name && param_value.length() > 64) {

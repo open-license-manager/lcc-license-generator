@@ -191,6 +191,9 @@ static FUNCTION_RETURN issueLicense(const po::parsed_options& parsed, po::variab
 		 "Specify the last version of the software this license apply to.")	 //
 		(PARAM_EXTRA_DATA ",x", po::value<std::string>(),
 		 "Specify extra data to be included into the license (a string of max 64 characters)")	//
+		(PARAM_VIRTUALIZATION_TYPE ",t", po::value<std::string>(),
+		 "Limit the execution of the licensed software to a specific virtualization environment. "
+		 "Allowed values: NONE, CONTAINER, VM. If not specified the license will run on any environment.")  //
 		("custom-value", po::value<std::vector<std::string>>(), "Custom key=value pair to be added to the license")	 //
 		("help,h", "Print this help.");	 //
 	FUNCTION_RETURN result = FUNC_RET_OK;
