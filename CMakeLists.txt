@@ -27,7 +27,7 @@ IF(POLICY CMP0144)
 	cmake_policy(SET CMP0144 NEW)
 ENDIF(POLICY CMP0144)
 
-project (lccgen VERSION 2.1.0 LANGUAGES CXX DESCRIPTION "License generator for Licensecc library")
+project (lccgen VERSION 2.5.0 LANGUAGES CXX DESCRIPTION "License generator for Licensecc library")
 SET(LICENSECC_SHORT_LICENSE "BSD Software License")
 
 set(CMAKE_CXX_STANDARD 11)
